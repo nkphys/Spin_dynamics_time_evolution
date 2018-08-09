@@ -1,0 +1,15 @@
+Geometry = 2D
+Lx = 1
+Ly = 16
+
+w_convolution = 0.0
+w_min = 0.0
+w_max = 4.0
+dw = 0.02
+
+no_of_threads = 1
+
+#NOT USED
+Skw_out = NEW_RESULTS/Skw_kpath_BG.txt
+Skw_out_Full = NEW_RESULTS/Skw_BG.txt
+

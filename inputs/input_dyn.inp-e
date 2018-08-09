@@ -1,0 +1,41 @@
+Geometry = 2D
+Boundary conditions = PBC
+Lx = 1
+Ly = 16
+S_mag = 1.0
+t_hop = 1.0
+Jval (J_HUND) = 0.01
+Jval_p (J_AFM) = 0.0
+N_total = 16
+Beta = 1000
+RANDOM_NO_SEED = SEED_VALUE_
+
+
+Restart = false
+Restart_time = 300
+Restart_DM_Configuration = Density_matrix_300.txt
+Restart_Classical_angles = Classical_DOF_300.txt
+
+Save_Final_Time_Results = true
+Save_DM_Configuration = Density_matrix_300.txt
+Save_Classical_angles = Classical_DOF_300.txt
+
+Insitu_SpaceTimeFourier = true
+w_convolution = 0.0
+w_min = 0.0
+w_max = 4.0
+dw = 0.05
+
+
+time_max = 1000
+dt = 0.02
+Runge_Kutta_order = 4
+
+
+conf_input = initial_configs/input_1.txt
+spins_r_t_out = NEW_RESULTS/New_S_vs_t_BG_SEED_VALUE_.txt
+Skw_out = NEW_RESULTS/Skw_kpath_BG.txt
+Skw_out_Full = NEW_RESULTS/Skw_BG.txt
+no_of_threads = 4
+
+
