@@ -20,6 +20,8 @@ src/Model_1orbHubbard/Model_1orb_SF.cpp
 src/Model_1orbHubbard/Model_1orb_SF.h
 src/Model_1orbHubbard/Spin_dynamics_VNE_1orbHubbard_engine.cpp
 src/Model_1orbHubbard/Spin_dynamics_VNE_1orbHubbard_engine.h
+src/Model_1orbHubbard/Space_Time_FourierTransform.cpp
+src/Model_1orbHubbard/Space_Time_FourierTransform.h
 src/Model_3orbPnictides/ParametersEngine.h
 src/Model_3orbPnictides/Coordinates.h
 src/Model_3orbPnictides/Hamiltonian.h
@@ -27,3 +29,4 @@ src/Model_3orbPnictides/MFParams.h
 src/Model_3orbPnictides/Matrix.h
 src/Model_3orbPnictides/Observables.h
 src/Model_3orbPnictides/Spin_dynamics_VNE_3orbPnictides_engine.h
+src/Model_3orbPnictides/Space_Time_FourierTransform_3orb.h

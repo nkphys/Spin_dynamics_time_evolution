@@ -9,9 +9,9 @@
 #include <limits>
 #include <iomanip>
 #include <stdio.h>
-#include "tensor_type.h"
-#include "src/Model_1orbHubbard/Model_1orb_SF.h"
-#include "src/Model_1orbHubbard/Basis_1orb_SF.h"
+#include "../../tensor_type.h"
+#include "Model_1orb_SF.h"
+#include "Basis_1orb_SF.h"
 #define PI acos(-1.0)
 
 using namespace std;

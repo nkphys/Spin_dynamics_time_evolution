@@ -15,7 +15,8 @@
 //#include "Spin_dynamics_ED_engine.h"
 #include "src/Model_1orbHubbard/Spin_dynamics_VNE_1orbHubbard_engine.h"
 #include "src/Model_3orbPnictides/Spin_dynamics_VNE_3orbPnictides_engine.h"
-#include "Space_Time_FourierTransform.h"
+#include "src/Model_1orbHubbard/Space_Time_FourierTransform.h"
+#include "src/Model_3orbPnictides/Space_Time_FourierTransform_3orb.h"
 
 int main(int argc, char** argv){
 
@@ -24,6 +25,9 @@ int main(int argc, char** argv){
 
     string ex_string_original =argv[0];
     string model_=argv[1];
+
+    string input;
+    input=argv[2];
 
     if( (model_!="1orbHubard")
             &&
@@ -49,9 +53,6 @@ int main(int argc, char** argv){
         bool S_kw_using_ED= false;
         bool S_kw_using_Von_Nuemann=true;
 
-
-        string input;
-        input=argv[2];
 
         /*
         if(S_kw_using_ED){
@@ -131,8 +132,6 @@ int main(int argc, char** argv){
 
         cout<<"S(k,w) for Tight-binding model[Non-interacting fermions] is calculated"<<endl;
 
-        string input;
-        input=argv[2];
 
          if(model_=="1orbHubard"){
         string NISkw_filename_full = "Skw_NI_full.txt";
@@ -174,27 +173,26 @@ int main(int argc, char** argv){
 
 
     if(ex_string == "urier"){
+
+        if(model_=="1orbHubard"){
+
         cout<<"Space time Fourier Transform is performed on time-displaced correlation function, Ensemble Averaging is done."<<endl;
         cout<<"---------------[ <m_{i,t}m_{j,t}> - <m_{i,t}><m_{j,t}> ] is used, '< >' means Ensemble Average.--------------"<<endl;
 
 
-        string input;
-        input=argv[2];
 
         BASIS_1_orb_SF Basis;
 
-
-
         ST_Fourier SpaceTime_Fourier;
 
-        string No_of_inputs= argv[2];
+        string No_of_inputs= argv[3];
         stringstream No_of_inputs_ss(No_of_inputs, stringstream::in);
         No_of_inputs_ss>>SpaceTime_Fourier.No_Of_Inputs;
 
         SpaceTime_Fourier.conf_inputs.resize(SpaceTime_Fourier.No_Of_Inputs);
 
         for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
-            SpaceTime_Fourier.conf_inputs[i]=argv[i+3];
+            SpaceTime_Fourier.conf_inputs[i]=argv[i+4];
         }
 
 
@@ -220,6 +218,67 @@ int main(int argc, char** argv){
 
         }
         SpaceTime_Fourier.Calculate_Skw_from_Srt_file(Basis, "Temp_file_Srt.txt", "Skw_OnAveragedConfs.txt");
+
+
+        }
+
+        if(model_=="3orbPnictides"){
+
+            Parameters Parameters_;
+            Parameters_.Initialize(input);
+
+            Coordinates Coordinates_(Parameters_.lx, Parameters_.ly);
+
+            mt19937_64 Generator_(Parameters_.RandomSeed);
+            MFParams MFParams_(Parameters_,Coordinates_,Generator_);
+
+            Hamiltonian Hamiltonian_(Parameters_,Coordinates_,MFParams_);
+            Observables Observables_(Parameters_,Coordinates_,MFParams_,Hamiltonian_);
+
+
+            SC_SW_ENGINE_VNE_3orbPnictides Skw_Engine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
+            Skw_Engine_.Read_parameters(input);
+            Skw_Engine_.Initialize_engine();
+
+
+
+            ST_Fourier_3orb SpaceTime_Fourier(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_, Skw_Engine_);
+
+            string No_of_inputs= argv[3];
+            stringstream No_of_inputs_ss(No_of_inputs, stringstream::in);
+            No_of_inputs_ss>>SpaceTime_Fourier.No_Of_Inputs;
+
+            SpaceTime_Fourier.conf_inputs.resize(SpaceTime_Fourier.No_Of_Inputs);
+
+            for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
+                SpaceTime_Fourier.conf_inputs[i]=argv[i+4];
+            }
+
+
+            SpaceTime_Fourier.Read_parameters();
+            SpaceTime_Fourier.Initialize_engine();
+            SpaceTime_Fourier.Perform_Smarter_Averaging_on_one_point();
+
+
+            for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
+
+                string str_int;
+
+                stringstream ss;
+                ss << i;
+                ss >> str_int;
+
+                string Skw_conf = "Skw_conf_" + str_int + ".txt";
+                cout<<Skw_conf<<endl;
+                SpaceTime_Fourier.Calculate_Skw_from_Srt_file(SpaceTime_Fourier.conf_inputs[i],Skw_conf);
+
+            }
+            SpaceTime_Fourier.Calculate_Skw_from_Srt_file( "Temp_file_Srt.txt", "Skw_OnAveragedConfs.txt");
+
+
+
+        }
+
 
 
 

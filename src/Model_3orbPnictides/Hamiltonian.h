@@ -49,6 +49,8 @@ public:
     int lx_, ly_, ns_, orbs_;
     Matrix<complex<double>> HTB_;
     Matrix<complex<double>> Ham_;
+    vector<double> potential_local;
+
     Matrix<double> Tx,Ty,Tpxpy,Tpxmy;
     vector<double> eigs_,eigs_saved_,sx_,sy_,sz_;
 
@@ -145,6 +147,7 @@ double Hamiltonian::chemicalpotential(double muin,double filling){
 void Hamiltonian::Initialize(){
 
 
+    double DeltaXY=0.4;
     ly_=Parameters_.ly;
     lx_=Parameters_.lx;
     ns_=Parameters_.ns;
@@ -163,6 +166,11 @@ void Hamiltonian::Initialize(){
     sy_.resize(space);
     sz_.resize(space);
     eigs_saved_.resize(space);
+
+    potential_local.resize(3);
+    potential_local[0]=0.0;
+    potential_local[1]=0.0;
+    potential_local[2]=DeltaXY;
 
 
 } // ----------

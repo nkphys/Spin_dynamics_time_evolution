@@ -17,6 +17,7 @@ LIBS_1 += #-fopenmp #-liomp5
 all :	$(OBJS) 
 	$(CC) $(LFLAGS) $(OBJS) -o dynamics $(MKL_include) $(MKL_LIB2) $(MKL_LIB) $(LIBS_1)
 	cp dynamics NI_Skw
+	cp dynamics ST_Fourier
 
 functions.o : functions.cpp
 	$(CC) $(CFLAGS) functions.cpp $(MKL_include) $(MKL_LIB) $(LIBS_1)
@@ -36,8 +37,8 @@ Spin_dynamics_VNE_1orbHubbard_engine.o : src/Model_1orbHubbard/Spin_dynamics_VNE
 #Spin_dynamics_VNE_3orbPnictides_engine.o : src/Model_3orbPnictides/Spin_dynamics_VNE_3orbPnictides_engine.cpp
 #	$(CC) $(CFLAGS) src/Model_3orbPnictides/Spin_dynamics_VNE_3orbPnictides_engine.cpp $(MKL_include) $(MKL_LIB) $(LIBS_1)
 
-Space_Time_FourierTransform.o : Space_Time_FourierTransform.cpp
-	$(CC) $(CFLAGS) Space_Time_FourierTransform.cpp $(MKL_include) $(MKL_LIB) $(LIBS_1)
+Space_Time_FourierTransform.o : src/Model_1orbHubbard/Space_Time_FourierTransform.cpp
+	$(CC) $(CFLAGS) src/Model_1orbHubbard/Space_Time_FourierTransform.cpp $(MKL_include) $(MKL_LIB) $(LIBS_1)
 
 main.o : main.cpp
 	$(CC) $(CFLAGS) main.cpp $(MKL_include) $(MKL_LIB) $(LIBS_1)
