@@ -6,12 +6,12 @@
 #include <sstream>
 #include "src/Model_1orbHubbard/Basis_1orb_SF.h"
 #include "src/Model_1orbHubbard/Model_1orb_SF.h"
-//#include "src/Model_3orbPnictides/Coordinates.h"
-//#include "src/Model_3orbPnictides/Hamiltonian.h"
-//#include "src/Model_3orbPnictides/Matrix.h"
-//#include "src/Model_3orbPnictides/MFParams.h"
-//#include "src/Model_3orbPnictides/Observables.h"
-//#include "src/Model_3orbPnictides/ParametersEngine.h"
+#include "src/Model_3orbPnictides/Coordinates.h"
+#include "src/Model_3orbPnictides/Hamiltonian.h"
+#include "src/Model_3orbPnictides/Matrix.h"
+#include "src/Model_3orbPnictides/MFParams.h"
+#include "src/Model_3orbPnictides/Observables.h"
+#include "src/Model_3orbPnictides/ParametersEngine.h"
 //#include "Spin_dynamics_ED_engine.h"
 #include "src/Model_1orbHubbard/Spin_dynamics_VNE_1orbHubbard_engine.h"
 #include "src/Model_3orbPnictides/Spin_dynamics_VNE_3orbPnictides_engine.h"
@@ -110,15 +110,15 @@ int main(int argc, char** argv){
               Observables Observables_(Parameters_,Coordinates_,MFParams_,Hamiltonian_);
 
 
-              SC_SW_ENGINE_VNE_3orbPnictides Skw_Engine(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
-              Skw_Engine.Read_parameters(input);
-              Skw_Engine.Initialize_engine();
+              SC_SW_ENGINE_VNE_3orbPnictides Skw_Engine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
+              Skw_Engine_.Read_parameters(input);
+              Skw_Engine_.Initialize_engine();
 
-              if(!Skw_Engine.RESTART){
-              Skw_Engine.Read_equilibrium_configuration();
+              if(!Skw_Engine_.RESTART){
+              Skw_Engine_.Read_equilibrium_configuration();
               }
 
-              Skw_Engine.Start_Engine();
+              Skw_Engine_.Start_Engine();
 
             }
 
