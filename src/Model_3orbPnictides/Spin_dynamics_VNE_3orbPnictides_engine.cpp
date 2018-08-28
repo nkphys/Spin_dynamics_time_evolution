@@ -305,18 +305,18 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
         }
 
         file_out<<(ts*dt_) + Restart_Time<<"  ";
-        for(int pos_x=0;pos_x<Parameters_.lx;pos_x++){
-            for(int pos_y=0;pos_y<Parameters_.lx;pos_y++){
+        for(int pos_y=0;pos_y<Parameters_.lx;pos_y++){
+            for(int pos_x=0;pos_x<Parameters_.lx;pos_x++){
                 file_out<<S_mag*cos(Theta[0][pos_x][pos_y])<<"  ";
             }
         }
-        for(int pos_x=0;pos_x<Parameters_.lx;pos_x++){
-            for(int pos_y=0;pos_y<Parameters_.lx;pos_y++){
+        for(int pos_y=0;pos_y<Parameters_.lx;pos_y++){
+            for(int pos_x=0;pos_x<Parameters_.lx;pos_x++){
                 file_out<<S_mag*sin(Theta[0][pos_x][pos_y])*cos(Phi[0][pos_x][pos_y])<<"  ";
             }
         }
-        for(int pos_x=0;pos_x<Parameters_.lx;pos_x++){
-            for(int pos_y=0;pos_y<Parameters_.lx;pos_y++){
+        for(int pos_y=0;pos_y<Parameters_.lx;pos_y++){
+            for(int pos_x=0;pos_x<Parameters_.lx;pos_x++){
                 file_out<<S_mag*sin(Theta[0][pos_x][pos_y])*sin(Phi[0][pos_x][pos_y])<<"  ";
             }
         }
@@ -359,11 +359,11 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
 */
 
                         S_rw[pos_i][pos_j][wi] += exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*S_mag*S_mag*(
-                                    ( (cos(Theta_eq[pos_i_x][pos_i_y])*  (  1.0*cos(Theta[0][pos_j_x][pos_j_y]) -  1.0*cos(Theta_eq[pos_j_x][pos_j_y])   )  )  )
+                                    ( (cos(Theta_eq[pos_i_x][pos_i_y])*  (  1.0*cos(Theta[0][pos_j_x][pos_j_y]) -  0.0*cos(Theta_eq[pos_j_x][pos_j_y])   )  )  )
                                 +
-                                (  (sin(Theta_eq[pos_i_x][pos_i_y])*cos(Phi_eq[pos_i_x][pos_i_y])*   ( 1.0*sin(Theta[0][pos_j_x][pos_j_y])*cos(Phi[0][pos_j_x][pos_j_y])  -   1.0*sin(Theta_eq[pos_j_x][pos_j_y])*cos(Phi_eq[pos_j_x][pos_j_y])     )    )   )
+                                (  (sin(Theta_eq[pos_i_x][pos_i_y])*cos(Phi_eq[pos_i_x][pos_i_y])*   ( 1.0*sin(Theta[0][pos_j_x][pos_j_y])*cos(Phi[0][pos_j_x][pos_j_y])  -   0.0*sin(Theta_eq[pos_j_x][pos_j_y])*cos(Phi_eq[pos_j_x][pos_j_y])     )    )   )
                                 +
-                                (  (sin(Theta_eq[pos_i_x][pos_i_y])*sin(Phi_eq[pos_i_x][pos_i_y])*    (1.0*sin(Theta[0][pos_j_x][pos_j_y])*sin(Phi[0][pos_j_x][pos_j_y])   -   1.0*sin(Theta_eq[pos_j_x][pos_j_y])*sin(Phi_eq[pos_j_x][pos_j_y])      )      )  )
+                                (  (sin(Theta_eq[pos_i_x][pos_i_y])*sin(Phi_eq[pos_i_x][pos_i_y])*    (1.0*sin(Theta[0][pos_j_x][pos_j_y])*sin(Phi[0][pos_j_x][pos_j_y])   -   0.0*sin(Theta_eq[pos_j_x][pos_j_y])*sin(Phi_eq[pos_j_x][pos_j_y])      )      )  )
                                 )
 
 
@@ -387,15 +387,15 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
 
                                 ( ((quant_s_x_eq[pos_i][0]+quant_s_x_eq[pos_i][1]+quant_s_x_eq[pos_i][2])*
                                 ((quant_s_x[0][pos_j][0]+quant_s_x[0][pos_j][1]+quant_s_x[0][pos_j][2])    -
-                                1.0*(quant_s_x_eq[pos_j][0] + quant_s_x_eq[pos_j][1] + quant_s_x_eq[pos_j][2] )    ) )
+                                0.0*(quant_s_x_eq[pos_j][0] + quant_s_x_eq[pos_j][1] + quant_s_x_eq[pos_j][2] )    ) )
                                 +
                                 ((quant_s_y_eq[pos_i][0]+quant_s_y_eq[pos_i][1]+quant_s_y_eq[pos_i][2])*
                                 ((quant_s_y[0][pos_j][0]+quant_s_y[0][pos_j][1]+quant_s_y[0][pos_j][2])    -
-                                1.0*(quant_s_y_eq[pos_j][0] + quant_s_y_eq[pos_j][1] + quant_s_y_eq[pos_j][2] )    ) )
+                                0.0*(quant_s_y_eq[pos_j][0] + quant_s_y_eq[pos_j][1] + quant_s_y_eq[pos_j][2] )    ) )
                                 +
                                 ((quant_s_z_eq[pos_i][0]+quant_s_z_eq[pos_i][1]+quant_s_z_eq[pos_i][2])*
                                 ((quant_s_z[0][pos_j][0]+quant_s_z[0][pos_j][1]+quant_s_z[0][pos_j][2])    -
-                                1.0*(quant_s_z_eq[pos_j][0] + quant_s_z_eq[pos_j][1] + quant_s_z_eq[pos_j][2] )    ) )
+                                0.0*(quant_s_z_eq[pos_j][0] + quant_s_z_eq[pos_j][1] + quant_s_z_eq[pos_j][2] )    ) )
 
 
                                 )

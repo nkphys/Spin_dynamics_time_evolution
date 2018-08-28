@@ -1,19 +1,19 @@
 OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o main.o
-DEBUG = -g3
-#OPTFLAG = -O3
+DEBUG = #-g3
+OPTFLAG = -O3
 CPPFLAGS = -std=c++11
 CC = g++ $(OPTFLAG) $(CPPFLAGS)
 CFLAGS = -c $(DEBUG) #-DWITH_COMPLEX
 LFLAGS = $(DEBUG)
 MKL_LIB += -ldl -lpthread -lm
-#MKL_LIB2 = -llapack -lblas #/opt/intel/mkl/lib/libmkl_core.a  /opt/intel/mkl/lib/libmkl_intel_lp64.a  /opt/intel/mkl/lib/libmkl_sequential.a
+MKL_LIB2 = #-llapack -lblas #/opt/intel/mkl/lib/libmkl_core.a  /opt/intel/mkl/lib/libmkl_intel_lp64.a  /opt/intel/mkl/lib/libmkl_sequential.a
 MKL_LIB2 = /opt/intel/mkl/lib/libmkl_core.a  /opt/intel/mkl/lib/libmkl_intel_lp64.a  /opt/intel/mkl/lib/libmkl_sequential.a
 #/opt/intel/mkl/lib/libmkl_intel_thread.a #/opt/intel/mkl/lib/libmkl_gnu_thread.a  #/opt/intel/mkl/lib/libmkl_sequential.a
 MKL_include = -I/opt/intel/mkl/include
 #MKL_include = /opt/intel/mkl/lib/libmkl_core.a  /opt/intel/mkl/lib/libmkl_intel_lp64.a  /opt/intel/mkl/lib/libmkl_sequential.a
 OPENMP = /opt/intel/compilers_and_libraries_2016.3.170/mac/compiler/lib/
 LIBS_1 =  -L$(OPENMP)
-LIBS_1 += -fopenmp -liomp5  #-lgomp #-liomp5
+LIBS_1 += #-fopenmp -liomp5  #-lgomp #-liomp5
 #LIBS_1 += -qopenmp -liomp5  #-lgomp #-liomp5
 
 all :	$(OBJS) 

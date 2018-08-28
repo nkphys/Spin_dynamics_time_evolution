@@ -258,7 +258,7 @@ void Hamiltonian::Check_Hermiticity()
 void Hamiltonian::Diagonalize(char option){
 
     //extern "C" void   zheev_(char *,char *,int *,std::complex<double> *, int *, double *,
-    //                       std::complex<double> *,int *, double *, int *);
+     //                      std::complex<double> *,int *, double *, int *);
 
 
     char jobz=option;
@@ -275,7 +275,7 @@ void Hamiltonian::Diagonalize(char option){
     // query:
     zheev_(&jobz,&uplo,&n,&(Ham_(0,0)),&lda,&(eigs_[0]),&(work[0]),&lwork,&(rwork[0]),&info);
     //lwork = int(real(work[0]))+1;
-    lwork = int((work[0].real()));
+    lwork = int((work[0].real())) ;
     work.resize(lwork);
     // real work:
     zheev_(&jobz,&uplo,&n,&(Ham_(0,0)),&lda,&(eigs_[0]),&(work[0]),&lwork,&(rwork[0]),&info);
@@ -314,7 +314,7 @@ void Hamiltonian::HTBCreate(){
 
         // * +x direction Neighbor
         if(Coordinates_.indx(l)==(Coordinates_.lx_ -1)){
-            phasex=exp(iota_complex*2.0*(1.0*mx)*PI/(1.0*Parameters_.TBC_cellsX));
+            phasex=one_complex;
             phasey=one_complex;
         }
         else{
@@ -351,7 +351,7 @@ void Hamiltonian::HTBCreate(){
         // * +y direction Neighbor
         if(Coordinates_.indy(l)==(Coordinates_.ly_ -1)){
             phasex=one_complex;
-            phasey=exp(iota_complex*2.0*(1.0*my)*PI/(1.0*Parameters_.TBC_cellsY));
+            phasey=one_complex;
         }
         else{
             phasex=one_complex;
@@ -385,10 +385,10 @@ void Hamiltonian::HTBCreate(){
         phasex=one_complex;
         phasey=one_complex;
         if( Coordinates_.indy(l)==(Coordinates_.ly_ -1)  ){
-            phasey=exp(iota_complex*2.0*(1.0*my)*PI/(1.0*Parameters_.TBC_cellsY));
+            phasey=one_complex;
         }
         if(Coordinates_.indx(l)==(Coordinates_.lx_ -1)){
-            phasex=exp(iota_complex*2.0*(1.0*mx)*PI/(1.0*Parameters_.TBC_cellsX));
+            phasex=one_complex;
         }
 
         m = Coordinates_.neigh(l,4);
@@ -417,10 +417,10 @@ void Hamiltonian::HTBCreate(){
         phasex=one_complex;
         phasey=one_complex;
         if( Coordinates_.indy(l)==0  ){
-            phasey=exp(-1.0*iota_complex*2.0*(1.0*my)*PI/(1.0*Parameters_.TBC_cellsY));
+            phasey=one_complex;
         }
         if(Coordinates_.indx(l)==(Coordinates_.lx_ -1)){
-            phasex=exp(iota_complex*2.0*(1.0*mx)*PI/(1.0*Parameters_.TBC_cellsX));
+            phasex=one_complex;
         }
         m = Coordinates_.neigh(l,7);
 
@@ -467,8 +467,6 @@ void Hamiltonian::Hoppings(){
     t3 = -0.03;         t4 = 0.01;
     t5 = -0.2;          t6 = -0.3;
     t7 = 0.2;          t8 = 0.1;
-
-
 
 
     Tx(0,0)=-t2;

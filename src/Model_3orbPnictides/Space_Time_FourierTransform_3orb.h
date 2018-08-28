@@ -432,7 +432,7 @@ void ST_Fourier_3orb::Calculate_Skw_from_Srt_file( string filename, string fileo
 
 
 
-                    S_rw[pos_i][pos_j][wi] += cos((wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                    S_rw[pos_i][pos_j][wi] += cos((-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
                                 ( (Sz_eq[pos_i]*Sz_t[pos_j]  )  )
                                 +
                                 ( (Sx_eq[pos_i]*Sx_t[pos_j]  )  )
@@ -441,7 +441,7 @@ void ST_Fourier_3orb::Calculate_Skw_from_Srt_file( string filename, string fileo
                                 );
 
 
-                    s_quantum_rw[pos_i][pos_j][wi] += cos((wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                    s_quantum_rw[pos_i][pos_j][wi] += cos( (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
                                 ( (sz_eq[pos_i]*( sz_t[pos_j] - 0.0*sz_eq[pos_j])  )  )
                                 +
                                 ( (sx_eq[pos_i]*( sx_t[pos_j] - 0.0*sx_eq[pos_j])  )  )
