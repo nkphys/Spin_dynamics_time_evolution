@@ -258,6 +258,10 @@ int main(int argc, char** argv){
             SpaceTime_Fourier.Read_parameters();
             SpaceTime_Fourier.Initialize_engine();
             SpaceTime_Fourier.Perform_Smarter_Averaging_on_one_point();
+            SpaceTime_Fourier.Calculate_SpaceTimeDisplacedCorrelations("SpaceTimeDisplaced_Crt.txt");
+
+            SpaceTime_Fourier.Calculate_Skw_from_Crt("Skw_using_Crt.txt");
+
 
 
             for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
@@ -273,7 +277,9 @@ int main(int argc, char** argv){
                 SpaceTime_Fourier.Calculate_Skw_from_Srt_file(SpaceTime_Fourier.conf_inputs[i],Skw_conf);
 
             }
-            SpaceTime_Fourier.Calculate_Skw_from_Srt_file( "Temp_file_Srt.txt", "Skw_OnAveragedConfs.txt");
+
+
+            SpaceTime_Fourier.Calculate_Skw_from_Srt_file( "Average_Srt.txt", "Skw_OnAveragedConfs.txt");
 
 
 

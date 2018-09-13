@@ -127,17 +127,22 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Initialize_engine(){
 void SC_SW_ENGINE_VNE_3orbPnictides::Read_equilibrium_configuration(){
 
 
-    ifstream file_in(conf_input.c_str());
+    ifstream file_in;
+    file_in.open(conf_input.c_str());
 
     double temp_theta,temp_phi;
     int temp_lx, temp_ly;
     string temp_string;
-    file_in>>temp_string>>temp_string>>temp_string>>temp_string;
+    getline(file_in, temp_string);
+
 
     for(int x=0;x<Parameters_.lx;x++){
         for(int y=0;y<Parameters_.lx;y++){
 
-            file_in>>temp_lx>>temp_ly>>temp_theta>>temp_phi;
+            file_in>>temp_lx;
+            file_in>>temp_ly;
+            file_in>>temp_theta;
+            file_in>>temp_phi;
             Theta[0][temp_lx][temp_ly]=temp_theta;
             Phi[0][temp_lx][temp_ly]=temp_phi;
 
@@ -151,7 +156,7 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Read_equilibrium_configuration(){
     }
 
 
-    cout<<"Inital classical spin configuration is read from given input file"<<endl;
+    cout<<"Inital classical spin configuration is read from given input file "<<conf_input<<endl;
 
 
 
@@ -582,11 +587,11 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
                                     for(int y_j=0;y_j<Parameters_.ly;y_j++){
                                         pos_j = y_j*Parameters_.lx + x_j;
 
-                                        temp += one*S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp += one*S_rw[pos_i][pos_j][wi]*exp(iota*(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ));
 
                                         //                                   temp += S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp3 += one*T_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ); ;
+                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*exp(iota*(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ));
+                                        temp3 += one*T_rw[pos_i][pos_j][wi]*exp(iota*(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) )); ;
 
                                     }
                                 }
@@ -628,10 +633,10 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
                                     for(int y_j=0;y_j<Parameters_.ly;y_j++){
                                         pos_j = y_j*Parameters_.lx + x_j;
 
-                                        temp += one*S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp += one*S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
                                         //temp += S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp3 += one*T_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
+                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp3 += one*T_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
 
 
                                     }
@@ -776,10 +781,10 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
                                     for(int y_j=0;y_j<Parameters_.ly;y_j++){
                                         pos_j = y_j*Parameters_.lx + x_j;
 
-                                        temp += one*S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp += one*S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
                                         //temp += S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp3 += one*T_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
+                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp3 += one*T_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
 
                                     }
                                 }
@@ -818,10 +823,10 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
                                     for(int y_j=0;y_j<Parameters_.ly;y_j++){
                                         pos_j = y_j*Parameters_.lx + x_j;
 
-                                        temp += one*S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp += one*S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
                                         //temp += S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp3 += one*T_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
+                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp3 += one*T_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
                                     }
                                 }
                             }
@@ -855,10 +860,10 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
                                     for(int y_j=0;y_j<Parameters_.ly;y_j++){
                                         pos_j = y_j*Parameters_.lx + x_j;
 
-                                        temp += one*S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp += one*S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
                                         //temp += S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp3 += one*T_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
+                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp3 += one*T_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
 
                                     }
                                 }
@@ -896,10 +901,10 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
                                     for(int y_j=0;y_j<Parameters_.ly;y_j++){
                                         pos_j = y_j*Parameters_.lx + x_j;
 
-                                        temp += one*S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp += one*S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
                                         //temp += S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                        temp3 += one*T_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
+                                        temp2 += one*s_quantum_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                        temp3 += one*T_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
                                     }
                                 }
                             }
