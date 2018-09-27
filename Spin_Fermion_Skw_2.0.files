@@ -14,6 +14,7 @@ Spin_dynamics_VNE_engine.h
 Space_Time_FourierTransform.h
 Space_Time_FourierTransform.cpp
 tensor_type.h
+FftComplex.h
 src/Model_1orbHubbard/Basis_1orb_SF.cpp
 src/Model_1orbHubbard/Basis_1orb_SF.h
 src/Model_1orbHubbard/Model_1orb_SF.cpp

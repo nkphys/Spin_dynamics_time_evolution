@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <sstream>
 #include <cmath>
+#include <iterator>
+using std::size_t;
 //#include "mkl_spblas.h"
 //#include <mkl_types.h>
 //#include <mkl_cblas.h>
@@ -17,6 +19,12 @@
 #endif
 //#include <bits/stdc++.h>
 
+
+
+unsigned int bitReverse(unsigned int x, int log2n) ;
+
+template<class Iter_T>
+void fft(Iter_T a, Iter_T b, int log2n);
 int Find_int_in_intarray(int num, Mat_1_int &array);
 void Print_Matrix_COO(Matrix_COO &A);
 void Print_vector_in_file(Mat_1_doub vec, string filename);
@@ -36,5 +44,6 @@ bool present_before(Mat_1_int nup_2, Mat_1_int ndn_2, Mat_2_int nup_2_group, Mat
 void Get_NI_Skw(string filename_full , string filename_specific_k, int dim, double thop);
 double E_NI(double kx, double ky, double thop);
 double Lorentzian(double x);
+int reverseBits(int x, int n);
 
 

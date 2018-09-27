@@ -264,6 +264,7 @@ int main(int argc, char** argv){
 
 
 
+            /*
             for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
 
                 string str_int;
@@ -280,7 +281,7 @@ int main(int argc, char** argv){
 
 
             SpaceTime_Fourier.Calculate_Skw_from_Srt_file( "Average_Srt.txt", "Skw_OnAveragedConfs.txt");
-
+            */
 
 
         }

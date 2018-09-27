@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include "Spin_dynamics_VNE_3orbPnictides_engine.h"
 #ifdef _OPENMP
@@ -26,8 +25,12 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Initialize_engine(){
 
 
 
-    Theta.resize(Runge_Kutta_order+1);
-    Phi.resize(Runge_Kutta_order+1);
+    Theta.resize(4);
+    Phi.resize(4);
+
+    Theta_time.resize(4);
+    Phi_time.resize(4);
+    Red_Den_mat_time.resize(4);
 
 
     Theta_eq.resize(Parameters_.lx);
@@ -40,9 +43,14 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Initialize_engine(){
     for(int t=0;t<Theta.size();t++){
         Theta[t].resize(Parameters_.lx);
         Phi[t].resize(Parameters_.lx);
+        Theta_time[t].resize(Parameters_.lx);
+        Phi_time[t].resize(Parameters_.lx);
         for(int i=0;i<Parameters_.lx;i++){
             Theta[t][i].resize(Parameters_.ly);
             Phi[t][i].resize(Parameters_.ly);
+            Theta_time[t][i].resize(Parameters_.ly);
+            Phi_time[t][i].resize(Parameters_.ly);
+
         }
     }
 
@@ -88,6 +96,31 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Initialize_engine(){
                         Red_Den_mat[i][orb][s][j][orb2].resize(2);
 
                     }
+                }
+
+            }
+
+        }
+
+    }
+
+
+    for (int ts=0;ts<Red_Den_mat_time.size();ts++){
+        Red_Den_mat_time[ts].resize(Parameters_.ns);
+        for(int i=0;i<Parameters_.ns;i++){
+            Red_Den_mat_time[ts][i].resize(Parameters_.orbs);
+            for(int orb=0;orb<Parameters_.orbs;orb++){
+                Red_Den_mat_time[ts][i][orb].resize(2);
+                for(int s=0;s<2;s++){
+                    Red_Den_mat_time[ts][i][orb][s].resize(Parameters_.ns);
+                    for(int j=0;j<Parameters_.ns;j++){
+                        Red_Den_mat_time[ts][i][orb][s][j].resize(Parameters_.orbs);
+                        for(int orb2=0;orb2<Parameters_.orbs;orb2++){
+                            Red_Den_mat_time[ts][i][orb][s][j][orb2].resize(2);
+
+                        }
+                    }
+
                 }
 
             }
@@ -246,6 +279,7 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
                 file_mu_out<<ts<<"     "<<mu_<<endl;
                 //Get_quantum_Spins(0);
                 Observables_.Get_red_den_mat(Red_Den_mat, mu_);
+                Red_Den_mat_time[0]=Red_Den_mat;
                 cout<<"Hamiltonian is diagonalized at t=0 "<<endl;
             }
             else{
@@ -376,13 +410,13 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
 
 
                                 /*-
-                                                                                                                                                                                                                    0.5*exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*S_mag*S_mag*(
-                                                                                                                                                                                                                        ( (cos(Theta_eq[pos_i])*cos(Theta_eq[pos_j]))  )
-                                                                                                                                                                                                                        +
-                                                                                                                                                                                                                        (  (sin(Theta_eq[pos_i])*cos(Phi_eq[pos_i])*sin(Theta_eq[pos_j])*cos(Phi_eq[pos_j]) )   )
-                                                                                                                                                                                                                        +
-                                                                                                                                                                                                                        (  (sin(Theta_eq[pos_i])*sin(Phi_eq[pos_i])*sin(Theta_eq[pos_j])*sin(Phi_eq[pos_j]) )  )
-                                                                                                                                                                                                                        )*/
+                                                                                                                                                                                                                                                                            0.5*exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*S_mag*S_mag*(
+                                                                                                                                                                                                                                                                                ( (cos(Theta_eq[pos_i])*cos(Theta_eq[pos_j]))  )
+                                                                                                                                                                                                                                                                                +
+                                                                                                                                                                                                                                                                                (  (sin(Theta_eq[pos_i])*cos(Phi_eq[pos_i])*sin(Theta_eq[pos_j])*cos(Phi_eq[pos_j]) )   )
+                                                                                                                                                                                                                                                                                +
+                                                                                                                                                                                                                                                                                (  (sin(Theta_eq[pos_i])*sin(Phi_eq[pos_i])*sin(Theta_eq[pos_j])*sin(Phi_eq[pos_j]) )  )
+                                                                                                                                                                                                                                                                                )*/
 
 
                                 ;
@@ -407,16 +441,16 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
 
                                 /*-
 
-                                                                                                                                                                                                                    0.5*exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*
+                                                                                                                                                                                                                                                                            0.5*exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*
 
-                                                                                                                                                                                                                    ( (quant_s_x_eq[pos_i]*quant_s_x_eq[pos_j]  )
-                                                                                                                                                                                                                      +
-                                                                                                                                                                                                                      (quant_s_y_eq[pos_i]*quant_s_y_eq[pos_j]  )
-                                                                                                                                                                                                                      +
-                                                                                                                                                                                                                      (quant_s_z_eq[pos_i]*quant_s_z_eq[pos_j] )
+                                                                                                                                                                                                                                                                            ( (quant_s_x_eq[pos_i]*quant_s_x_eq[pos_j]  )
+                                                                                                                                                                                                                                                                              +
+                                                                                                                                                                                                                                                                              (quant_s_y_eq[pos_i]*quant_s_y_eq[pos_j]  )
+                                                                                                                                                                                                                                                                              +
+                                                                                                                                                                                                                                                                              (quant_s_z_eq[pos_i]*quant_s_z_eq[pos_j] )
 
 
-                                                                                                                                                                                                                      )*/
+                                                                                                                                                                                                                                                                              )*/
 
                                 ;
 
@@ -500,18 +534,65 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
         }
 
 
-        Evolve_classical_spins(0);
 
-        for(int pos=0;pos<Parameters_.ns;pos++){
-            for(int orb =0;orb<Parameters_.orbs;orb++){
-                quant_s_x[0][pos][orb] = 0.5*real( Red_Den_mat[pos][orb][1][pos][orb][0] + Red_Den_mat[pos][orb][0][pos][orb][1] );
-                quant_s_y[0][pos][orb] = 0.5*imag( Red_Den_mat[pos][orb][1][pos][orb][0] - Red_Den_mat[pos][orb][0][pos][orb][1] );
-                quant_s_z[0][pos][orb] = 0.5*real( Red_Den_mat[pos][orb][0][pos][orb][0] - Red_Den_mat[pos][orb][1][pos][orb][1] );
+        if(Predictor_Corrector==false){
+            Evolve_classical_spins_Runge_Kutta(0);
+
+            for(int pos=0;pos<Parameters_.ns;pos++){
+                for(int orb =0;orb<Parameters_.orbs;orb++){
+                    quant_s_x[0][pos][orb] = 0.5*real( Red_Den_mat[pos][orb][1][pos][orb][0] + Red_Den_mat[pos][orb][0][pos][orb][1] );
+                    quant_s_y[0][pos][orb] = 0.5*imag( Red_Den_mat[pos][orb][1][pos][orb][0] - Red_Den_mat[pos][orb][0][pos][orb][1] );
+                    quant_s_z[0][pos][orb] = 0.5*real( Red_Den_mat[pos][orb][0][pos][orb][0] - Red_Den_mat[pos][orb][1][pos][orb][1] );
+                }
             }
+
+            Theta[0]=Theta[1];
+            Phi[0]=Phi[1];
+        }
+        else{
+            if(ts<=2){
+                Theta_time[3-ts]=Theta[0];
+                Phi_time[3-ts]=Phi[0];
+
+                Evolve_classical_spins_Runge_Kutta(0);
+
+                for(int pos=0;pos<Parameters_.ns;pos++){
+                    for(int orb =0;orb<Parameters_.orbs;orb++){
+                        quant_s_x[0][pos][orb] = 0.5*real( Red_Den_mat[pos][orb][1][pos][orb][0] + Red_Den_mat[pos][orb][0][pos][orb][1] );
+                        quant_s_y[0][pos][orb] = 0.5*imag( Red_Den_mat[pos][orb][1][pos][orb][0] - Red_Den_mat[pos][orb][0][pos][orb][1] );
+                        quant_s_z[0][pos][orb] = 0.5*real( Red_Den_mat[pos][orb][0][pos][orb][0] - Red_Den_mat[pos][orb][1][pos][orb][1] );
+                    }
+                }
+
+                Theta[0]=Theta[1];
+                Phi[0]=Phi[1];
+
+
+
+
+            }
+            else{
+                Theta_time[0]=Theta[0];
+                Phi_time[0]=Phi[0];
+
+                Evolve_classical_spins_Predictor_Corrector();
+
+                Theta[0]=Theta[1];
+                Phi[0]=Phi[1];
+
+                for(int step=0;step<3;step++){
+                    Theta_time[step+1]=Theta_time[step];
+                    Phi_time[step+1]=Phi_time[step];
+                }
+
+
+            }
+
+
         }
 
-        Theta[0]=Theta[1];
-        Phi[0]=Phi[1];
+
+
 
 
     }
@@ -963,7 +1044,441 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Start_Engine(){
 
 
 
-void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins(int ts){
+
+void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Predictor_Corrector(){
+
+
+    complex<double> zero(0,0);
+    complex<double> one(1,0);
+    complex<double> iota(0,1);
+    bool EVOLVE_RED_DEN_MAT = false;
+    Mat_2_doub Theta_temp, Phi_temp;
+    Theta_temp.resize(Parameters_.lx);
+    Phi_temp.resize(Parameters_.lx);
+    for(int i=0;i<Parameters_.lx;i++){
+        Theta_temp[i].resize(Parameters_.ly);
+        Phi_temp[i].resize(Parameters_.ly);
+    }
+
+
+
+    int ts=0;
+
+    int site;
+
+    Mat_6_Complex_doub Red_Den_mat_temp;
+
+
+
+    Mat_2_Complex_doub Pauli_x,Pauli_y,Pauli_z;
+    Pauli_x.resize(2);Pauli_y.resize(2);Pauli_z.resize(2);
+
+    for(int i=0;i<2;i++){
+        Pauli_x[i].resize(2); Pauli_y[i].resize(2);Pauli_z[i].resize(2);
+        for(int j=0;j<2;j++){
+            Pauli_x[i][j]=0;Pauli_y[i][j]=0;Pauli_z[i][j]=0;
+        }
+    }
+
+    Pauli_x[0][1]=1.0;Pauli_x[1][0]=1.0;
+    Pauli_y[0][1]=-1.0*iota;Pauli_y[1][0]=1.0*iota;
+    Pauli_z[0][0]=1.0;Pauli_z[1][1]=-1.0;
+
+
+
+
+    //-------Adams-Bashforth Predictor---------//
+
+    double pi,ti; //phi_i,theta_i,phi_j,theta_j for timestep=ts
+    vector<double> sy,sx,sz; //Quantum spins for timestep=ts and position=pos
+    sx.resize(Parameters_.orbs);sy.resize(Parameters_.orbs);sz.resize(Parameters_.orbs);
+
+    complex<double> derivative_val, temp_val;
+    vector<double> coefficients_ABM;
+    coefficients_ABM.resize(4);
+    coefficients_ABM[0]= 55.0; //19.0 + ((9.0*55.0)*(dt_/24.0));
+    coefficients_ABM[1]= -59.0; //-5.0 - ((9.0*59.0)*(dt_/24.0));
+    coefficients_ABM[2]= 37.0; //1.0 + ((9.0*37.0)*(dt_/24.0));
+    coefficients_ABM[3]= -9.0; //-1.0*((9.0*9.0)*(dt_/24.0));
+
+
+    Phi[1]= Phi[0];
+    Theta[1]= Theta[0];
+
+
+    for(int step=0;step<4;step++){
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(pi, ti, sx, sy, sz)
+#endif
+        for(int pos=0;pos<Parameters_.ns;pos++){
+            int pos_x= Coordinates_.indx(pos);
+            int pos_y= Coordinates_.indy(pos);
+
+            pi=Phi_time[step][pos_x][pos_y];
+            ti=Theta_time[step][pos_x][pos_y];
+
+            for(int orb=0;orb<Parameters_.orbs;orb++){
+                sx[orb]=0.5*real( Red_Den_mat_time[step][pos][orb][1][pos][orb][0] +
+                        Red_Den_mat_time[step][pos][orb][0][pos][orb][1] );
+                sy[orb]=0.5*imag( Red_Den_mat_time[step][pos][orb][1][pos][orb][0] -
+                        Red_Den_mat_time[step][pos][orb][0][pos][orb][1] );
+                sz[orb]=0.5*real( Red_Den_mat_time[step][pos][orb][0][pos][orb][0] -
+                        Red_Den_mat_time[step][pos][orb][1][pos][orb][1] );
+            }
+
+
+
+            for(int orb=0;orb<Parameters_.orbs;orb++){
+                Phi[1][pos_x][pos_y] +=  coefficients_ABM[step]*((dt_/24.0)*(  -1.0*(Jval_array[pos]*((((sin(pi)*cos(ti))/(sin(ti)))*sy[orb]) +
+                                                                                                      (((cos(pi)*cos(ti))/(sin(ti)))*sx[orb]) - sz[orb]))  -  Bval_array[pos]  )    );
+
+                Theta[1][pos_x][pos_y] +=  coefficients_ABM[step]*((dt_/24.0)*( Jval_array[pos]*((cos(pi)*sy[orb]) -
+                                                                                                 (sin(pi)*sx[orb]))));
+            }
+
+
+            int pos_ng;
+            double pj,tj;
+            double value_;
+            for (int ng=0;ng<8;ng++){
+                if(ng<2){
+                    value_=1.14*Parameters_.J_NN;  // +x, -x
+                }
+                else if(ng>=2 && ng <4){
+                    value_=Parameters_.J_NN;   // +y, -y
+                }
+                else{
+                    value_=Parameters_.J_NNN;  //+x+y, +x-y, -x+y, -x-y
+                }
+                pos_ng= Coordinates_.neigh(pos,ng);
+                int pos_ng_x = Coordinates_.indx(pos_ng);
+                int pos_ng_y = Coordinates_.indy(pos_ng);
+                pj=Phi_time[step][pos_ng_x][pos_ng_y];
+                tj=Theta_time[step][pos_ng_x][pos_ng_y];
+                Phi[ts+1][pos_x][pos_y] += coefficients_ABM[step]*(-1.0)*((dt_/24.0)*( (S_mag)*(value_)* (((sin(tj)*cos(ti)*cos(pi - pj))
+                                                                                                           /(sin(ti))) - cos(tj) )));
+                Theta[ts+1][pos_x][pos_y] += coefficients_ABM[step]*((dt_/24.0)*(S_mag)*(value_)*(sin(tj)*sin(pj - pi)));
+
+            }
+
+
+
+
+
+
+            // cout<<pos<<"  "<<derivative_theta<<"  "<<derivative_phi<<endl;
+
+        }
+    }
+
+    //-----------------------Corrector------
+
+    Theta_temp=Theta[0];
+    Phi_temp=Phi[0];
+
+    coefficients_ABM[0]= 19.0;
+    coefficients_ABM[1]= -5.0;
+    coefficients_ABM[2]= 1.0;
+    coefficients_ABM[3]= 9.0;
+
+    for(int step=0;step<4;step++){
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(pi, ti, sx, sy, sz)
+#endif
+        for(int pos=0;pos<Parameters_.ns;pos++){
+            int pos_x= Coordinates_.indx(pos);
+            int pos_y= Coordinates_.indy(pos);
+
+            if(step!=3){
+                pi=Phi_time[step][pos_x][pos_y];
+                ti=Theta_time[step][pos_x][pos_y];
+            }
+            else{
+                pi=Phi[1][pos_x][pos_y];
+                ti=Theta[1][pos_x][pos_y];
+            }
+
+            for(int orb=0;orb<Parameters_.orbs;orb++){
+                sx[orb]=0.5*real( Red_Den_mat_time[step][pos][orb][1][pos][orb][0] +
+                        Red_Den_mat_time[step][pos][orb][0][pos][orb][1] );
+                sy[orb]=0.5*imag( Red_Den_mat_time[step][pos][orb][1][pos][orb][0] -
+                        Red_Den_mat_time[step][pos][orb][0][pos][orb][1] );
+                sz[orb]=0.5*real( Red_Den_mat_time[step][pos][orb][0][pos][orb][0] -
+                        Red_Den_mat_time[step][pos][orb][1][pos][orb][1] );
+            }
+
+
+
+            for(int orb=0;orb<Parameters_.orbs;orb++){
+                Phi_temp[pos_x][pos_y] +=  coefficients_ABM[step]*((dt_/24.0)*(  -1.0*(Jval_array[pos]*((((sin(pi)*cos(ti))/(sin(ti)))*sy[orb]) +
+                                                                                                        (((cos(pi)*cos(ti))/(sin(ti)))*sx[orb]) - sz[orb]))  -  Bval_array[pos]  )    );
+
+                Theta_temp[pos_x][pos_y] +=  coefficients_ABM[step]*((dt_/24.0)*( Jval_array[pos]*((cos(pi)*sy[orb]) -
+                                                                                                   (sin(pi)*sx[orb]))));
+            }
+
+
+            int pos_ng;
+            double pj,tj;
+            double value_;
+            for (int ng=0;ng<8;ng++){
+                if(ng<2){
+                    value_=1.14*Parameters_.J_NN;  // +x, -x
+                }
+                else if(ng>=2 && ng <4){
+                    value_=Parameters_.J_NN;   // +y, -y
+                }
+                else{
+                    value_=Parameters_.J_NNN;  //+x+y, +x-y, -x+y, -x-y
+                }
+                pos_ng= Coordinates_.neigh(pos,ng);
+                int pos_ng_x = Coordinates_.indx(pos_ng);
+                int pos_ng_y = Coordinates_.indy(pos_ng);
+
+                if(step!=3){
+                    pj=Phi_time[step][pos_ng_x][pos_ng_y];
+                    tj=Theta_time[step][pos_ng_x][pos_ng_y];
+                }
+                else{
+                    pj=Phi[1][pos_ng_x][pos_ng_y];
+                    tj=Theta[1][pos_ng_x][pos_ng_y];
+                }
+
+                Phi_temp[pos_x][pos_y] += coefficients_ABM[step]*(-1.0)*((dt_/24.0)*( (S_mag)*(value_)* (((sin(tj)*cos(ti)*cos(pi - pj))
+                                                                                                          /(sin(ti))) - cos(tj) )));
+                Theta_temp[pos_x][pos_y] += coefficients_ABM[step]*((dt_/24.0)*(S_mag)*(value_)*(sin(tj)*sin(pj - pi)));
+
+            }
+
+
+
+
+
+
+            // cout<<pos<<"  "<<derivative_theta<<"  "<<derivative_phi<<endl;
+
+        }
+    }
+
+
+    //--------------------
+
+
+    Phi[1]=Phi_temp;
+    Theta[1]=Theta_temp;
+    Phi_temp.clear();
+    Theta_temp.clear();
+
+    for(int pos=0;pos<Parameters_.ns;pos++){
+        int pos_x= Coordinates_.indx(pos);
+        int pos_y= Coordinates_.indy(pos);
+
+        if(Phi[ts+1][pos_x][pos_y] > 2*PI){
+            Phi[ts+1][pos_x][pos_y] += -2*PI;
+
+        }
+        if(Phi[ts+1][pos_x][pos_y] < 0){
+            Phi[ts+1][pos_x][pos_y] +=  2*PI;
+
+        }
+
+
+        if(Theta[ts+1][pos_x][pos_y] > PI){
+            Theta[ts+1][pos_x][pos_y] = Theta[ts+1][pos_x][pos_y] -2*PI;
+            Phi[ts+1][pos_x][pos_y] = fmod( Phi[ts+1][pos_x][pos_y] + PI, 2.0*PI );
+        }
+        if(Theta[ts+1][pos_x][pos_y] < 0){
+            Theta[ts+1][pos_x][pos_y] = - Theta[ts+1][pos_x][pos_y];
+            Phi[ts+1][pos_x][pos_y] = fmod( Phi[ts+1][pos_x][pos_y] + PI, 2.0*PI );
+
+        }
+
+    }
+
+
+
+    if(EVOLVE_RED_DEN_MAT==true){
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(derivative_val,temp_val)
+#endif
+        for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+            for(int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
+                for(int si=0;si<2;si++){
+                    for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+                        for(int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
+                            for(int sj=0;sj<2;sj++){
+
+
+
+
+                                int pos_i_x= Coordinates_.indx(pos_i);
+                                int pos_i_y= Coordinates_.indy(pos_i);
+                                int pos_j_x= Coordinates_.indx(pos_j);
+                                int pos_j_y= Coordinates_.indy(pos_j);
+
+                                complex<double> phasex, phasey;
+                                int l, spin_l, orb_l;
+                                double l_i;
+                                double value_temp1;
+                                phasex=one_complex;
+                                phasey=one_complex;
+                                derivative_val=zero_complex;
+
+
+
+                                //------------------i connection to l :start---------------------//
+                                // Phase from As positions
+                                l_i=pow (-1.00, Coordinates_.indx(pos_i) + Coordinates_.indy(pos_i) );
+
+                                spin_l = si;
+
+                                // +x,-x direction Neighbor
+                                for (int ng=0;ng<8;ng++){
+
+                                    l = Coordinates_.neigh(pos_i,ng);
+                                    for(orb_l=0;orb_l<Parameters_.orbs;orb_l++) {
+
+                                        if(ng==0 || ng==1){
+                                            value_temp1=Hamiltonian_.Tx(orb_l,orb_i);
+                                        }
+                                        if(ng==2 || ng==3){
+                                            value_temp1=Hamiltonian_.Ty(orb_l,orb_i);
+                                        }
+                                        if(ng==4 || ng==6){
+                                            value_temp1=Hamiltonian_.Tpxpy(orb_l,orb_i);
+                                        }
+                                        if(ng==5 || ng==7){
+                                            value_temp1=Hamiltonian_.Tpxmy(orb_l,orb_i);
+                                        }
+
+                                        if ( (orb_i==2) ^ (orb_l==2) ) {
+                                            derivative_val +=iota*complex<double>(1.0*l_i*value_temp1,0.0)*
+                                                    Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj];
+
+                                        }
+                                        else {
+                                            derivative_val +=iota*complex<double>(1.0*value_temp1, 0.0)*
+                                                    Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj];
+
+                                        }
+                                    }
+                                }
+
+
+
+                                //------------------i connection to l :done---------------------//
+
+
+                                //------------------j connection to l :start---------------------//
+                                // Phase from As positions
+                                l_i=pow (-1.00, Coordinates_.indx(pos_j) + Coordinates_.indy(pos_j) );
+
+                                spin_l = sj;
+
+                                // +x,-x direction Neighbor
+                                for (int ng=0;ng<8;ng++){
+
+                                    l = Coordinates_.neigh(pos_j,ng);
+                                    for(orb_l=0;orb_l<Parameters_.orbs;orb_l++) {
+
+                                        if(ng==0 || ng==1){
+                                            value_temp1=Hamiltonian_.Tx(orb_l,orb_j);
+
+                                        }
+                                        if(ng==2 || ng==3){
+                                            value_temp1=Hamiltonian_.Ty(orb_l,orb_j);
+
+                                        }
+                                        if(ng==4 || ng==6){
+                                            value_temp1=Hamiltonian_.Tpxpy(orb_l,orb_j);
+
+                                        }
+                                        if(ng==5 || ng==7){
+                                            value_temp1=Hamiltonian_.Tpxmy(orb_l,orb_j);
+
+                                        }
+
+                                        if ( (orb_j==2) ^ (orb_l==2) ) {
+                                            derivative_val +=iota*complex<double>(1.0*l_i*value_temp1,0.0)*
+                                                    Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l];
+
+                                        }
+                                        else {
+                                            derivative_val +=iota*complex<double>(1.0*value_temp1, 0.0)*
+                                                    Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l];
+
+                                        }
+                                    }
+                                }
+
+                                // On-Site potential for orb = 2 (xy)
+                                derivative_val +=complex<double>(1.0*(Hamiltonian_.potential_local[orb_i] - Hamiltonian_.potential_local[orb_j] ),0.0)*
+                                        Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj]  ;
+
+
+
+                                //------------------j connection to l :done---------------------//
+
+
+
+                                for(int s3=0;s3<2;s3++){
+                                    double SX_i,SY_i,SZ_i,SX_j,SY_j,SZ_j;
+                                    SX_i = sin(Theta[ts][pos_i_x][pos_i_y])*cos(Phi[ts][pos_i_x][pos_i_y]);
+                                    SY_i = sin(Theta[ts][pos_i_x][pos_i_y])*sin(Phi[ts][pos_i_x][pos_i_y]);
+                                    SZ_i = cos(Theta[ts][pos_i_x][pos_i_y]);
+                                    SX_j = sin(Theta[ts][pos_j_x][pos_j_y])*cos(Phi[ts][pos_j_x][pos_j_y]);
+                                    SY_j = sin(Theta[ts][pos_j_x][pos_j_y])*sin(Phi[ts][pos_j_x][pos_j_y]);
+                                    SZ_j = cos(Theta[ts][pos_j_x][pos_j_y]);
+                                    temp_val=Red_Den_mat_temp[pos_i][orb_i][s3][pos_j][orb_j][sj];
+                                    derivative_val+=iota*(-0.5*Jval_array[pos_i])*(S_mag)*(
+                                                (SX_i)*Pauli_x[si][s3]
+                                                +
+                                                (SY_i)*Pauli_y[si][s3]
+                                                +
+                                                (SZ_i)*Pauli_z[si][s3]
+                                                )*temp_val;
+                                    temp_val=Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][s3];
+                                    derivative_val +=iota*(0.5*Jval_array[pos_j])*(S_mag)*(
+                                                (SX_j)*Pauli_x[s3][sj]
+                                                +
+                                                (SY_j)*Pauli_y[s3][sj]
+                                                +
+                                                (SZ_j)*Pauli_z[s3][sj]
+                                                )*temp_val;
+
+
+
+                                }
+
+                                Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
+
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+    }
+
+
+    //cout<<"Only RK4 is working for VNE"<<endl;
+    //assert (Runge_Kutta_order==4);
+
+
+    //------------------------------
+
+
+
+
+
+
+
+}
+
+void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
 
     complex<double> zero(0,0);
     complex<double> one(1,0);
@@ -1353,7 +1868,7 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins(int ts){
         double mu;
         for(int step_no=0;step_no<4;step_no++){
 
-            //Classical spins time evolution
+            //Classical spins time evolution, due to coupling with Quantum spins and Magnetic field
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(derivative_theta,derivative_phi, pi, ti, sx, sy, sz)
 #endif
@@ -2230,6 +2745,8 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Read_parameters(string filename){
     string restart_classical_file_, Restart_Classical_File_ = "Restart_Classical_angles = ";
 
 
+    string predictor_corrector_ ,Predictor_Corrector_ = "Predictor_Corrector = ";
+    string use_fft_, Use_FFT_ = "Use_FFT = ";
 
     string save_final_time_, Save_Final_Time_ = "Save_Final_Time_Results = ";
     string Save_Dm_File_ = "Save_DM_Configuration = ";
@@ -2275,6 +2792,14 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Read_parameters(string filename){
 
             if ((offset = line.find(Save_Final_Time_, 0)) != string::npos) {
                 save_final_time_= line.substr (offset + Save_Final_Time_.length());		}
+
+
+            if ((offset = line.find(Predictor_Corrector_, 0)) != string::npos) {
+                predictor_corrector_= line.substr (offset + Predictor_Corrector_.length());		}
+
+
+            if ((offset = line.find(Use_FFT_, 0)) != string::npos) {
+                use_fft_= line.substr (offset + Use_FFT_.length());		}
 
 
 
@@ -2370,6 +2895,23 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Read_parameters(string filename){
     else{
         SAVE=false;
     }
+
+    if(predictor_corrector_=="true"){
+        Predictor_Corrector=true;
+    }
+    else{
+        Predictor_Corrector=false;
+    }
+
+
+
+    if(use_fft_=="true"){
+        Use_FFT=true;
+    }
+    else{
+        Use_FFT=false;
+    }
+
 
 
     RANDOM_NO_SEED=Parameters_.RandomSeed;

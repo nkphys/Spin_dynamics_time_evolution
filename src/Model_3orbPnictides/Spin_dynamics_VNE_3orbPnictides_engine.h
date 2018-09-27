@@ -71,6 +71,11 @@ public:
 
     Mat_6_Complex_doub Red_Den_mat; //c^dagger[i][orb][spin]c[j][orb2][spin2]
 
+
+    Mat_7_Complex_doub Red_Den_mat_time; //[ts]c^dagger[i][orb][spin]c[j][orb2][spin2]
+    Mat_3_doub Theta_time;   //[time_step][lx][ly]
+    Mat_3_doub Phi_time;     //[time_step][lx][ly]
+
     Mat_1_doub Jval_array;
     Mat_1_doub Jval_array_in_H;
     Mat_1_doub Bval_array;
@@ -104,6 +109,9 @@ public:
     bool Insitu_SpaceTimeFourier;
 
 
+    bool Predictor_Corrector;
+    bool Use_FFT;
+
 
     Parameters& Parameters_;
     Coordinates& Coordinates_;
@@ -117,7 +125,8 @@ public:
     void Read_equilibrium_configuration();
     void Start_Engine();
     void Read_Restart_Data();
-    void Evolve_classical_spins(int ts);
+    void Evolve_classical_spins_Runge_Kutta(int ts);
+    void Evolve_classical_spins_Predictor_Corrector();
 
     void Write_final_time_result();
 

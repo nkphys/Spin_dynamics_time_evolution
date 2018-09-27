@@ -17,6 +17,7 @@
 #include "ParametersEngine.h"
 #include "Spin_dynamics_VNE_3orbPnictides_engine.h"
 #include "../../tensor_type.h"
+#include "../../FftComplex.h"
 #define PI acos(-1.0)
 
 using namespace std;
@@ -52,6 +53,9 @@ public:
 
     string Skw_out;
     string Skw_out_full;
+
+
+    bool Use_FFT;
 
 
     /*
@@ -119,9 +123,6 @@ Mat_2_doub T_rt;
 
 void ST_Fourier_3orb::Initialize_engine(){
 
-    n_wpoints=(int) ((w_max-w_min)/dw + 0.5);
-    cout<<"n_wpoints = "<<n_wpoints<<endl;
-
 
 
     ifstream check_file;
@@ -164,6 +165,26 @@ void ST_Fourier_3orb::Initialize_engine(){
     cout <<"dt_ = "<<dt_<<endl;
     cout<< "time_max = "<<time_max<<endl;
     cout<< "time_steps = "<<time_steps<<endl;
+
+    if(Use_FFT==true){
+        cout<<"FFT is used, so dw, w_min are fixed, and w_max is used from input file."<<endl;
+        dw = (2.0*PI)/ time_max;
+        w_min = 0.0;
+        cout<<"dw = 2*pi/T_max = "<< dw<<endl;
+        cout<<"w_min = "<< w_min<<endl;
+        cout<<"w_max = "<< w_max<<endl;
+        n_wpoints=(int) ((w_max-w_min)/dw + 0.5);
+        cout<<"n_wpoints = "<<n_wpoints<<endl;
+    }
+    else{
+        cout<<"dw, w_min, w_max are used from input file."<<endl;
+        cout<<"dw = "<< dw<<endl;
+        cout<<"w_min = "<< w_min<<endl;
+        cout<<"w_max = "<< w_max<<endl;
+        n_wpoints=(int) ((w_max-w_min)/dw + 0.5);
+        cout<<"n_wpoints = "<<n_wpoints<<endl;
+
+    }
 
 
     check_file.clear();
@@ -364,7 +385,7 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
 
 
 
-        for(int ts=0;ts<=time_steps;ts++){
+        for(int ts=0;ts<time_steps;ts++){
 
             getline(Specific_conf_in, line_temp);
             stringstream line_temp_ss(line_temp, stringstream::in);
@@ -381,60 +402,60 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
 
 
             if(ts==0){
-            for(int r=0;r<6*Parameters_.ns;r++){
-                line_temp_ss>>double_temp;
+                for(int r=0;r<6*Parameters_.ns;r++){
+                    line_temp_ss>>double_temp;
                     S_r_t0[conf][r] = double_temp;
                 }
 
-            for(int r=0;r<Parameters_.ns;r++){
-                for(int rp=0;rp<Parameters_.ns;rp++){
+                for(int r=0;r<Parameters_.ns;r++){
+                    for(int rp=0;rp<Parameters_.ns;rp++){
 
-                    //Classical
-                    C_tr[ts][r][rp] += (S_r_t0[conf][r]*S_r_t0[conf][rp]);
-                    C_tr[ts][r+(Parameters_.ns)][rp+(Parameters_.ns)] +=
-                                        (S_r_t0[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]);
-                     C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)] +=
-                             (S_r_t0[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
+                        //Classical
+                        C_tr[ts][r][rp] += (S_r_t0[conf][r]*S_r_t0[conf][rp]);
+                        C_tr[ts][r+(Parameters_.ns)][rp+(Parameters_.ns)] +=
+                                (S_r_t0[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]);
+                        C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)] +=
+                                (S_r_t0[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
 
 
 
-                  //Quantum
-                    C_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] +=
-                                        (S_r_t0[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]);
-                    C_tr[ts][r+(4*Parameters_.ns)][rp+(4*Parameters_.ns)] +=
-                                        (S_r_t0[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]);
-                    C_tr[ts][r+(5*Parameters_.ns)][rp+(5*Parameters_.ns)] +=
-                                        (S_r_t0[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
+                        //Quantum
+                        C_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] +=
+                                (S_r_t0[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]);
+                        C_tr[ts][r+(4*Parameters_.ns)][rp+(4*Parameters_.ns)] +=
+                                (S_r_t0[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]);
+                        C_tr[ts][r+(5*Parameters_.ns)][rp+(5*Parameters_.ns)] +=
+                                (S_r_t0[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
+
+                    }
 
                 }
-
-            }
 
             }
             else{
                 for(int r=0;r<6*Parameters_.ns;r++){
                     line_temp_ss>>double_temp;
-                        S_r_t[conf][r] = double_temp;
-                    }
+                    S_r_t[conf][r] = double_temp;
+                }
                 for(int r=0;r<Parameters_.ns;r++){
                     for(int rp=0;rp<Parameters_.ns;rp++){
 
                         //Classical
                         C_tr[ts][r][rp] += (S_r_t[conf][r]*S_r_t0[conf][rp]);
                         C_tr[ts][r+(Parameters_.ns)][rp+(Parameters_.ns)] +=
-                                            (S_r_t[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]);
-                         C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)] +=
-                                 (S_r_t[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
+                                (S_r_t[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]);
+                        C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)] +=
+                                (S_r_t[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
 
 
 
-                      //Quantum
+                        //Quantum
                         C_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] +=
-                                            (S_r_t[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]);
+                                (S_r_t[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]);
                         C_tr[ts][r+(4*Parameters_.ns)][rp+(4*Parameters_.ns)] +=
-                                            (S_r_t[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]);
+                                (S_r_t[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]);
                         C_tr[ts][r+(5*Parameters_.ns)][rp+(5*Parameters_.ns)] +=
-                                            (S_r_t[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
+                                (S_r_t[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
                     }
 
                 }
@@ -447,7 +468,7 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
 
 
 
-    for(int ts=0;ts<=time_steps;ts++){
+    for(int ts=0;ts<time_steps;ts++){
         for(int r=0;r<Parameters_.ns;r++){
             for(int rp=0;rp<Parameters_.ns;rp++){
                 C_tr[ts][r][rp] = (C_tr[ts][r][rp]/No_Of_Inputs)  - ( S_tr[ts][r]*(S_tr[0][rp]) );
@@ -474,19 +495,19 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
     }
 
 
-    /*
-    for(int ts=0;ts<=time_steps;ts++){
+
+    for(int ts=0;ts<time_steps;ts++){
         STdisplaced_Crt_Fileout_<<ts*dt_<<"  ";
-        for(int d=0;d<Parameters_.ns;d++){
+        for(int r=0;r<Parameters_.ns;r++){
+                for(int rp=0;rp<Parameters_.ns;rp++){
 
-            C_tr[ts][r] = (C_tr[ts][r])*(1.0/No_Of_Inputs);
+            STdisplaced_Crt_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  ";
 
-            STdisplaced_Crt_Fileout_<< C_tr[ts][r]  - ( S_tr[ts][r]*(S_tr[0][r]) ) <<"  ";
-
+                }
         }
         STdisplaced_Crt_Fileout_<<endl;
     }
-    */
+
 
 
 
@@ -497,6 +518,12 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
 
 
 void ST_Fourier_3orb::Calculate_Skw_from_Crt(string fileout){
+
+
+
+    Fft DO_Fft;
+    DO_Fft.PI_EFF=PI;
+
 
     complex<double> iota(0,1);
     S_rw.resize(Parameters_.ns);
@@ -534,29 +561,33 @@ void ST_Fourier_3orb::Calculate_Skw_from_Crt(string fileout){
 
 
     //cout<<line_temp<<endl;
-    for(int ts=0;ts<=time_steps;ts++){
+
+
+
+    if(!Use_FFT){
+        for(int ts=0;ts<time_steps;ts++){
 
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif
-        for(int wi=0;wi<n_wpoints;wi++){
+            for(int wi=0;wi<n_wpoints;wi++){
 
-            for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
-                for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+                for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+                    for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
 
 
-                    //exp(iota*(-wi * dw) * (ts* dt_))
-                    S_rw[pos_i][pos_j][wi] += cos((wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
-                                ( ( C_tr[ts][pos_i][pos_j]  )  )
-                                +
-                                ( ( C_tr[ts][pos_i+(Parameters_.ns)][pos_j+(Parameters_.ns)]  )  )
+                        //exp(iota*(-wi * dw) * (ts* dt_))
+                        S_rw[pos_i][pos_j][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                                    ( ( C_tr[ts][pos_i][pos_j]  )  )
+                                    +
+                                    ( ( C_tr[ts][pos_i+(Parameters_.ns)][pos_j+(Parameters_.ns)]  )  )
                                 +
                                 ( ( C_tr[ts][pos_i+(2*Parameters_.ns)][pos_j+(2*Parameters_.ns)] )  )
                                 );
 
 
-                    s_quantum_rw[pos_i][pos_j][wi] += cos((wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
-                                ( (( C_tr[ts][pos_i+(3*Parameters_.ns)][pos_j+(3*Parameters_.ns)] )  )  )
+                        s_quantum_rw[pos_i][pos_j][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                                    ( (( C_tr[ts][pos_i+(3*Parameters_.ns)][pos_j+(3*Parameters_.ns)] )  )  )
                                 +
                                 ( (( C_tr[ts][pos_i+(4*Parameters_.ns)][pos_j+(4*Parameters_.ns)] )  )  )
                                 +
@@ -566,7 +597,7 @@ void ST_Fourier_3orb::Calculate_Skw_from_Crt(string fileout){
 
 
 
-                    /*    T_rw[pos_i][pos_j][wi] +=exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_* (
+                        /*    T_rw[pos_i][pos_j][wi] +=exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_* (
 
 
                             );*/
@@ -576,9 +607,45 @@ void ST_Fourier_3orb::Calculate_Skw_from_Crt(string fileout){
 
 
 
+                    }
                 }
             }
+
         }
+    }
+
+    else{
+        //USING FFT
+
+        Mat_1_Complex_doub Vec_1;
+        Vec_1.resize(time_steps);
+        for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+            for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+
+                for(int ts=0;ts<time_steps;ts++){
+                Vec_1[ts] = exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                                                    ( ( C_tr[ts][pos_i][pos_j]  )  )
+                                                    +
+                                                    ( ( C_tr[ts][pos_i+(Parameters_.ns)][pos_j+(Parameters_.ns)]  )  )
+                                                +
+                                                ( ( C_tr[ts][pos_i+(2*Parameters_.ns)][pos_j+(2*Parameters_.ns)] )  )
+                                                );
+                }
+
+                DO_Fft.transform(Vec_1);
+
+
+                for(int wi=0;wi<n_wpoints;wi++){
+                S_rw[pos_i][pos_j][wi] = Vec_1[wi];
+                s_quantum_rw[pos_i][pos_j][wi] =0.0;
+                }
+
+
+
+
+            }}
+
+
 
     }
 
@@ -642,10 +709,10 @@ void ST_Fourier_3orb::Calculate_Skw_from_Crt(string fileout){
                                 pos_j = y_j*Parameters_.lx + x_j;
 
                                 //expd(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) )
-                                temp += S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                temp += S_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
                                 //temp += S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                temp2 += s_quantum_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
-                                temp3 += T_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
+                                temp2 += s_quantum_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                                temp3 += T_rw[pos_i][pos_j][wi]*exp(iota*( (x_j - x_i)*kx +  (y_j - y_i)*ky ) ) ;
 
 
                             }
@@ -982,7 +1049,7 @@ void ST_Fourier_3orb::Read_parameters(){
 
     dw=SC_SW_ENGINE_VNE_3orbPnictides_.dw;
     w_conv=SC_SW_ENGINE_VNE_3orbPnictides_.w_conv;
-
+    Use_FFT=SC_SW_ENGINE_VNE_3orbPnictides_.Use_FFT;
 
     no_of_processors=SC_SW_ENGINE_VNE_3orbPnictides_.no_of_processors;
 
