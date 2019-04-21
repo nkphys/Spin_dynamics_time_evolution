@@ -271,7 +271,12 @@ void ST_Fourier_3orb::Perform_Averaging_on_one_point(){
 
 void ST_Fourier_3orb::Perform_Smarter_Averaging_on_one_point(){
 
-    string Temp_file_Srt="Average_Srt.txt";
+
+    ostringstream ostr_w_conv;
+    ostr_w_conv << w_conv;
+    string string_w_conv = ostr_w_conv.str();
+
+    string Temp_file_Srt="Average_Srt_w_conv"+string_w_conv+".txt";
     ofstream Temp_file_Srt_out(Temp_file_Srt.c_str());
 
 
