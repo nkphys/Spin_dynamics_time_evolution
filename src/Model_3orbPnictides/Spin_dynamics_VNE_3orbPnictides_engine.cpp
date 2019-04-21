@@ -3264,7 +3264,8 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
         //From "https://www.ams.org/journals/mcom/1968-22-102/S0025-5718-68-99876-1/S0025-5718-68-99876-1.pdf"
         //or google "An Explicit Sixth-Order Runge-Kutta Formula By H. A. Luther"
 
-        double nu=0.5;
+        double nu=1.0;
+        double sign_=-1.0;
 
         //we let the quantum spins change as well in the intermediate steps of dt interval in RK-4 method,
         //here we not diagonalize the matrix again to calculate quantum spins for the changed classical spins.
@@ -3530,15 +3531,15 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
 
 
                 if(step_no==4){
-                    pi=Phi[ts][pos_x][pos_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)))*(delta1_phi[pos]))
-                                                 + (-8.0*(7.0 + sqrt(21.0))*delta2_phi[pos] )
-                                                 + (48.0*nu*(7.0 + sqrt(21.0))*delta3_phi[pos] )
-                                                 + (-3.0*nu*(21.0 + sqrt(21.0))*delta4_phi[pos] )
+                    pi=Phi[ts][pos_x][pos_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_phi[pos]))
+                                                 + (-8.0*(7.0 + sqrt(21.0)*sign_)*delta2_phi[pos] )
+                                                 + (48.0*nu*(7.0 + sqrt(21.0)*sign_)*delta3_phi[pos] )
+                                                 + (-3.0*nu*(21.0 + sqrt(21.0)*sign_)*delta4_phi[pos] )
                                                  );
-                    ti=Theta[ts][pos_x][pos_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)))*(delta1_theta[pos]))
-                                                   + (-8.0*(7.0 + sqrt(21.0))*delta2_theta[pos] )
-                                                   + (48.0*nu*(7.0 + sqrt(21.0))*delta3_theta[pos] )
-                                                   + (-3.0*nu*(21.0 + sqrt(21.0))*delta4_theta[pos] )
+                    ti=Theta[ts][pos_x][pos_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_theta[pos]))
+                                                   + (-8.0*(7.0 + sqrt(21.0)*sign_)*delta2_theta[pos] )
+                                                   + (48.0*nu*(7.0 + sqrt(21.0)*sign_)*delta3_theta[pos] )
+                                                   + (-3.0*nu*(21.0 + sqrt(21.0)*sign_)*delta4_theta[pos] )
                                                    );
 
                     sx=0.0;sy=0.0;sz=0.0;
@@ -3546,28 +3547,28 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                         sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
                                 +
                                 (1.0/(392.0*nu))*(
-                                ((-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0))))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-8.0*(7.0 + sqrt(21.0)))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((48.0*nu*(7.0 + sqrt(21.0)))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-3.0*nu*(21.0 + sqrt(21.0)))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                ((-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)*sign_)))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((-8.0*(7.0 + sqrt(21.0)*sign_))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((48.0*nu*(7.0 + sqrt(21.0)*sign_))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((-3.0*nu*(21.0 + sqrt(21.0)*sign_))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 )
                                 );
                         sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
                                 +
                                 (1.0/(392.0*nu))*(
-                                ((-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0))))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-8.0*(7.0 + sqrt(21.0)))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((48.0*nu*(7.0 + sqrt(21.0)))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-3.0*nu*(21.0 + sqrt(21.0)))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                ((-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)*sign_)))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((-8.0*(7.0 + sqrt(21.0)*sign_))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((48.0*nu*(7.0 + sqrt(21.0)*sign_))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((-3.0*nu*(21.0 + sqrt(21.0)*sign_))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 )
                                 );
                         sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
                                 +
                                 (1.0/(392.0*nu))*(
-                                ((-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0))))*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((-8.0*(7.0 + sqrt(21.0)))*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((48.0*nu*(7.0 + sqrt(21.0)))*(delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((-3.0*nu*(21.0 + sqrt(21.0)))*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                ((-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)*sign_)))*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + ((-8.0*(7.0 + sqrt(21.0)*sign_))*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + ((48.0*nu*(7.0 + sqrt(21.0)*sign_))*(delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + ((-3.0*nu*(21.0 + sqrt(21.0)*sign_))*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
                                 )
                                 );
                     }
@@ -3595,17 +3596,17 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                 }
 
                 if(step_no==5){
-                    pi=Phi[ts][pos_x][pos_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)))*(delta1_phi[pos]))
-                                                                  + (-40.0*(7.0 - sqrt(21.0))*delta2_phi[pos] )
-                                                                  + (320.0*nu*(sqrt(21.0))*delta3_phi[pos] )
-                                                                  + (3.0*nu*(21.0 - 121.0*sqrt(21.0))*delta4_phi[pos] )
-                                                                  + (392.0*nu*(6.0 - sqrt(21.0))*delta5_phi[pos] )
+                    pi=Phi[ts][pos_x][pos_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_phi[pos]))
+                                                                  + (-40.0*(7.0 - sqrt(21.0)*sign_)*delta2_phi[pos] )
+                                                                  + (320.0*nu*(sqrt(21.0)*sign_)*delta3_phi[pos] )
+                                                                  + (3.0*nu*(21.0 - 121.0*sqrt(21.0)*sign_)*delta4_phi[pos] )
+                                                                  + (392.0*nu*(6.0 - sqrt(21.0)*sign_)*delta5_phi[pos] )
                                                                   );
-                    ti=Theta[ts][pos_x][pos_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)))*(delta1_theta[pos]))
-                                                                     + (-40.0*(7.0 - sqrt(21.0))*delta2_theta[pos] )
-                                                                     + (320.0*nu*(sqrt(21.0))*delta3_theta[pos] )
-                                                                     + (3.0*nu*(21.0 - 121.0*sqrt(21.0))*delta4_theta[pos] )
-                                                                     + (392.0*nu*(6.0 - sqrt(21.0))*delta5_theta[pos] )
+                    ti=Theta[ts][pos_x][pos_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_theta[pos]))
+                                                                     + (-40.0*(7.0 - sqrt(21.0)*sign_)*delta2_theta[pos] )
+                                                                     + (320.0*nu*(sqrt(21.0)*sign_)*delta3_theta[pos] )
+                                                                     + (3.0*nu*(21.0 - 121.0*sqrt(21.0)*sign_)*delta4_theta[pos] )
+                                                                     + (392.0*nu*(6.0 - sqrt(21.0)*sign_)*delta5_theta[pos] )
                                                                      );
 
 
@@ -3614,31 +3615,31 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                         sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
                                 +
                                 (1.0/(1960.0*nu))*(
-                                ((-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0))))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-40.0*(7.0 - sqrt(21.0)))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((320.0*nu*(sqrt(21.0)))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((3.0*nu*(21.0 - 121.0*sqrt(21.0)))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((392.0*nu*(6.0 - sqrt(21.0)))*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] + delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                ((-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)*sign_)))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((-40.0*(7.0 - sqrt(21.0)*sign_))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((320.0*nu*(sqrt(21.0)*sign_))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((3.0*nu*(21.0 - 121.0*sqrt(21.0)*sign_))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((392.0*nu*(6.0 - sqrt(21.0)*sign_))*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] + delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 )
                                 );
                         sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
                                 +
                                 (1.0/(1960.0*nu))*(
-                                ((-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0))))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-40.0*(7.0 - sqrt(21.0)))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((320.0*nu*(sqrt(21.0)))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((3.0*nu*(21.0 - 121.0*sqrt(21.0)))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((392.0*nu*(6.0 - sqrt(21.0)))*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] - delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                ((-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)*sign_)))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((-40.0*(7.0 - sqrt(21.0)*sign_))*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((320.0*nu*(sqrt(21.0)*sign_))*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((3.0*nu*(21.0 - 121.0*sqrt(21.0)*sign_))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + ((392.0*nu*(6.0 - sqrt(21.0)*sign_))*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] - delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 )
                                 );
                         sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
                                 +
                                 (1.0/(1960.0*nu))*(
-                                ((-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0))))*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((-40.0*(7.0 - sqrt(21.0)))*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((320.0*nu*(sqrt(21.0)))*(delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((3.0*nu*(21.0 - 121.0*sqrt(21.0)))*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((392.0*nu*(6.0 - sqrt(21.0)))*(delta5_Red_Den_mat[pos][orb][0][pos][orb][0] - delta5_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                ((-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)*sign_)))*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + ((-40.0*(7.0 - sqrt(21.0)*sign_))*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + ((320.0*nu*(sqrt(21.0)*sign_))*(delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + ((3.0*nu*(21.0 - 121.0*sqrt(21.0)*sign_))*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + ((392.0*nu*(6.0 - sqrt(21.0)*sign_))*(delta5_Red_Den_mat[pos][orb][0][pos][orb][0] - delta5_Red_Den_mat[pos][orb][1][pos][orb][1]))
                                 )
                                 );
                     }
@@ -3666,19 +3667,19 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                 }
 
                 if(step_no==6){
-                    pi=Phi[ts][pos_x][pos_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)))*(delta1_phi[pos]))
+                    pi=Phi[ts][pos_x][pos_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)*sign_))*(delta1_phi[pos]))
                                                                   + ((120.0)*delta2_phi[pos] )
-                                                                  + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0))) )*delta3_phi[pos] )
-                                                                  + (63.0*nu*(2.0 + 3.0*sqrt(21.0))*delta4_phi[pos] )
-                                                                  + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)) )*delta5_phi[pos] )
-                                                                  + (70.0*nu*(7.0 + (sqrt(21.0)) )*delta6_phi[pos] )
+                                                                  + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0)*sign_)) )*delta3_phi[pos] )
+                                                                  + (63.0*nu*(2.0 + 3.0*sqrt(21.0)*sign_)*delta4_phi[pos] )
+                                                                  + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)*sign_) )*delta5_phi[pos] )
+                                                                  + (70.0*nu*(7.0 + (sqrt(21.0)*sign_) )*delta6_phi[pos] )
                                                                   );
-                    ti=Theta[ts][pos_x][pos_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)))*(delta1_theta[pos]))
+                    ti=Theta[ts][pos_x][pos_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)*sign_))*(delta1_theta[pos]))
                                                                     + ((120.0)*delta2_theta[pos] )
-                                                                    + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0))) )*delta3_theta[pos] )
-                                                                    + (63.0*nu*(2.0 + 3.0*sqrt(21.0))*delta4_theta[pos] )
-                                                                    + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)) )*delta5_theta[pos] )
-                                                                    + (70.0*nu*(7.0 + (sqrt(21.0)) )*delta6_theta[pos] )
+                                                                    + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0)*sign_)) )*delta3_theta[pos] )
+                                                                    + (63.0*nu*(2.0 + 3.0*sqrt(21.0)*sign_)*delta4_theta[pos] )
+                                                                    + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)*sign_) )*delta5_theta[pos] )
+                                                                    + (70.0*nu*(7.0 + (sqrt(21.0)*sign_) )*delta6_theta[pos] )
                                                                     );
 
 
@@ -3687,34 +3688,34 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                         sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
                                 +
                                 (1.0/(180.0*nu))*(
-                                (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)*sign_))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 + ((120.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0))) )*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (63.0*nu*(2.0 + 3.0*sqrt(21.0))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)) )*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] + delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (70.0*nu*(7.0 + (sqrt(21.0)) )*(delta6_Red_Den_mat[pos][orb][1][pos][orb][0] + delta6_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0)*sign_)) )*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (63.0*nu*(2.0 + 3.0*sqrt(21.0)*sign_)*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)*sign_) )*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] + delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (70.0*nu*(7.0 + (sqrt(21.0)*sign_) )*(delta6_Red_Den_mat[pos][orb][1][pos][orb][0] + delta6_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 )
                                 );
                         sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
                                 +
                                 (1.0/(180.0*nu))*(
-                                (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)*sign_))*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 + ((120.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0))) )*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (63.0*nu*(2.0 + 3.0*sqrt(21.0))*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)) )*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] - delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + (70.0*nu*(7.0 + (sqrt(21.0)) )*(delta6_Red_Den_mat[pos][orb][1][pos][orb][0] - delta6_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0)*sign_)) )*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (63.0*nu*(2.0 + 3.0*sqrt(21.0)*sign_)*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)*sign_) )*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] - delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
+                                + (70.0*nu*(7.0 + (sqrt(21.0)*sign_) )*(delta6_Red_Den_mat[pos][orb][1][pos][orb][0] - delta6_Red_Den_mat[pos][orb][0][pos][orb][1]))
                                 )
                                 );
                         sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
                                 +
                                 (1.0/(180.0*nu))*(
-                                (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)))*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)*sign_))*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
                                 + ((120.0)*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0))) )*(delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + (63.0*nu*(2.0 + 3.0*sqrt(21.0))*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)) )*(delta5_Red_Den_mat[pos][orb][0][pos][orb][0] - delta5_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + (70.0*nu*(7.0 + (sqrt(21.0)) )*(delta6_Red_Den_mat[pos][orb][0][pos][orb][0] - delta6_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0)*sign_)) )*(delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + (63.0*nu*(2.0 + 3.0*sqrt(21.0)*sign_)*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)*sign_) )*(delta5_Red_Den_mat[pos][orb][0][pos][orb][0] - delta5_Red_Den_mat[pos][orb][1][pos][orb][1]))
+                                + (70.0*nu*(7.0 + (sqrt(21.0)*sign_) )*(delta6_Red_Den_mat[pos][orb][0][pos][orb][0] - delta6_Red_Den_mat[pos][orb][1][pos][orb][1]))
                                 )
                                 );
                     }
@@ -3892,15 +3893,15 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                     }
 
                     if(step_no==4){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)))*(delta1_phi[pos_ng]))
-                                                                            + (-8.0*(7.0 + sqrt(21.0))*delta2_phi[pos_ng] )
-                                                                            + (48.0*nu*(7.0 + sqrt(21.0))*delta3_phi[pos_ng] )
-                                                                            + (-3.0*nu*(21.0 + sqrt(21.0))*delta4_phi[pos_ng] )
+                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_phi[pos_ng]))
+                                                                            + (-8.0*(7.0 + sqrt(21.0)*sign_)*delta2_phi[pos_ng] )
+                                                                            + (48.0*nu*(7.0 + sqrt(21.0)*sign_)*delta3_phi[pos_ng] )
+                                                                            + (-3.0*nu*(21.0 + sqrt(21.0)*sign_)*delta4_phi[pos_ng] )
                                                                             );
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)))*(delta1_theta[pos_ng]))
-                                                                              + (-8.0*(7.0 + sqrt(21.0))*delta2_theta[pos_ng] )
-                                                                              + (48.0*nu*(7.0 + sqrt(21.0))*delta3_theta[pos_ng] )
-                                                                              + (-3.0*nu*(21.0 + sqrt(21.0))*delta4_theta[pos_ng] )
+                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/(392.0*nu))*( (-1.0*( (77.0*nu - 56.0) + ((17.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_theta[pos_ng]))
+                                                                              + (-8.0*(7.0 + sqrt(21.0)*sign_)*delta2_theta[pos_ng] )
+                                                                              + (48.0*nu*(7.0 + sqrt(21.0)*sign_)*delta3_theta[pos_ng] )
+                                                                              + (-3.0*nu*(21.0 + sqrt(21.0)*sign_)*delta4_theta[pos_ng] )
                                                                               );
 
                         if(intermediate_update==true){
@@ -3925,17 +3926,17 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                     }
 
                     if(step_no==5){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)))*(delta1_phi[pos_ng]))
-                                                                             + (-40.0*(7.0 - sqrt(21.0))*delta2_phi[pos_ng] )
-                                                                             + (320.0*nu*(sqrt(21.0))*delta3_phi[pos_ng] )
-                                                                             + (3.0*nu*(21.0 - 121.0*sqrt(21.0))*delta4_phi[pos_ng] )
-                                                                             + (392.0*nu*(6.0 - sqrt(21.0))*delta5_phi[pos_ng] )
+                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_phi[pos_ng]))
+                                                                             + (-40.0*(7.0 - sqrt(21.0)*sign_)*delta2_phi[pos_ng] )
+                                                                             + (320.0*nu*(sqrt(21.0)*sign_)*delta3_phi[pos_ng] )
+                                                                             + (3.0*nu*(21.0 - 121.0*sqrt(21.0)*sign_)*delta4_phi[pos_ng] )
+                                                                             + (392.0*nu*(6.0 - sqrt(21.0)*sign_)*delta5_phi[pos_ng] )
                                                                              );
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)))*(delta1_theta[pos_ng]))
-                                                                               + (-40.0*(7.0 - sqrt(21.0))*delta2_theta[pos_ng] )
-                                                                               + (320.0*nu*(sqrt(21.0))*delta3_theta[pos_ng] )
-                                                                               + (3.0*nu*(21.0 - 121.0*sqrt(21.0))*delta4_theta[pos_ng] )
-                                                                               + (392.0*nu*(6.0 - sqrt(21.0))*delta5_theta[pos_ng] )
+                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/(1960.0*nu))*( (-5.0*( (287.0*nu - 56.0) - ((59.0*nu - 8.0)*sqrt(21.0)*sign_))*(delta1_theta[pos_ng]))
+                                                                               + (-40.0*(7.0 - sqrt(21.0)*sign_)*delta2_theta[pos_ng] )
+                                                                               + (320.0*nu*(sqrt(21.0)*sign_)*delta3_theta[pos_ng] )
+                                                                               + (3.0*nu*(21.0 - 121.0*sqrt(21.0)*sign_)*delta4_theta[pos_ng] )
+                                                                               + (392.0*nu*(6.0 - sqrt(21.0)*sign_)*delta5_theta[pos_ng] )
                                                                                );
 
                         if(intermediate_update==true){
@@ -3960,19 +3961,19 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                     }
 
                     if(step_no==6){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)))*(delta1_phi[pos_ng]))
+                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)*sign_))*(delta1_phi[pos_ng]))
                                                                             + ((120.0)*delta2_phi[pos_ng] )
-                                                                            + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0))) )*delta3_phi[pos_ng] )
-                                                                            + (63.0*nu*(2.0 + 3.0*sqrt(21.0))*delta4_phi[pos_ng] )
-                                                                            + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)) )*delta5_phi[pos_ng] )
-                                                                            + (70.0*nu*(7.0 + (sqrt(21.0)) )*delta6_phi[pos_ng] )
+                                                                            + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0)*sign_)) )*delta3_phi[pos_ng] )
+                                                                            + (63.0*nu*(2.0 + 3.0*sqrt(21.0)*sign_)*delta4_phi[pos_ng] )
+                                                                            + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)*sign_) )*delta5_phi[pos_ng] )
+                                                                            + (70.0*nu*(7.0 + (sqrt(21.0)*sign_) )*delta6_phi[pos_ng] )
                                                                             );
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)))*(delta1_theta[pos_ng]))
+                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/(180.0*nu))*( (15.0*( (30.0*nu - 8.0) - ((7.0*nu)*sqrt(21.0)*sign_))*(delta1_theta[pos_ng]))
                                                                               + ((120.0)*delta2_theta[pos_ng] )
-                                                                              + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0))) )*delta3_theta[pos_ng] )
-                                                                              + (63.0*nu*(2.0 + 3.0*sqrt(21.0))*delta4_theta[pos_ng] )
-                                                                              + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)) )*delta5_theta[pos_ng] )
-                                                                              + (70.0*nu*(7.0 + (sqrt(21.0)) )*delta6_theta[pos_ng] )
+                                                                              + (-40.0*nu*(5.0 + (7.0*(sqrt(21.0)*sign_)) )*delta3_theta[pos_ng] )
+                                                                              + (63.0*nu*(2.0 + 3.0*sqrt(21.0)*sign_)*delta4_theta[pos_ng] )
+                                                                              + (-14.0*nu*(49.0 - (9.0*sqrt(21.0)*sign_) )*delta5_theta[pos_ng] )
+                                                                              + (70.0*nu*(7.0 + (sqrt(21.0)*sign_) )*delta6_theta[pos_ng] )
                                                                               );
 
                         if(intermediate_update==true){

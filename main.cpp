@@ -258,9 +258,17 @@ int main(int argc, char** argv){
             SpaceTime_Fourier.Read_parameters();
             SpaceTime_Fourier.Initialize_engine();
             SpaceTime_Fourier.Perform_Smarter_Averaging_on_one_point();
-            SpaceTime_Fourier.Calculate_SpaceTimeDisplacedCorrelations("SpaceTimeDisplaced_Crt.txt");
 
-            SpaceTime_Fourier.Calculate_Skw_from_Crt("Skw_using_Crt.txt");
+            ostringstream ostr_w_conv;
+            ostr_w_conv << SpaceTime_Fourier.w_conv;
+            string string_w_conv = ostr_w_conv.str();
+
+
+            string SpaceTimeDisplaced_Crt_file = "SpaceTimeDisplaced_Crt_w_conv" + string_w_conv + ".txt";
+            SpaceTime_Fourier.Calculate_SpaceTimeDisplacedCorrelations(SpaceTimeDisplaced_Crt_file);
+
+            string Skw_using_Crt_file = "Skw_using_Crt_w_conv" + string_w_conv + ".txt";
+            SpaceTime_Fourier.Calculate_Skw_from_Crt(Skw_using_Crt_file);
 
 
 
