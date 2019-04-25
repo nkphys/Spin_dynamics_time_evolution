@@ -517,7 +517,7 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
 
             STdisplaced_Crt_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  ";
             if(r==rp && r==0){
-            STdisplaced_Crt_r0_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<;
+            STdisplaced_Crt_r0_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv));
             }
 
                 }
