@@ -378,6 +378,15 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
     double row_time, double_temp;
     int row_ts;
 
+    ostringstream ostr_w_conv;
+    ostr_w_conv << w_conv;
+    string string_w_conv = ostr_w_conv.str();
+    string SpaceTimeDisplaced_Crt_r0_file = "SpaceTimeDisplaced_Crt_r0_w_conv" + string_w_conv + ".txt";
+
+    ofstream STdisplaced_Crt_r0_Fileout_(SpaceTimeDisplaced_Crt_r0_file.c_str());
+    STdisplaced_Crt_r0_Fileout_<<"#time   C(r=0,t)_Sz   C(r=0,t)_Sx  C(r=0,t)_Sy  C(r=0,t)_sz   C(r=0,t)_sx  C(r=0,t)_sy"<<endl;
+
+
     ofstream STdisplaced_Crt_Fileout_(STdisplaced_Crt_fileout.c_str());
     STdisplaced_Crt_Fileout_<<"#time   C(rt)_Sz   C(rt)_Sx  C(rt)_Sy  C(rt)_sz   C(rt)_sx  C(rt)_sy"<<endl;
 
@@ -500,17 +509,21 @@ void ST_Fourier_3orb::Calculate_SpaceTimeDisplacedCorrelations(string STdisplace
     }
 
 
-
     for(int ts=0;ts<time_steps;ts++){
         STdisplaced_Crt_Fileout_<<ts*dt_<<"  ";
+        STdisplaced_Crt_r0_Fileout_<<ts*dt_<<"  ";
         for(int r=0;r<Parameters_.ns;r++){
                 for(int rp=0;rp<Parameters_.ns;rp++){
 
             STdisplaced_Crt_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  ";
+            if(r==rp && r==0){
+            STdisplaced_Crt_r0_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<;
+            }
 
                 }
         }
         STdisplaced_Crt_Fileout_<<endl;
+        STdisplaced_Crt_r0_Fileout_<<endl;
     }
 
 
