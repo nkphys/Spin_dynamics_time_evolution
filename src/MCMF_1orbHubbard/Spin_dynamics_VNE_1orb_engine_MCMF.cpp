@@ -224,6 +224,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Start_Engine(){
 
     ofstream file_out(spins_r_t_out.c_str());
     file_out<<"# Sz------, Sx-----,Sy-----"<<endl;
+    file_out<<scientific<<setprecision(15);
 
     ofstream file_mu_out(mu_output.c_str());
 
