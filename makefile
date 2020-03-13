@@ -12,7 +12,7 @@ MKL_LIB2 = #/opt/intel/mkl/lib/libmkl_core.a  /opt/intel/mkl/lib/libmkl_intel_lp
 MKL_include = #-I/opt/intel/mkl/include
 #MKL_include = /opt/intel/mkl/lib/libmkl_core.a  /opt/intel/mkl/lib/libmkl_intel_lp64.a  /opt/intel/mkl/lib/libmkl_sequential.a
 OPENMP = #/opt/intel/compilers_and_libraries_2016.3.170/mac/compiler/lib/
-LIBS_1 =  -L$(OPENMP)
+LIBS_1 =  #-L$(OPENMP)
 LIBS_1 += -fopenmp #-liomp5  #-lgomp #-liomp5
 #LIBS_1 += -qopenmp -liomp5  #-lgomp #-liomp5
 

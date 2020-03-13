@@ -364,6 +364,13 @@ int main(int argc, char** argv){
             }
 
 
+#ifdef _OPENMP
+    cout<<"Parallel threads are used"<<endl;
+#endif
+#ifndef _OPENMP
+    cout<<"single thread is used"<<endl;
+#endif
+
             SpaceTime_Fourier.Read_parameters();
             SpaceTime_Fourier.Initialize_engine();
             SpaceTime_Fourier.Perform_Smarter_Averaging_on_one_point();

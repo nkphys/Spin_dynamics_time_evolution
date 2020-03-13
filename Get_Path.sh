@@ -1,8 +1,8 @@
 #!/bin/bash
 #Skw_conf_1.txt
 #Skw_using_Crt.txt
-infile="Skw_conf_0.txt"
-outfile="check0.txt"
+infile="Skw_using_Crt_w_conv0.05.txt"
+outfile="Skw_using_Crt_w_conv0.05_Path.txt"
 tempfile="temp.txt"
 lx=4
 ly=4

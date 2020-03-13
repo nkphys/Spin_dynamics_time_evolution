@@ -183,7 +183,8 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Start_Engine(){
 #ifdef _OPENMP
     omp_set_num_threads(no_of_processors);
     int N_p = omp_get_max_threads();
-    cout<<N_p<<" processors are used parallely"<<endl;
+    cout<<"Max threads which can be used parallely = "<<N_p<<endl;
+    cout<<"No. of threads used parallely = "<<no_of_processors<<endl;
 #endif
 
     bool use_only_allowed_k = true;
@@ -1342,7 +1343,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
         complex<double> derivative_val;
 
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(pi, ti, sx, sy, sz)
+#pragma omp parallel for default(shared) private(Aux_Sx_i, Aux_Sy_i, Aux_Sz_i, sx, sy, sz)
 #endif
         for(int pos=0;pos<Parameters_.ns;pos++){
 
@@ -1371,7 +1372,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
         if(EVOLVE_RED_DEN_MAT==true){
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(derivative_val,temp_val)
+#pragma omp parallel for default(shared) private(derivative_val)
 #endif
             for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
                 for(int si=0;si<2;si++){
