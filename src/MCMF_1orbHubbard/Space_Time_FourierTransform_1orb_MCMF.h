@@ -296,9 +296,9 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
     S_tr.resize(time_steps+1);
 
 
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) //private()
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for default(shared) //private()
+//#endif
     for(int ts=0;ts<=time_steps;ts++){
         S_tr[ts].resize(6*Parameters_.ns);
         for(int r=0;r<6*Parameters_.ns;r++){
@@ -397,9 +397,9 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
     S_r_t0.resize(conf_inputs.size());
     S_r_t.resize(conf_inputs.size());
 
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) //private()
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for default(shared) //private()
+//#endif
     for(int i =0;i<S_r_t0.size();i++){
         S_r_t0[i].resize(6*Parameters_.ns);
         S_r_t[i].resize(6*Parameters_.ns);
@@ -408,9 +408,9 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
 
     C_tr.resize(time_steps+1);
 
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) //private()
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for default(shared) //private()
+//#endif
     for(int ts=0;ts<=time_steps;ts++){
         C_tr[ts].resize(6*Parameters_.ns);
         for(int r=0;r<6*Parameters_.ns;r++){
@@ -546,14 +546,14 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
 
 
 
-#ifdef _OPENMP
-    no_threads_used = min(no_of_processors, time_steps);
-    omp_set_num_threads(no_threads_used);
-    N_p = omp_get_max_threads();
-    cout<<"threads being used parallely = "<<N_p<<endl;
-    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
-#pragma omp parallel for default(shared) //private()
-#endif
+//#ifdef _OPENMP
+//    no_threads_used = min(no_of_processors, time_steps);
+//    omp_set_num_threads(no_threads_used);
+//    N_p = omp_get_max_threads();
+//    cout<<"threads being used parallely = "<<N_p<<endl;
+//    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+//#pragma omp parallel for default(shared) //private()
+//#endif
     for(int ts=0;ts<time_steps;ts++){
         for(int r=0;r<Parameters_.ns;r++){
             for(int rp=0;rp<Parameters_.ns;rp++){
