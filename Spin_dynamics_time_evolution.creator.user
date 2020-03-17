@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE QtCreatorProject>
-<!-- Written by QtCreator 3.5.1, 2020-03-12T16:53:45. -->
+<!-- Written by QtCreator 3.5.1, 2020-03-17T01:11:01. -->
 <qtcreator>
  <data>
   <variable>EnvironmentId</variable>
@@ -159,7 +159,7 @@
     </valuelist>
     <value type="int" key="PE.EnvironmentAspect.Base">2</value>
     <valuelist type="QVariantList" key="PE.EnvironmentAspect.Changes"/>
-    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">1orb_MCMF input.inp </value>
+    <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Arguments">1orb_MCMF input_dynamics.inp </value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.Executable">/home/nitin/Documents/Codes/Spin_dynamics_time_evolution/dynamics</value>
     <value type="QString" key="ProjectExplorer.CustomExecutableRunConfiguration.WorkingDirectory">%{buildDir}</value>
     <value type="QString" key="ProjectExplorer.ProjectConfiguration.DefaultDisplayName">Run /home/nitin/Documents/Codes/Spin_dynamics_time_evolution/dynamics</value>

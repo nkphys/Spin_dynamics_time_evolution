@@ -1635,13 +1635,8 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 #endif
                 for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
                     for(int si=0;si<2;si++){
-                        for(int pos_j=0;pos_j<=Parameters_.ns;pos_j++){
+                        for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
                             for(int sj=0;sj<2;sj++){
-
-                                int pos_i_x= Coordinates_.indx(pos_i);
-                                int pos_i_y= Coordinates_.indy(pos_i);
-                                int pos_j_x= Coordinates_.indx(pos_j);
-                                int pos_j_y= Coordinates_.indy(pos_j);
 
                                 complex<double> phasex, phasey;
                                 int l, spin_l, orb_l;

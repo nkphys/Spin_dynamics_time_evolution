@@ -2172,7 +2172,7 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                 for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
                     for(int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
                         for(int si=0;si<2;si++){
-                            for(int pos_j=0;pos_j<=Parameters_.ns;pos_j++){
+                            for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
                                 for(int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
                                     for(int sj=0;sj<2;sj++){
 
@@ -2504,20 +2504,20 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
 
                                             }
                                             if(step_no==3){
-                                                SX_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta3_theta[pos_i])*
-                                                        cos(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta3_phi[pos_i]);
-                                                SY_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta3_theta[pos_i])*
-                                                        sin(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta3_phi[pos_i]);
-                                                SZ_i = cos(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta3_theta[pos_i]);
+                                                SX_i = sin(Theta[ts][pos_i_x][pos_i_x] +delta3_theta[pos_i])*
+                                                        cos(Phi[ts][pos_i_x][pos_i_x] + delta3_phi[pos_i]);
+                                                SY_i = sin(Theta[ts][pos_i_x][pos_i_x] + delta3_theta[pos_i])*
+                                                        sin(Phi[ts][pos_i_x][pos_i_x] + delta3_phi[pos_i]);
+                                                SZ_i = cos(Theta[ts][pos_i_x][pos_i_x] + delta3_theta[pos_i]);
 
-                                                SX_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta3_theta[pos_j])*
-                                                        cos(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta3_phi[pos_j]);
-                                                SY_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta3_theta[pos_j])*
-                                                        sin(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta3_phi[pos_j]);
-                                                SZ_j = cos(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta3_theta[pos_j]);
+                                                SX_j = sin(Theta[ts][pos_j_x][pos_j_x] + delta3_theta[pos_j])*
+                                                        cos(Phi[ts][pos_j_x][pos_j_x] + delta3_phi[pos_j]);
+                                                SY_j = sin(Theta[ts][pos_j_x][pos_j_x] + delta3_theta[pos_j])*
+                                                        sin(Phi[ts][pos_j_x][pos_j_x] + delta3_phi[pos_j]);
+                                                SZ_j = cos(Theta[ts][pos_j_x][pos_j_x] + delta3_theta[pos_j]);
 
                                                 temp_val=Red_Den_mat_temp[pos_i][orb_i][s3][pos_j][orb_j][sj] +
-                                                        0.5*delta3_Red_Den_mat[pos_i][orb_i][s3][pos_j][orb_j][sj];
+                                                        delta3_Red_Den_mat[pos_i][orb_i][s3][pos_j][orb_j][sj];
 
                                                 derivative_val=iota*(-0.5*Jval_array[pos_i])*(S_mag)*(
                                                             (SX_i)*Pauli_x[si][s3]
@@ -2528,7 +2528,7 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                                                             )*temp_val;
 
                                                 temp_val=Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][s3] +
-                                                        0.5*delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][s3];
+                                                        delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][s3];
 
                                                 derivative_val +=iota*(0.5*Jval_array[pos_j])*(S_mag)*(
                                                             (SX_j)*Pauli_x[s3][sj]
