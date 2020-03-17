@@ -465,11 +465,12 @@ void Observables_MCMF::Get_red_den_mat(Mat_4_Complex_doub &Red_Den_mat, double m
         for (int l=0;l<Parameters_.ns;l++){
             for (int s=0;s<2;s++){
                 for (int s2=0;s2<2;s2++){
-                    for (int n=0;n<2;n++){
+                    Red_Den_mat[j][s][l][s2]=zero_complex;
+                    for (int n=0;n<2*Parameters_.ns;n++){
                         c1 = j + s*ns_;
                         c2 = l + s2*ns_;
                         //probably conjugate
-                        Red_Den_mat[j][s][l][s2] =  conj(Hamiltonian_.Ham_(c1,n))*Hamiltonian_.Ham_(c2,n)*(1.0/(1.0 + exp(Beta*(Hamiltonian_.eigs_[n] - mu))));
+                        Red_Den_mat[j][s][l][s2] +=  conj(Hamiltonian_.Ham_(c1,n))*Hamiltonian_.Ham_(c2,n)*(1.0/(1.0 + exp(Beta*(Hamiltonian_.eigs_[n] - mu))));
 
                     }
 

@@ -28,7 +28,7 @@ void Parameters_MCMF::Initialize(string inputfile_){
         Cooling_=false;
 
         temp = double(matchstring(inputfile_,"Temperature"));   // temperature in kelvin
-        beta=double(11604.0/ temp);    //Beta which is (T*k_b)^-1
+        beta=double(1.0/ temp);    //Beta which is (T*k_b)^-1
 
 
     pi=4.00*atan(double(1.0));
