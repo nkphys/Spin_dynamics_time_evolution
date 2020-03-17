@@ -1307,6 +1307,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Predictor_Corrector(){
 
 void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
+    bool SelfConsistentEvolution = true;
     complex<double> zero(0,0);
     complex<double> one(1,0);
     complex<double> iota(0,1);

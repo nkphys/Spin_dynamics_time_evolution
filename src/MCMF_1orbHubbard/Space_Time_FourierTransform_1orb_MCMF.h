@@ -160,13 +160,14 @@ void ST_Fourier_1orb_MCMF::Initialize_engine(){
     cout<< "time_steps = "<<time_steps<<endl;
 
     if(Use_FFT==true){
-        cout<<"FFT is used, so dw, w_min are fixed, and w_max is used from input file."<<endl;
+        cout<<"FFT is used, so dw, w_min are fixed."<<endl;
         dw = (2.0*PI)/ time_max;
         w_min = 0.0;
+        n_wpoints = time_steps/2;
+        w_max = w_min + n_wpoints*(dw);
         cout<<"dw = 2*pi/T_max = "<< dw<<endl;
         cout<<"w_min = "<< w_min<<endl;
         cout<<"w_max = "<< w_max<<endl;
-        n_wpoints=(int) ((w_max-w_min)/dw + 0.5);
         cout<<"n_wpoints = "<<n_wpoints<<endl;
     }
     else{
@@ -632,7 +633,6 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
     int no_threads_used;
     Fft DO_Fft;
     DO_Fft.PI_EFF=PI;
-
 
     complex<double> iota(0,1);
     S_rw.resize(Parameters_.ns);
