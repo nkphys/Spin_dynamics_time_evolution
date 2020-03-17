@@ -2391,7 +2391,7 @@ void SC_SW_ENGINE_VNE_3orbPnictides::Evolve_classical_spins_Runge_Kutta(int ts){
                                         if(step_no==3){
                                             derivative_val =complex<double>((Hamiltonian_.potential_local[orb_i] - Hamiltonian_.potential_local[orb_j]), 0.0)*
                                                     (Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj]  +
-                                                     0.5*delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]);
+                                                     delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]);
                                             delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
                                         }
 

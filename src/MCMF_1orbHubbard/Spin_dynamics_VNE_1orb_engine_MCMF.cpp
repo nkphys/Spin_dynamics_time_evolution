@@ -1463,371 +1463,163 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
         //assert (Runge_Kutta_order==4);
     }
 
-/*
     else if(Runge_Kutta_order==4){
 
 
-        double pi,ti; //phi_i,theta_i,phi_j,theta_j for timestep=ts
         double sy,sx,sz; //Quantum spins for timestep=ts and position=pos
+        double Aux_Sx_i, Aux_Sy_i, Aux_Sz_i;
 
-        double derivative_theta, derivative_phi;
-        Mat_1_doub delta1_theta, delta2_theta, delta3_theta, delta4_theta;
-        Mat_1_doub delta1_phi, delta2_phi, delta3_phi, delta4_phi;
-        Mat_6_Complex_doub delta1_Red_Den_mat, delta2_Red_Den_mat, delta3_Red_Den_mat, delta4_Red_Den_mat;
+
+        double derivative_Aux_Sx, derivative_Aux_Sy, derivative_Aux_Sz;
+        Mat_1_doub delta1_Aux_Sx, delta2_Aux_Sx, delta3_Aux_Sx, delta4_Aux_Sx;
+        Mat_1_doub delta1_Aux_Sy, delta2_Aux_Sy, delta3_Aux_Sy, delta4_Aux_Sy;
+        Mat_1_doub delta1_Aux_Sz, delta2_Aux_Sz, delta3_Aux_Sz, delta4_Aux_Sz;
+
+        Mat_4_Complex_doub delta1_Red_Den_mat, delta2_Red_Den_mat, delta3_Red_Den_mat, delta4_Red_Den_mat;
 
 
         //Standard RK-4 method Convention is used
-        delta1_theta.resize(Parameters_.ns);delta2_theta.resize(Parameters_.ns);
-        delta3_theta.resize(Parameters_.ns);delta4_theta.resize(Parameters_.ns);
+        delta1_Aux_Sx.resize(Parameters_.ns);delta2_Aux_Sx.resize(Parameters_.ns);
+        delta3_Aux_Sx.resize(Parameters_.ns);delta4_Aux_Sx.resize(Parameters_.ns);
+        delta1_Aux_Sy.resize(Parameters_.ns);delta2_Aux_Sy.resize(Parameters_.ns);
+        delta3_Aux_Sy.resize(Parameters_.ns);delta4_Aux_Sy.resize(Parameters_.ns);
+        delta1_Aux_Sz.resize(Parameters_.ns);delta2_Aux_Sz.resize(Parameters_.ns);
+        delta3_Aux_Sz.resize(Parameters_.ns);delta4_Aux_Sz.resize(Parameters_.ns);
 
-        delta1_phi.resize(Parameters_.ns);delta2_phi.resize(Parameters_.ns);
-        delta3_phi.resize(Parameters_.ns);delta4_phi.resize(Parameters_.ns);
 
 
         delta1_Red_Den_mat.resize(Parameters_.ns);delta2_Red_Den_mat.resize(Parameters_.ns);
         delta3_Red_Den_mat.resize(Parameters_.ns); delta4_Red_Den_mat.resize(Parameters_.ns);
 
         for(int i=0;i<Parameters_.ns;i++){
-            delta1_Red_Den_mat[i].resize(Parameters_.orbs);delta2_Red_Den_mat[i].resize(Parameters_.orbs);
-            delta3_Red_Den_mat[i].resize(Parameters_.orbs);delta4_Red_Den_mat[i].resize(Parameters_.orbs);
-            for(int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
-                delta1_Red_Den_mat[i][orb_i].resize(2);delta2_Red_Den_mat[i][orb_i].resize(2);
-                delta3_Red_Den_mat[i][orb_i].resize(2);delta4_Red_Den_mat[i][orb_i].resize(2);
-                for(int si=0;si<2;si++){
-                    delta1_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);delta2_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);
-                    delta3_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);delta4_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);
-                    for(int j=0;j<Parameters_.ns;j++){
-                        delta1_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);delta2_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);
-                        delta3_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);delta4_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);
-                        for(int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
-                            delta1_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);delta2_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);
-                            delta3_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);delta4_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);
+            delta1_Red_Den_mat[i].resize(2);delta2_Red_Den_mat[i].resize(2);
+            delta3_Red_Den_mat[i].resize(2);delta4_Red_Den_mat[i].resize(2);
+            for(int si=0;si<2;si++){
+                delta1_Red_Den_mat[i][si].resize(Parameters_.ns);delta2_Red_Den_mat[i][si].resize(Parameters_.ns);
+                delta3_Red_Den_mat[i][si].resize(Parameters_.ns);delta4_Red_Den_mat[i][si].resize(Parameters_.ns);
+                for(int j=0;j<Parameters_.ns;j++){
+                    delta1_Red_Den_mat[i][si][j].resize(2);delta2_Red_Den_mat[i][si][j].resize(2);
+                    delta3_Red_Den_mat[i][si][j].resize(2);delta4_Red_Den_mat[i][si][j].resize(2);
 
-                        }
-                    }
                 }
             }
         }
 
 
         for(int i=0;i<Parameters_.ns;i++){
-            delta1_theta[i]=0.0;delta2_theta[i]=0.0;
-            delta3_theta[i]=0.0;delta4_theta[i]=0.0;
-            delta1_phi[i]=0.0;delta2_phi[i]=0.0;
-            delta3_phi[i]=0.0;delta4_phi[i]=0.0;
-            for(int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
-                for(int si=0;si<2;si++){
-                    for(int j=0;j<Parameters_.ns;j++){
-                        for(int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
-                            for(int sj=0;sj<2;sj++){
-                                delta1_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;delta2_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;
-                                delta3_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;delta4_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;
-                            }
-                        }
+            delta1_Aux_Sx[i]=0.0;delta2_Aux_Sx[i]=0.0;
+            delta3_Aux_Sx[i]=0.0;delta4_Aux_Sx[i]=0.0;
+            delta1_Aux_Sy[i]=0.0;delta2_Aux_Sy[i]=0.0;
+            delta3_Aux_Sy[i]=0.0;delta4_Aux_Sy[i]=0.0;
+            delta1_Aux_Sz[i]=0.0;delta2_Aux_Sz[i]=0.0;
+            delta3_Aux_Sz[i]=0.0;delta4_Aux_Sz[i]=0.0;
+            for(int si=0;si<2;si++){
+                for(int j=0;j<Parameters_.ns;j++){
+                    for(int sj=0;sj<2;sj++){
+                        delta1_Red_Den_mat[i][si][j][sj]=zero;delta2_Red_Den_mat[i][si][j][sj]=zero;
+                        delta3_Red_Den_mat[i][si][j][sj]=zero;delta4_Red_Den_mat[i][si][j][sj]=zero;
                     }
                 }
-
             }
-
         }
 
 
 
         //calculating delta1(2,3,4)_thetha(phi)
-        bool intermediate_update = true;
-        double mu;
         for(int step_no=0;step_no<4;step_no++){
 
             //Classical spins time evolution, due to coupling with Quantum spins and Magnetic field
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(derivative_theta,derivative_phi, pi, ti, sx, sy, sz)
+#pragma omp parallel for default(shared) private(derivative_Aux_Sx,derivative_Aux_Sy, derivative_Aux_Sz, Aux_Sx_i, Aux_Sy_i, Aux_Sz_i, sx, sy, sz)
 #endif
             for(int pos=0;pos<Parameters_.ns;pos++){
 
-                //if(omp_get_thread_num()==1){
-                //cout<<pos<<"in thread = "<<omp_get_thread_num()<<endl;}
-                int pos_x = Coordinates_.indx(pos);
-                int pos_y = Coordinates_.indy(pos);
-                derivative_theta=0;
-                derivative_phi=0;
+                derivative_Aux_Sx=0;derivative_Aux_Sy=0;derivative_Aux_Sz=0;
 
                 if(step_no==0){
-                    pi=Phi[ts][pos_x][pos_y];
-                    ti=Theta[ts][pos_x][pos_y];
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1] );
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1] );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1] );
-                    }
-                }
-                if(step_no==1){
-                    pi=Phi[ts][pos_x][pos_y] + 0.5*(delta1_phi[pos]);
-                    ti=Theta[ts][pos_x][pos_y] + 0.5*(delta1_theta[pos]);
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + 0.5*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]));
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                +0.5*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1])
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                +0.5*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1])
-                                );
-                    }
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-                if(step_no==2){
-                    pi=Phi[ts][pos_x][pos_y] + 0.5*(delta2_phi[pos]);
-                    ti=Theta[ts][pos_x][pos_y] + 0.5*(delta2_theta[pos]);
-
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + 0.5*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]));
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                +0.5*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1])
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                +0.5*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1])
-                                );
-                    }
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-                if(step_no==3){
-                    pi=Phi[ts][pos_x][pos_y] + (delta3_phi[pos]);
-                    ti=Theta[ts][pos_x][pos_y] + (delta3_theta[pos]);
-
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + (delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]));
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + (delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1])
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                + (delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1])
-                                );
-                    }
-
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-
-                derivative_phi = (-1.0)*( Jval_array[pos]*((((sin(pi)*cos(ti))/(sin(ti)))*sy) +
-                                                           (((cos(pi)*cos(ti))/(sin(ti)))*sx) -  sz ))  -  Bval_array[pos]; //-Bval_array[pos]
-                derivative_theta = ( Jval_array[pos]*((cos(pi)*sy) - (sin(pi)*sx)));
-
-                if(step_no==0){
-                    delta1_phi[pos] = (dt_*(derivative_phi ));
-                    delta1_theta[pos] = (dt_*( derivative_theta));
+                    Aux_Sx_i=Aux_S_x[ts][pos];
+                    Aux_Sy_i=Aux_S_y[ts][pos];
+                    Aux_Sz_i=Aux_S_z[ts][pos];
+                    sx =0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1] );
+                    sy =0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1] );
+                    sz =0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1] );
 
                 }
                 if(step_no==1){
-                    delta2_phi[pos] = (dt_*(derivative_phi ));
-                    delta2_theta[pos] = (dt_*( derivative_theta));
+                    Aux_Sx_i=Aux_S_x[ts][pos] + 0.5*delta1_Aux_Sx[pos];
+                    Aux_Sy_i=Aux_S_y[ts][pos] + 0.5*delta1_Aux_Sy[pos];
+                    Aux_Sz_i=Aux_S_z[ts][pos] + 0.5*delta1_Aux_Sz[pos];
+
+                    sx =0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1]
+                            + 0.5*(delta1_Red_Den_mat[pos][1][pos][0] + delta1_Red_Den_mat[pos][0][pos][1]));
+                    sy =0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1]
+                            +0.5*(delta1_Red_Den_mat[pos][1][pos][0] - delta1_Red_Den_mat[pos][0][pos][1])
+                            );
+                    sz =0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1]
+                            +0.5*(delta1_Red_Den_mat[pos][0][pos][0] - delta1_Red_Den_mat[pos][1][pos][1])
+                            );
+                }
+
+                if(step_no==2){
+
+                    Aux_Sx_i=Aux_S_x[ts][pos] + 0.5*delta2_Aux_Sx[pos];
+                    Aux_Sy_i=Aux_S_y[ts][pos] + 0.5*delta2_Aux_Sy[pos];
+                    Aux_Sz_i=Aux_S_z[ts][pos] + 0.5*delta2_Aux_Sz[pos];
+
+                    sx =0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1]
+                            + 0.5*(delta2_Red_Den_mat[pos][1][pos][0] + delta2_Red_Den_mat[pos][0][pos][1]));
+                    sy =0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1]
+                            +0.5*(delta2_Red_Den_mat[pos][1][pos][0] - delta2_Red_Den_mat[pos][0][pos][1])
+                            );
+                    sz =0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1]
+                            +0.5*(delta2_Red_Den_mat[pos][0][pos][0] - delta2_Red_Den_mat[pos][1][pos][1])
+                            );
+
+                }
+
+                if(step_no==3){
+
+                    Aux_Sx_i=Aux_S_x[ts][pos] + delta3_Aux_Sx[pos];
+                    Aux_Sy_i=Aux_S_y[ts][pos] + delta3_Aux_Sy[pos];
+                    Aux_Sz_i=Aux_S_z[ts][pos] + delta3_Aux_Sz[pos];
+
+                    sx =0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1]
+                            + 0.5*(delta3_Red_Den_mat[pos][1][pos][0] + delta3_Red_Den_mat[pos][0][pos][1]));
+                    sy =0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1]
+                            +0.5*(delta3_Red_Den_mat[pos][1][pos][0] - delta3_Red_Den_mat[pos][0][pos][1])
+                            );
+                    sz =0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1]
+                            +0.5*(delta3_Red_Den_mat[pos][0][pos][0] - delta3_Red_Den_mat[pos][1][pos][1])
+                            );
+
+                }
+
+                derivative_Aux_Sx = (Jval_array[pos])*(sy*Aux_Sz_i - sz*Aux_Sy_i);
+                derivative_Aux_Sy = (Jval_array[pos])*(sz*Aux_Sx_i - sx*Aux_Sz_i);
+                derivative_Aux_Sz = (Jval_array[pos])*(sx*Aux_Sy_i - sy*Aux_Sx_i);
+
+
+                if(step_no==0){
+                    delta1_Aux_Sx[pos] = dt_*(derivative_Aux_Sx);
+                    delta1_Aux_Sy[pos] = dt_*(derivative_Aux_Sy);
+                    delta1_Aux_Sz[pos] = dt_*(derivative_Aux_Sz);
+                }
+                if(step_no==1){
+                    delta2_Aux_Sx[pos] = dt_*(derivative_Aux_Sx);
+                    delta2_Aux_Sy[pos] = dt_*(derivative_Aux_Sy);
+                    delta2_Aux_Sz[pos] = dt_*(derivative_Aux_Sz);
 
                 }
                 if(step_no==2){
-                    delta3_phi[pos] = (dt_*(derivative_phi ));
-                    delta3_theta[pos] = (dt_*( derivative_theta));
+                    delta3_Aux_Sx[pos] = dt_*(derivative_Aux_Sx);
+                    delta3_Aux_Sy[pos] = dt_*(derivative_Aux_Sy);
+                    delta3_Aux_Sz[pos] = dt_*(derivative_Aux_Sz);
 
                 }
                 if(step_no==3){
-                    delta4_phi[pos] = (dt_*(derivative_phi ));
-                    delta4_theta[pos] = (dt_*( derivative_theta));
-
-                }
-
-                //Phi[ts+1][pos] = Phi[ts][pos] ;
-                //Theta[ts+1][pos] = Theta[ts][pos] ;
-
-
-
-
-                int pos_ng;
-                double pj,tj, value_;
-                for(int ng=0;ng<8;ng++){
-
-                    if(ng<2){
-                        value_=1.14*Parameters_.J_NN;  // +x, -x
-                    }
-                    else if(ng>=2 && ng <4){
-                        value_=Parameters_.J_NN;   // +y, -y
-                    }
-                    else{
-                        value_=Parameters_.J_NNN;  //+x+y, +x-y, -x+y, -x-y
-                    }
-
-                    pos_ng = Coordinates_.neigh(pos,ng);
-
-                    int pos_ng_x = Coordinates_.indx(pos_ng);
-                    int pos_ng_y = Coordinates_.indy(pos_ng);
-
-
-                    if(step_no==0){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y];
-                        tj=Theta[ts][pos_ng_x][pos_ng_y];
-                    }
-
-                    if(step_no==1){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + 0.5*(delta1_phi[pos_ng]);
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + 0.5*(delta1_theta[pos_ng]);
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    if(step_no==2){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + 0.5*(delta2_phi[pos_ng]);
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + 0.5*(delta2_theta[pos_ng]);
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    if(step_no==3){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (delta3_phi[pos_ng]);
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (delta3_theta[pos_ng]);
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    derivative_phi = (-1.0)*(( (S_mag)*(value_)*(((sin(tj)*cos(ti)*cos(pi - pj))/(sin(ti))) - cos(tj) ) ));
-                    derivative_theta = (S_mag)*(value_)*(sin(tj)*sin(pj - pi));
-
-
-                    if(step_no==0){
-                        delta1_phi[pos] += (dt_*derivative_phi );
-                        delta1_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==1){
-                        delta2_phi[pos] += (dt_*derivative_phi );
-                        delta2_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==2){
-                        delta3_phi[pos] += (dt_*derivative_phi );
-                        delta3_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==3){
-                        delta4_phi[pos] += (dt_*derivative_phi );
-                        delta4_theta[pos] += (dt_*derivative_theta);
-                    }
-
+                    delta4_Aux_Sx[pos] = dt_*(derivative_Aux_Sx);
+                    delta4_Aux_Sy[pos] = dt_*(derivative_Aux_Sy);
+                    delta4_Aux_Sz[pos] = dt_*(derivative_Aux_Sz);
                 }
 
             }
@@ -1842,383 +1634,228 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 #pragma omp parallel for default(shared) private(derivative_val, temp_val)
 #endif
                 for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
-                    for(int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
-                        for(int si=0;si<2;si++){
-                            for(int pos_j=0;pos_j<=Parameters_.ns;pos_j++){
-                                for(int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
-                                    for(int sj=0;sj<2;sj++){
-
-                                        int pos_i_x= Coordinates_.indx(pos_i);
-                                        int pos_i_y= Coordinates_.indy(pos_i);
-                                        int pos_j_x= Coordinates_.indx(pos_j);
-                                        int pos_j_y= Coordinates_.indy(pos_j);
-
-                                        complex<double> phasex, phasey;
-                                        int l, spin_l, orb_l;
-                                        double l_i, DeltaXY=0.4;
-                                        double value_temp1;
-                                        phasex=one_complex;
-                                        phasey=one_complex;
-                                        derivative_val=zero_complex;
-
-
-
-                                        //------------------i connection to l :start---------------------//
-                                        // Phase from As positions
-                                        l_i=pow (-1.00, Coordinates_.indx(pos_i) + Coordinates_.indy(pos_i) );
-
-                                        spin_l = si;
-
-                                        //All neighbours
-                                        for (int ng=0;ng<8;ng++){
-
-                                            l = Coordinates_.neigh(pos_i,ng);
-                                            for(orb_l=0;orb_l<Parameters_.orbs;orb_l++) {
-
-                                                if(ng==0 || ng==1){
-                                                    value_temp1=Hamiltonian_.Tx(orb_l,orb_i);
-                                                }
-                                                if(ng==2 || ng==3){
-                                                    value_temp1=Hamiltonian_.Ty(orb_l,orb_i);
-                                                }
-                                                if(ng==4 || ng==6){
-                                                    value_temp1=Hamiltonian_.Tpxpy(orb_l,orb_i);
-                                                }
-                                                if(ng==5 || ng==7){
-                                                    value_temp1=Hamiltonian_.Tpxmy(orb_l,orb_i);
-                                                }
-
-                                                if ( (orb_i==2) ^ (orb_l==2) ) {
-
-                                                    if(step_no==0){
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*
-                                                                Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==1){
-                                                        temp_val=Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj]
-                                                                + 0.5*delta1_Red_Den_mat[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*temp_val;
-                                                        delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==2){
-                                                        temp_val=Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj]
-                                                                + 0.5*delta2_Red_Den_mat[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*temp_val;
-                                                        delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==3){
-                                                        temp_val=Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj]
-                                                                + delta3_Red_Den_mat[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*temp_val;
-                                                        delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-
-                                                }
-                                                else {
-                                                    if(step_no==0){
-                                                        derivative_val =iota*complex<double>(1.0*value_temp1, 0.0)*
-                                                                Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==1){
-                                                        temp_val=Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj]
-                                                                + 0.5*delta1_Red_Den_mat[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        derivative_val=iota*complex<double>(1.0*value_temp1,0.0)*temp_val;
-                                                        delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==2){
-                                                        temp_val=Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj]
-                                                                + 0.5*delta2_Red_Den_mat[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        derivative_val=iota*complex<double>(1.0*value_temp1,0.0)*temp_val;
-                                                        delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==3){
-                                                        temp_val=Red_Den_mat_temp[l][orb_l][spin_l][pos_j][orb_j][sj]
-                                                                + delta3_Red_Den_mat[l][orb_l][spin_l][pos_j][orb_j][sj];
-                                                        derivative_val=iota*complex<double>(1.0*value_temp1,0.0)*temp_val;
-                                                        delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-
-
-                                                }
-                                            }
-                                        }
-
-
-
-                                        //------------------i connection to l :done---------------------//
-
-
-
-                                        //------------------j connection to l :start---------------------//
-                                        // Phase from As positions
-                                        l_i=pow (-1.00, Coordinates_.indx(pos_j) + Coordinates_.indy(pos_j) );
-
-                                        spin_l = sj;
-
-                                        // +x,-x direction Neighbor
-                                        for (int ng=0;ng<8;ng++){
-
-                                            l = Coordinates_.neigh(pos_j,ng);
-                                            for(orb_l=0;orb_l<Parameters_.orbs;orb_l++) {
-
-                                                if(ng==0 || ng==1){
-                                                    value_temp1=Hamiltonian_.Tx(orb_l,orb_j);
-
-                                                }
-                                                if(ng==2 || ng==3){
-                                                    value_temp1=Hamiltonian_.Ty(orb_l,orb_j);
-
-                                                }
-                                                if(ng==4 || ng==6){
-                                                    value_temp1=Hamiltonian_.Tpxpy(orb_l,orb_j);
-
-                                                }
-                                                if(ng==5 || ng==7){
-                                                    value_temp1=Hamiltonian_.Tpxmy(orb_l,orb_j);
-
-                                                }
-
-                                                if ( (orb_j==2) ^ (orb_l==2) ) {
-                                                    if(step_no==0){
-
-                                                        temp_val=Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*temp_val;
-                                                        delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==1){
-                                                        temp_val=Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l]
-                                                                + 0.5*delta1_Red_Den_mat[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*temp_val;
-                                                        delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==2){
-                                                        temp_val=Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l]
-                                                                + 0.5*delta2_Red_Den_mat[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*temp_val;
-                                                        delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==3){
-                                                        temp_val=Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l]
-                                                                + delta3_Red_Den_mat[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        derivative_val=iota*complex<double>(1.0*l_i*value_temp1,0.0)*temp_val;
-                                                        delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-
-
-                                                }
-                                                else {
-                                                    if(step_no==0){
-                                                        derivative_val =iota*complex<double>(1.0*value_temp1, 0.0)*
-                                                                Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==1){
-                                                        temp_val=Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l]
-                                                                + 0.5*delta1_Red_Den_mat[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        derivative_val=iota*complex<double>(1.0*value_temp1,0.0)*temp_val;
-                                                        delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==2){
-                                                        temp_val=Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l]
-                                                                + 0.5*delta2_Red_Den_mat[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        derivative_val=iota*complex<double>(1.0*value_temp1,0.0)*temp_val;
-                                                        delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-                                                    if(step_no==3){
-                                                        temp_val=Red_Den_mat_temp[pos_i][orb_i][si][l][orb_l][spin_l]
-                                                                + delta3_Red_Den_mat[pos_i][orb_i][si][l][orb_l][spin_l];
-                                                        derivative_val=iota*complex<double>(1.0*value_temp1,0.0)*temp_val;
-                                                        delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                                    }
-
-                                                }
-                                            }
-                                        }
-
-                                        //------------------j connection to l :done---------------------//
-
-
-
-
-                                        // On-Site potential for orb = 2 (xy)
-                                        if(step_no==0){
-                                            derivative_val =complex<double>((Hamiltonian_.potential_local[orb_i] - Hamiltonian_.potential_local[orb_j]), 0.0)*
-                                                    Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj]  ;
-                                            delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                        }
-                                        if(step_no==1){
-                                            derivative_val =complex<double>((Hamiltonian_.potential_local[orb_i] - Hamiltonian_.potential_local[orb_j]), 0.0)*
-                                                    (Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj]  +
-                                                     0.5*delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]);
-                                            delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                        }
-                                        if(step_no==2){
-                                            derivative_val =complex<double>((Hamiltonian_.potential_local[orb_i] - Hamiltonian_.potential_local[orb_j]), 0.0)*
-                                                    (Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj]  +
-                                                     0.5*delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]);
-                                            delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                        }
-                                        if(step_no==3){
-                                            derivative_val =complex<double>((Hamiltonian_.potential_local[orb_i] - Hamiltonian_.potential_local[orb_j]), 0.0)*
-                                                    (Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj]  +
-                                                     0.5*delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]);
-                                            delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-                                        }
-
-
-
-
-                                        for(int s3=0;s3<2;s3++){
-                                            double SX_i,SY_i,SZ_i,SX_j,SY_j,SZ_j;
-                                            if(step_no==0){
-                                                SX_i = sin(Theta[ts][pos_i_x][pos_i_x])*cos(Phi[ts][pos_i_x][pos_i_x]);
-                                                SY_i = sin(Theta[ts][pos_i_x][pos_i_x])*sin(Phi[ts][pos_i_x][pos_i_x]);
-                                                SZ_i = cos(Theta[ts][pos_i_x][pos_i_x]);
-                                                SX_j = sin(Theta[ts][pos_j_x][pos_j_x])*cos(Phi[ts][pos_j_x][pos_j_x]);
-                                                SY_j = sin(Theta[ts][pos_j_x][pos_j_x])*sin(Phi[ts][pos_j_x][pos_j_x]);
-                                                SZ_j = cos(Theta[ts][pos_j_x][pos_j_x]);
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][s3][pos_j][orb_j][sj];
-                                                derivative_val=iota*(-0.5*Jval_array[pos_i])*(S_mag)*(
-                                                            (SX_i)*Pauli_x[si][s3]
-                                                            +
-                                                            (SY_i)*Pauli_y[si][s3]
-                                                            +
-                                                            (SZ_i)*Pauli_z[si][s3]
-                                                            )*temp_val;
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][s3];
-                                                derivative_val +=iota*(0.5*Jval_array[pos_j])*(S_mag)*(
-                                                            (SX_j)*Pauli_x[s3][sj]
-                                                            +
-                                                            (SY_j)*Pauli_y[s3][sj]
-                                                            +
-                                                            (SZ_j)*Pauli_z[s3][sj]
-                                                            )*temp_val;
-
-                                                delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-
-                                            }
-                                            if(step_no==1){
-                                                SX_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta1_theta[pos_i])*
-                                                        cos(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta1_phi[pos_i]);
-                                                SY_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta1_theta[pos_i])*
-                                                        sin(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta1_phi[pos_i]);
-                                                SZ_i = cos(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta1_theta[pos_i]);
-
-                                                SX_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta1_theta[pos_j])*
-                                                        cos(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta1_phi[pos_j]);
-                                                SY_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta1_theta[pos_j])*
-                                                        sin(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta1_phi[pos_j]);
-                                                SZ_j = cos(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta1_theta[pos_j]);
-
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][s3][pos_j][orb_j][sj] +
-                                                        0.5*delta1_Red_Den_mat[pos_i][orb_i][s3][pos_j][orb_j][sj];
-
-                                                derivative_val=iota*(-0.5*Jval_array[pos_i])*(S_mag)*(
-                                                            (SX_i)*Pauli_x[si][s3]
-                                                            +
-                                                            (SY_i)*Pauli_y[si][s3]
-                                                            +
-                                                            (SZ_i)*Pauli_z[si][s3]
-                                                            )*temp_val;
-
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][s3] +
-                                                        0.5*delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][s3];
-
-                                                derivative_val +=iota*(0.5*Jval_array[pos_j])*(S_mag)*(
-                                                            (SX_j)*Pauli_x[s3][sj]
-                                                            +
-                                                            (SY_j)*Pauli_y[s3][sj]
-                                                            +
-                                                            (SZ_j)*Pauli_z[s3][sj]
-                                                            )*temp_val;
-
-                                                delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-
-                                            }
-                                            if(step_no==2){
-                                                SX_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta2_theta[pos_i])*
-                                                        cos(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta2_phi[pos_i]);
-                                                SY_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta2_theta[pos_i])*
-                                                        sin(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta2_phi[pos_i]);
-                                                SZ_i = cos(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta2_theta[pos_i]);
-
-                                                SX_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta2_theta[pos_j])*
-                                                        cos(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta2_phi[pos_j]);
-                                                SY_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta2_theta[pos_j])*
-                                                        sin(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta2_phi[pos_j]);
-                                                SZ_j = cos(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta2_theta[pos_j]);
-
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][s3][pos_j][orb_j][sj] +
-                                                        0.5*delta2_Red_Den_mat[pos_i][orb_i][s3][pos_j][orb_j][sj];
-
-                                                derivative_val=iota*(-0.5*Jval_array[pos_i])*(S_mag)*(
-                                                            (SX_i)*Pauli_x[si][s3]
-                                                            +
-                                                            (SY_i)*Pauli_y[si][s3]
-                                                            +
-                                                            (SZ_i)*Pauli_z[si][s3]
-                                                            )*temp_val;
-
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][s3] +
-                                                        0.5*delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][s3];
-
-                                                derivative_val +=iota*(0.5*Jval_array[pos_j])*(S_mag)*(
-                                                            (SX_j)*Pauli_x[s3][sj]
-                                                            +
-                                                            (SY_j)*Pauli_y[s3][sj]
-                                                            +
-                                                            (SZ_j)*Pauli_z[s3][sj]
-                                                            )*temp_val;
-
-                                                delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-
-                                            }
-                                            if(step_no==3){
-                                                SX_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta3_theta[pos_i])*
-                                                        cos(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta3_phi[pos_i]);
-                                                SY_i = sin(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta3_theta[pos_i])*
-                                                        sin(Phi[ts][pos_i_x][pos_i_x] + 0.5*delta3_phi[pos_i]);
-                                                SZ_i = cos(Theta[ts][pos_i_x][pos_i_x] + 0.5*delta3_theta[pos_i]);
-
-                                                SX_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta3_theta[pos_j])*
-                                                        cos(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta3_phi[pos_j]);
-                                                SY_j = sin(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta3_theta[pos_j])*
-                                                        sin(Phi[ts][pos_j_x][pos_j_x] + 0.5*delta3_phi[pos_j]);
-                                                SZ_j = cos(Theta[ts][pos_j_x][pos_j_x] + 0.5*delta3_theta[pos_j]);
-
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][s3][pos_j][orb_j][sj] +
-                                                        0.5*delta3_Red_Den_mat[pos_i][orb_i][s3][pos_j][orb_j][sj];
-
-                                                derivative_val=iota*(-0.5*Jval_array[pos_i])*(S_mag)*(
-                                                            (SX_i)*Pauli_x[si][s3]
-                                                            +
-                                                            (SY_i)*Pauli_y[si][s3]
-                                                            +
-                                                            (SZ_i)*Pauli_z[si][s3]
-                                                            )*temp_val;
-
-                                                temp_val=Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][s3] +
-                                                        0.5*delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][s3];
-
-                                                derivative_val +=iota*(0.5*Jval_array[pos_j])*(S_mag)*(
-                                                            (SX_j)*Pauli_x[s3][sj]
-                                                            +
-                                                            (SY_j)*Pauli_y[s3][sj]
-                                                            +
-                                                            (SZ_j)*Pauli_z[s3][sj]
-                                                            )*temp_val;
-
-                                                delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] += dt_*derivative_val;
-
-                                            }
-
-
-                                        }
-
-
-
+                    for(int si=0;si<2;si++){
+                        for(int pos_j=0;pos_j<=Parameters_.ns;pos_j++){
+                            for(int sj=0;sj<2;sj++){
+
+                                int pos_i_x= Coordinates_.indx(pos_i);
+                                int pos_i_y= Coordinates_.indy(pos_i);
+                                int pos_j_x= Coordinates_.indx(pos_j);
+                                int pos_j_y= Coordinates_.indy(pos_j);
+
+                                complex<double> phasex, phasey;
+                                int l, spin_l, orb_l;
+                                double l_i;
+                                double value_temp1;
+                                phasex=one_complex;
+                                phasey=one_complex;
+                                derivative_val=zero_complex;
+
+
+
+                                //------------------i connection to l :start---------------------//
+                                // Phase from As positions
+
+                                spin_l = si;
+                                //All neighbours
+                                for (int ng=0;ng<4;ng++){
+                                    l = Coordinates_.neigh(pos_i,ng);
+
+                                    if(step_no==0){
+                                        derivative_val =iota*complex<double>(-1.0*Parameters_.t_hopping, 0.0)*
+                                                Red_Den_mat_temp[l][spin_l][pos_j][sj];
+                                        delta1_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+                                    if(step_no==1){
+                                        temp_val=Red_Den_mat_temp[l][spin_l][pos_j][sj]
+                                                + 0.5*delta1_Red_Den_mat[l][spin_l][pos_j][sj];
+                                        derivative_val=iota*complex<double>(-1.0*Parameters_.t_hopping,0.0)*temp_val;
+                                        delta2_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+                                    if(step_no==2){
+                                        temp_val=Red_Den_mat_temp[l][spin_l][pos_j][sj]
+                                                + 0.5*delta2_Red_Den_mat[l][spin_l][pos_j][sj];
+                                        derivative_val=iota*complex<double>(-1.0*Parameters_.t_hopping,0.0)*temp_val;
+                                        delta3_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+                                    if(step_no==3){
+                                        temp_val=Red_Den_mat_temp[l][spin_l][pos_j][sj]
+                                                + delta3_Red_Den_mat[l][spin_l][pos_j][sj];
+                                        derivative_val=iota*complex<double>(-1.0*Parameters_.t_hopping,0.0)*temp_val;
+                                        delta4_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+
+                                }
+
+
+
+                                //------------------i connection to l :done---------------------//
+
+
+
+                                //------------------j connection to l :start---------------------//
+                                spin_l = sj;
+                                for (int ng=0;ng<4;ng++){
+                                    l = Coordinates_.neigh(pos_j,ng);
+                                    if(step_no==0){
+                                        derivative_val =iota*complex<double>(1.0*Parameters_.t_hopping, 0.0)*
+                                                Red_Den_mat_temp[pos_i][si][l][spin_l];
+                                        delta1_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+                                    if(step_no==1){
+                                        temp_val=Red_Den_mat_temp[pos_i][si][l][spin_l]
+                                                + 0.5*delta1_Red_Den_mat[pos_i][si][l][spin_l];
+                                        derivative_val=iota*complex<double>(1.0*Parameters_.t_hopping,0.0)*temp_val;
+                                        delta2_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+                                    if(step_no==2){
+                                        temp_val=Red_Den_mat_temp[pos_i][si][l][spin_l]
+                                                + 0.5*delta2_Red_Den_mat[pos_i][si][l][spin_l];
+                                        derivative_val=iota*complex<double>(1.0*Parameters_.t_hopping,0.0)*temp_val;
+                                        delta3_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+                                    if(step_no==3){
+                                        temp_val=Red_Den_mat_temp[pos_i][si][l][spin_l]
+                                                + delta3_Red_Den_mat[pos_i][si][l][spin_l];
+                                        derivative_val=iota*complex<double>(1.0*Parameters_.t_hopping,0.0)*temp_val;
+                                        delta4_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+                                    }
+
+                                }
+
+                                //------------------j connection to l :done---------------------//
+
+
+                                //-------------------coupling with Auxlliary spins--------------//
+
+                                for(int s3=0;s3<2;s3++){
+                                    double SX_i,SY_i,SZ_i,SX_j,SY_j,SZ_j;
+
+
+                                    if(step_no==0){
+                                        SX_i = Aux_S_x[ts][pos_i];
+                                        SY_i = Aux_S_y[ts][pos_i];
+                                        SZ_i = Aux_S_z[ts][pos_i];
+                                        SX_j = Aux_S_x[ts][pos_j];
+                                        SY_j = Aux_S_y[ts][pos_j];
+                                        SZ_j = Aux_S_z[ts][pos_j];
+                                        temp_val=Red_Den_mat_temp[pos_i][s3][pos_j][sj];
+                                        derivative_val=iota*(-0.5*Jval_array[pos_i])*(
+                                                    (SX_i)*Pauli_x[si][s3]
+                                                    +
+                                                    (SY_i)*Pauli_y[si][s3]
+                                                    +
+                                                    (SZ_i)*Pauli_z[si][s3]
+                                                    )*temp_val;
+                                        temp_val=Red_Den_mat_temp[pos_i][si][pos_j][s3];
+                                        derivative_val +=iota*(0.5*Jval_array[pos_j])*(
+                                                    (SX_j)*Pauli_x[s3][sj]
+                                                    +
+                                                    (SY_j)*Pauli_y[s3][sj]
+                                                    +
+                                                    (SZ_j)*Pauli_z[s3][sj]
+                                                    )*temp_val;
+
+                                        delta1_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+
+                                    }
+                                    if(step_no==1){
+                                        SX_i = Aux_S_x[ts][pos_i] + 0.5*delta1_Aux_Sx[pos_i];
+                                        SY_i = Aux_S_y[ts][pos_i] + 0.5*delta1_Aux_Sy[pos_i];
+                                        SZ_i = Aux_S_z[ts][pos_i] + 0.5*delta1_Aux_Sz[pos_i];
+                                        SX_j = Aux_S_x[ts][pos_j] + 0.5*delta1_Aux_Sx[pos_j];
+                                        SY_j = Aux_S_y[ts][pos_j] + 0.5*delta1_Aux_Sy[pos_j];
+                                        SZ_j = Aux_S_z[ts][pos_j] + 0.5*delta1_Aux_Sz[pos_j];
+
+                                        temp_val=Red_Den_mat_temp[pos_i][s3][pos_j][sj] +
+                                                0.5*delta1_Red_Den_mat[pos_i][s3][pos_j][sj];
+
+                                        derivative_val=iota*(-0.5*Jval_array[pos_i])*(
+                                                    (SX_i)*Pauli_x[si][s3]
+                                                    +
+                                                    (SY_i)*Pauli_y[si][s3]
+                                                    +
+                                                    (SZ_i)*Pauli_z[si][s3]
+                                                    )*temp_val;
+
+                                        temp_val=Red_Den_mat_temp[pos_i][si][pos_j][s3] +
+                                                0.5*delta1_Red_Den_mat[pos_i][si][pos_j][s3];
+
+                                        derivative_val +=iota*(0.5*Jval_array[pos_j])*(
+                                                    (SX_j)*Pauli_x[s3][sj]
+                                                    +
+                                                    (SY_j)*Pauli_y[s3][sj]
+                                                    +
+                                                    (SZ_j)*Pauli_z[s3][sj]
+                                                    )*temp_val;
+
+                                        delta2_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+
+                                    }
+                                    if(step_no==2){
+                                        SX_i = Aux_S_x[ts][pos_i] + 0.5*delta2_Aux_Sx[pos_i];
+                                        SY_i = Aux_S_y[ts][pos_i] + 0.5*delta2_Aux_Sy[pos_i];
+                                        SZ_i = Aux_S_z[ts][pos_i] + 0.5*delta2_Aux_Sz[pos_i];
+                                        SX_j = Aux_S_x[ts][pos_j] + 0.5*delta2_Aux_Sx[pos_j];
+                                        SY_j = Aux_S_y[ts][pos_j] + 0.5*delta2_Aux_Sy[pos_j];
+                                        SZ_j = Aux_S_z[ts][pos_j] + 0.5*delta2_Aux_Sz[pos_j];
+
+                                        temp_val=Red_Den_mat_temp[pos_i][s3][pos_j][sj] +
+                                                0.5*delta2_Red_Den_mat[pos_i][s3][pos_j][sj];
+
+                                        derivative_val=iota*(-0.5*Jval_array[pos_i])*(
+                                                    (SX_i)*Pauli_x[si][s3]
+                                                    +
+                                                    (SY_i)*Pauli_y[si][s3]
+                                                    +
+                                                    (SZ_i)*Pauli_z[si][s3]
+                                                    )*temp_val;
+
+                                        temp_val=Red_Den_mat_temp[pos_i][si][pos_j][s3] +
+                                                0.5*delta2_Red_Den_mat[pos_i][si][pos_j][s3];
+
+                                        derivative_val +=iota*(0.5*Jval_array[pos_j])*(
+                                                    (SX_j)*Pauli_x[s3][sj]
+                                                    +
+                                                    (SY_j)*Pauli_y[s3][sj]
+                                                    +
+                                                    (SZ_j)*Pauli_z[s3][sj]
+                                                    )*temp_val;
+
+                                        delta3_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
+
+                                    }
+                                    if(step_no==3){
+                                        SX_i = Aux_S_x[ts][pos_i] + delta3_Aux_Sx[pos_i];
+                                        SY_i = Aux_S_y[ts][pos_i] + delta3_Aux_Sy[pos_i];
+                                        SZ_i = Aux_S_z[ts][pos_i] + delta3_Aux_Sz[pos_i];
+                                        SX_j = Aux_S_x[ts][pos_j] + delta3_Aux_Sx[pos_j];
+                                        SY_j = Aux_S_y[ts][pos_j] + delta3_Aux_Sy[pos_j];
+                                        SZ_j = Aux_S_z[ts][pos_j] + delta3_Aux_Sz[pos_j];
+
+                                        temp_val=Red_Den_mat_temp[pos_i][s3][pos_j][sj] +
+                                                delta3_Red_Den_mat[pos_i][s3][pos_j][sj];
+
+                                        derivative_val=iota*(-0.5*Jval_array[pos_i])*(
+                                                    (SX_i)*Pauli_x[si][s3]
+                                                    +
+                                                    (SY_i)*Pauli_y[si][s3]
+                                                    +
+                                                    (SZ_i)*Pauli_z[si][s3]
+                                                    )*temp_val;
+
+                                        temp_val=Red_Den_mat_temp[pos_i][si][pos_j][s3] +
+                                                delta3_Red_Den_mat[pos_i][si][pos_j][s3];
+
+                                        derivative_val +=iota*(0.5*Jval_array[pos_j])*(
+                                                    (SX_j)*Pauli_x[s3][sj]
+                                                    +
+                                                    (SY_j)*Pauli_y[s3][sj]
+                                                    +
+                                                    (SZ_j)*Pauli_z[s3][sj]
+                                                    )*temp_val;
+
+                                        delta4_Red_Den_mat[pos_i][si][pos_j][sj] += dt_*derivative_val;
 
                                     }
                                 }
@@ -2226,9 +1863,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
                         }
                     }
                 }
-
             } //if(EVOLVE_RED_DEN_MAT==true)
-
 
         }
 
@@ -2237,55 +1872,20 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 #pragma omp parallel for default(shared)
 #endif
         for(int pos=0;pos<Parameters_.ns;pos++){
-
-            int pos_x= Coordinates_.indx(pos);
-            int pos_y= Coordinates_.indy(pos);
-
-            Phi[ts+1][pos_x][pos_y] = Phi[ts][pos_x][pos_y]  + (1.0/6.0)*(delta1_phi[pos] + 2.0*delta2_phi[pos] + 2.0*delta3_phi[pos] + delta4_phi[pos]);
-            Theta[ts+1][pos_x][pos_y]  = Theta[ts][pos_x][pos_y]  + (1.0/6.0)*(delta1_theta[pos] + 2.0*delta2_theta[pos] + 2.0*delta3_theta[pos] + delta4_theta[pos]);
-
-
-
-            //Phi[ts+1][pos] = Phi[ts][pos] + (1.0/1.0)*(0.0*delta1_phi[pos] + 1.0*delta2_phi[pos] + 0.0*delta3_phi[pos] + 0.0*delta4_phi[pos]);
-            //Theta[ts+1][pos] = Theta[ts][pos] + (1.0/1.0)*(0.0*delta1_theta[pos] + 1.0*delta2_theta[pos] + 0.0*delta3_theta[pos] + 0.0*delta4_theta[pos]);
-
-
-            if(Phi[ts+1][pos_x][pos_y]  > 2*PI){
-                Phi[ts+1][pos_x][pos_y]  += -2*PI;
-
-            }
-            if(Phi[ts+1][pos_x][pos_y]  < 0){
-                Phi[ts+1][pos_x][pos_y]  +=  2*PI;
-
-            }
-
-
-            if(Theta[ts+1][pos_x][pos_y]  > PI){
-                Theta[ts+1][pos_x][pos_y]  = Theta[ts+1][pos_x][pos_y]  -2*PI;
-                Phi[ts+1][pos_x][pos_y]  = fmod( Phi[ts+1][pos_x][pos_y]  + PI, 2.0*PI );
-            }
-            if(Theta[ts+1][pos_x][pos_y]  < 0){
-                Theta[ts+1][pos_x][pos_y]  = - Theta[ts+1][pos_x][pos_y] ;
-                Phi[ts+1][pos_x][pos_y]  = fmod( Phi[ts+1][pos_x][pos_y]  + PI, 2.0*PI );
-
-            }
-
-            //cout<<delta1_phi[pos]<<"   "<<delta2_phi[pos]<<"   "<<delta3_phi[pos]<<"   "<<delta4_phi[pos]<<"   "<<(1.0/6.0)*(delta1_phi[pos] + 2.0*delta2_phi[pos] + 2.0*delta3_phi[pos] + delta4_phi[pos])<<endl;
+            Aux_S_x[ts+1][pos] = Aux_S_x[ts][pos] + (1.0/6.0)*(delta1_Aux_Sx[pos] + 2.0*delta2_Aux_Sx[pos] + 2.0*delta3_Aux_Sx[pos] + delta4_Aux_Sx[pos]);
+            Aux_S_y[ts+1][pos] = Aux_S_y[ts][pos] + (1.0/6.0)*(delta1_Aux_Sy[pos] + 2.0*delta2_Aux_Sy[pos] + 2.0*delta3_Aux_Sy[pos] + delta4_Aux_Sy[pos]);
+            Aux_S_z[ts+1][pos] = Aux_S_z[ts][pos] + (1.0/6.0)*(delta1_Aux_Sz[pos] + 2.0*delta2_Aux_Sz[pos] + 2.0*delta3_Aux_Sz[pos] + delta4_Aux_Sz[pos]);
         }
 
 #ifdef _OPENMP
 #pragma omp parallel for default(shared)
 #endif
         for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
-            for (int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
-                for(int si=0;si<2;si++){
-                    for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
-                        for (int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
-                            for(int sj=0;sj<2;sj++){
-                                Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] = Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj] + (1.0/6.0)*(delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] + 2.0*delta2_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] +
-                                                                                                                                                    2.0*delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] + delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]);
-                            }
-                        }
+            for(int si=0;si<2;si++){
+                for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+                    for(int sj=0;sj<2;sj++){
+                        Red_Den_mat[pos_i][si][pos_j][sj] = Red_Den_mat_temp[pos_i][si][pos_j][sj] + (1.0/6.0)*(delta1_Red_Den_mat[pos_i][si][pos_j][sj] + 2.0*delta2_Red_Den_mat[pos_i][si][pos_j][sj] +
+                                                                                                                                            2.0*delta3_Red_Den_mat[pos_i][si][pos_j][sj] + delta4_Red_Den_mat[pos_i][si][pos_j][sj]);
                     }
                 }
             }
@@ -2293,8 +1893,8 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
     }
 
-*/
-/*
+
+    /*
     else if(Runge_Kutta_order==5){
 
         //Butcher’s Fifth Order Runge-Kutta Method is used
@@ -3798,17 +3398,17 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Write_final_time_result(){
     ofstream file_out_DM(Save_DM_file.c_str());
 
     for(int pi=0;pi<Red_Den_mat.size();pi++){
-            for(int si=0;si<Red_Den_mat[pi].size();si++){
+        for(int si=0;si<Red_Den_mat[pi].size();si++){
 
-                for(int pj=0;pj<Red_Den_mat[pi][si].size();pj++){
-                        for(int sj=0;sj<Red_Den_mat[pi][si][pj].size();sj++){
-                            file_out_DM<<pi<<"   "<<si<<"    "<<pj<<"   "<<sj<<"    "<<
-                                         Red_Den_mat[pi][si][pj][sj].real()<<"  "<<
-                                         Red_Den_mat[pi][si][pj][sj].imag()<<endl;
+            for(int pj=0;pj<Red_Den_mat[pi][si].size();pj++){
+                for(int sj=0;sj<Red_Den_mat[pi][si][pj].size();sj++){
+                    file_out_DM<<pi<<"   "<<si<<"    "<<pj<<"   "<<sj<<"    "<<
+                                 Red_Den_mat[pi][si][pj][sj].real()<<"  "<<
+                                 Red_Den_mat[pi][si][pj][sj].imag()<<endl;
 
-                        }
-                    }
                 }
+            }
+        }
 
     }
 
@@ -3836,17 +3436,17 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Read_Restart_Data(){
     int temp;
     double temp_real, temp_imag;
     for(int pi=0;pi<Red_Den_mat.size();pi++){
-            for(int si=0;si<2;si++){
+        for(int si=0;si<2;si++){
 
-                for(int pj=0;pj<Red_Den_mat.size();pj++){
-                        for(int sj=0;sj<2;sj++){
-                            file_in_DM>>temp>>temp>>temp>>temp>>temp_real>>temp_imag;
-                            Red_Den_mat[pi][si][pj][sj]=(one*temp_real) + (iota*temp_imag);
+            for(int pj=0;pj<Red_Den_mat.size();pj++){
+                for(int sj=0;sj<2;sj++){
+                    file_in_DM>>temp>>temp>>temp>>temp>>temp_real>>temp_imag;
+                    Red_Den_mat[pi][si][pj][sj]=(one*temp_real) + (iota*temp_imag);
 
 
-                        }
-                    }
                 }
+            }
+        }
 
 
 
