@@ -121,6 +121,8 @@ public:
     bool Predictor_Corrector;
     bool Use_FFT;
 
+    bool SelfConsistentEvolution;
+
 
     Parameters_MCMF& Parameters_;
     Coordinates_MCMF& Coordinates_;

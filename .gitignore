@@ -1,4 +1,7 @@
-#nothing
+NI_Skw
+ST_Fourier
+dynamics
 *.txt
 *.o
 *.inp
+Spin_dynamics_time_evolution.creator.user

@@ -1,6 +1,6 @@
 OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o main.o
-DEBUG = -g3
-OPTFLAG = #-O3
+DEBUG = #-g3
+OPTFLAG = -O3
 CPPFLAGS = -std=c++11
 CC = g++ $(OPTFLAG) $(CPPFLAGS)
 CFLAGS = -c $(DEBUG) #-DWITH_COMPLEX

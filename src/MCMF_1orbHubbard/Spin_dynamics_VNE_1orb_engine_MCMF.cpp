@@ -8,6 +8,7 @@ using namespace std;
 void SC_SW_ENGINE_VNE_1orb_MCMF::Initialize_engine(){
 
 
+    SelfConsistentEvolution = false;
 
     RK4_type="type_1";   //Not used
     final_conf_out="final_config.txt"; //Not used
@@ -277,6 +278,8 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Start_Engine(){
                 px_ = Coordinates_.indx(pos);
                 py_ = Coordinates_.indy(pos);
 
+
+                if(SelfConsistentEvolution = false){
                 Aux_S_x_eq[pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*cos(Phi[0][px_][py_]);
                 Aux_S_y_eq[pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*sin(Phi[0][px_][py_]);
                 Aux_S_z_eq[pos] = Moment_Size[0][px_][py_]*cos(Theta[0][px_][py_]);
@@ -284,6 +287,17 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Start_Engine(){
                 Aux_S_x[0][pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*cos(Phi[0][px_][py_]);
                 Aux_S_y[0][pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*sin(Phi[0][px_][py_]);
                 Aux_S_z[0][pos] = Moment_Size[0][px_][py_]*cos(Theta[0][px_][py_]);
+                }
+                else{
+                  Aux_S_x_eq[pos] = quant_s_x_eq[pos];
+                  Aux_S_y_eq[pos] = quant_s_y_eq[pos];
+                  Aux_S_z_eq[pos] = quant_s_z_eq[pos];
+
+                  Aux_S_x[0][pos] = quant_s_x[0][pos];
+                  Aux_S_y[0][pos] = quant_s_y[0][pos];
+                  Aux_S_z[0][pos] = quant_s_z[0][pos];
+
+                }
 
             }
 
@@ -1307,7 +1321,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Predictor_Corrector(){
 
 void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
-    bool SelfConsistentEvolution = true;
+
     complex<double> zero(0,0);
     complex<double> one(1,0);
     complex<double> iota(0,1);
@@ -1343,30 +1357,33 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
         complex<double> derivative_val;
 
+        if(SelfConsistentEvolution==false){
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(Aux_Sx_i, Aux_Sy_i, Aux_Sz_i, sx, sy, sz)
 #endif
-        for(int pos=0;pos<Parameters_.ns;pos++){
+            for(int pos=0;pos<Parameters_.ns;pos++){
 
-            Aux_Sx_i=Aux_S_x[ts][pos];
-            Aux_Sy_i=Aux_S_y[ts][pos];
-            Aux_Sz_i=Aux_S_z[ts][pos];
+                Aux_Sx_i=Aux_S_x[ts][pos];
+                Aux_Sy_i=Aux_S_y[ts][pos];
+                Aux_Sz_i=Aux_S_z[ts][pos];
 
-            sx=0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1] );
-            sy=0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1] );
-            sz=0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1] );
-
-
-            Aux_S_x[ts+1][pos] =Aux_S_x[ts][pos];
-            Aux_S_y[ts+1][pos] =Aux_S_y[ts][pos];
-            Aux_S_z[ts+1][pos] =Aux_S_z[ts][pos];
+                sx=0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1] );
+                sy=0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1] );
+                sz=0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1] );
 
 
-            Aux_S_x[ts+1][pos] += dt_*(Jval_array[pos])*(sy*Aux_Sz_i - sz*Aux_Sy_i);
-            Aux_S_y[ts+1][pos] += dt_*(Jval_array[pos])*(sz*Aux_Sx_i - sx*Aux_Sz_i);
-            Aux_S_z[ts+1][pos] += dt_*(Jval_array[pos])*(sx*Aux_Sy_i - sy*Aux_Sx_i);
+                Aux_S_x[ts+1][pos] =Aux_S_x[ts][pos];
+                Aux_S_y[ts+1][pos] =Aux_S_y[ts][pos];
+                Aux_S_z[ts+1][pos] =Aux_S_z[ts][pos];
 
-            // cout<<pos<<"  "<<derivative_theta<<"  "<<derivative_phi<<endl;
+
+                Aux_S_x[ts+1][pos] += dt_*(Jval_array[pos])*(sy*Aux_Sz_i - sz*Aux_Sy_i);
+                Aux_S_y[ts+1][pos] += dt_*(Jval_array[pos])*(sz*Aux_Sx_i - sx*Aux_Sz_i);
+                Aux_S_z[ts+1][pos] += dt_*(Jval_array[pos])*(sx*Aux_Sy_i - sy*Aux_Sx_i);
+
+                // cout<<pos<<"  "<<derivative_theta<<"  "<<derivative_phi<<endl;
+
+            }
 
         }
 
@@ -1460,6 +1477,17 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
         }
 
+
+        if(SelfConsistentEvolution==true){
+            for(int pos=0;pos<Parameters_.ns;pos++){
+                sx=0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1] );
+                sy=0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1] );
+                sz=0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1] );
+                Aux_S_x[ts+1][pos] = sx;
+                Aux_S_y[ts+1][pos] = sy;
+                Aux_S_z[ts+1][pos] = sz;
+            }
+        }
         //cout<<"Only RK4 is working for VNE"<<endl;
         //assert (Runge_Kutta_order==4);
     }
@@ -1585,12 +1613,12 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
                     Aux_Sz_i=Aux_S_z[ts][pos] + delta3_Aux_Sz[pos];
 
                     sx =0.5*real( Red_Den_mat_temp[pos][1][pos][0] + Red_Den_mat_temp[pos][0][pos][1]
-                            + 0.5*(delta3_Red_Den_mat[pos][1][pos][0] + delta3_Red_Den_mat[pos][0][pos][1]));
+                            + (delta3_Red_Den_mat[pos][1][pos][0] + delta3_Red_Den_mat[pos][0][pos][1]));
                     sy =0.5*imag( Red_Den_mat_temp[pos][1][pos][0] - Red_Den_mat_temp[pos][0][pos][1]
-                            +0.5*(delta3_Red_Den_mat[pos][1][pos][0] - delta3_Red_Den_mat[pos][0][pos][1])
+                            +(delta3_Red_Den_mat[pos][1][pos][0] - delta3_Red_Den_mat[pos][0][pos][1])
                             );
                     sz =0.5*real( Red_Den_mat_temp[pos][0][pos][0] - Red_Den_mat_temp[pos][1][pos][1]
-                            +0.5*(delta3_Red_Den_mat[pos][0][pos][0] - delta3_Red_Den_mat[pos][1][pos][1])
+                            +(delta3_Red_Den_mat[pos][0][pos][0] - delta3_Red_Den_mat[pos][1][pos][1])
                             );
 
                 }
@@ -1881,7 +1909,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
                 for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
                     for(int sj=0;sj<2;sj++){
                         Red_Den_mat[pos_i][si][pos_j][sj] = Red_Den_mat_temp[pos_i][si][pos_j][sj] + (1.0/6.0)*(delta1_Red_Den_mat[pos_i][si][pos_j][sj] + 2.0*delta2_Red_Den_mat[pos_i][si][pos_j][sj] +
-                                                                                                                                            2.0*delta3_Red_Den_mat[pos_i][si][pos_j][sj] + delta4_Red_Den_mat[pos_i][si][pos_j][sj]);
+                                                                                                                2.0*delta3_Red_Den_mat[pos_i][si][pos_j][sj] + delta4_Red_Den_mat[pos_i][si][pos_j][sj]);
                     }
                 }
             }
