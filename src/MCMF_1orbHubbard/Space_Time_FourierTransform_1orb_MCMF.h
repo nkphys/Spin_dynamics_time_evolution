@@ -72,6 +72,8 @@ Mat_2_doub T_rt;
 
     Mat_2_doub S_tr;
     Mat_3_doub C_tr; //Space-time dispaced correlation, avg over Ensemble
+    Mat_3_doub C_Quantum_tr;
+    Mat_3_doub C_Classical_tr;
 
     Mat_3_Complex_doub S_rw; //
     Mat_3_Complex_doub S_kw; //
@@ -308,19 +310,19 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
     }
 
 
-#ifdef _OPENMP
-    no_threads_used = min(no_of_processors, No_Of_Inputs);
-    omp_set_num_threads(no_threads_used);
-    N_p = omp_get_max_threads();
-    cout<<"threads being used parallely = "<<N_p<<endl;
-    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
-#pragma omp parallel for default(shared) //private()
-#endif
+    //#ifdef _OPENMP
+    //    no_threads_used = min(no_of_processors, No_Of_Inputs);
+    //    omp_set_num_threads(no_threads_used);
+    //    N_p = omp_get_max_threads();
+    //    cout<<"threads being used parallely = "<<N_p<<endl;
+    //    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+    //#pragma omp parallel for default(shared) //private()
+    //#endif
     for(int conf=0;conf<No_Of_Inputs;conf++){
 
-#ifdef _OPENMP
-        //cout<< "using thread no "<<omp_get_thread_num()<<" out of total "<<omp_get_num_threads()<<"threads"<<endl;
-#endif
+        //#ifdef _OPENMP
+        //        //cout<< "using thread no "<<omp_get_thread_num()<<" out of total "<<omp_get_num_threads()<<"threads"<<endl;
+        //#endif
 
         string line_temp;
         double row_time, double_temp;
@@ -408,17 +410,21 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
     }
 
 
-    C_tr.resize(time_steps+1);
+    C_Quantum_tr.resize(time_steps+1);
+    C_Classical_tr.resize(time_steps+1);
 
     //#ifdef _OPENMP
     //#pragma omp parallel for default(shared) //private()
     //#endif
     for(int ts=0;ts<=time_steps;ts++){
-        C_tr[ts].resize(6*Parameters_.ns);
-        for(int r=0;r<6*Parameters_.ns;r++){
-            C_tr[ts][r].resize(6*Parameters_.ns);
-            for(int rp=0;rp<6*Parameters_.ns;rp++){
-                C_tr[ts][r][rp]=0;
+        C_Quantum_tr[ts].resize(Parameters_.ns);
+        C_Classical_tr[ts].resize(Parameters_.ns);
+        for(int r=0;r<Parameters_.ns;r++){
+            C_Quantum_tr[ts][r].resize(Parameters_.ns);
+            C_Classical_tr[ts][r].resize(Parameters_.ns);
+            for(int rp=0;rp<Parameters_.ns;rp++){
+                C_Quantum_tr[ts][r][rp]=0;
+                C_Classical_tr[ts][r][rp]=0;
             }
         }
     }
@@ -431,22 +437,22 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
     string SpaceTimeDisplaced_Crt_r0_file = "SpaceTimeDisplaced_Crt_r0_w_conv" + string_w_conv + ".txt";
 
     ofstream STdisplaced_Crt_r0_Fileout_(SpaceTimeDisplaced_Crt_r0_file.c_str());
-    STdisplaced_Crt_r0_Fileout_<<"#time   C(r=0,t)_Sz   C(r=0,t)_Sx  C(r=0,t)_Sy  C(r=0,t)_sz   C(r=0,t)_sx  C(r=0,t)_sy"<<endl;
+    STdisplaced_Crt_r0_Fileout_<<"#time   C(r=0,t)_S  C(r=0,t)_s"<<endl;
 
 
     ofstream STdisplaced_Crt_Fileout_(STdisplaced_Crt_fileout.c_str());
-    STdisplaced_Crt_Fileout_<<"#time   C(rt)_Sz   C(rt)_Sx  C(rt)_Sy  C(rt)_sz   C(rt)_sx  C(rt)_sy"<<endl;
+    STdisplaced_Crt_Fileout_<<"#time   C(rt)_S   C(rt)_s"<<endl;
 
 
     //This parallelization gives noise, why??
-//#ifdef _OPENMP
-//    no_threads_used = min(no_of_processors, No_Of_Inputs);
-//    omp_set_num_threads(no_threads_used);
-//    N_p = omp_get_max_threads();
-//    cout<<"threads being used parallely = "<<N_p<<endl;
-//    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
-//#pragma omp parallel for default(shared) //private()
-//#endif
+    //#ifdef _OPENMP
+    //    no_threads_used = min(no_of_processors, No_Of_Inputs);
+    //    omp_set_num_threads(no_threads_used);
+    //    N_p = omp_get_max_threads();
+    //    cout<<"threads being used parallely = "<<N_p<<endl;
+    //    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+    //#pragma omp parallel for default(shared) //private()
+    //#endif
     for(int conf=0;conf<No_Of_Inputs;conf++){
 
         string line_temp2;
@@ -481,19 +487,15 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
             for(int rp=0;rp<Parameters_.ns;rp++){
 
                 //Classical
-                C_tr[ts][r][rp] += (S_r_t0[conf][r]*S_r_t0[conf][rp]);
-                C_tr[ts][r+(Parameters_.ns)][rp+(Parameters_.ns)] +=
-                        (S_r_t0[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]);
-                C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)] +=
+                C_Classical_tr[ts][r][rp] +=
+                        (S_r_t0[conf][r]*S_r_t0[conf][rp]) +
+                        (S_r_t0[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]) +
                         (S_r_t0[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
 
-
                 //Quantum
-                C_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] +=
-                        (S_r_t0[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]);
-                C_tr[ts][r+(4*Parameters_.ns)][rp+(4*Parameters_.ns)] +=
-                        (S_r_t0[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]);
-                C_tr[ts][r+(5*Parameters_.ns)][rp+(5*Parameters_.ns)] +=
+                C_Quantum_tr[ts][r][rp] +=
+                        (S_r_t0[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]) +
+                        (S_r_t0[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]) +
                         (S_r_t0[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
 
             }
@@ -502,12 +504,12 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
 
 
     //-----------------------------REPEAT for ts!=0---------------//
-//#ifdef _OPENMP
-//    no_threads_used = min(no_of_processors, No_Of_Inputs);
-//    omp_set_num_threads(no_threads_used);
-//    N_p = omp_get_max_threads();
-//#pragma omp parallel for default(shared) //private()
-//#endif
+    //#ifdef _OPENMP
+    //    no_threads_used = min(no_of_processors, No_Of_Inputs);
+    //    omp_set_num_threads(no_threads_used);
+    //    N_p = omp_get_max_threads();
+    //#pragma omp parallel for default(shared) //private()
+    //#endif
     for(int conf=0;conf<No_Of_Inputs;conf++){
 
         string line_temp2;
@@ -543,20 +545,17 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
                 for(int rp=0;rp<Parameters_.ns;rp++){
 
                     //Classical
-                    C_tr[ts][r][rp] += (S_r_t[conf][r]*S_r_t0[conf][rp]);
-                    C_tr[ts][r+(Parameters_.ns)][rp+(Parameters_.ns)] +=
-                            (S_r_t[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]);
-                    C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)] +=
+                    C_Classical_tr[ts][r][rp] +=
+                            (S_r_t[conf][r]*S_r_t0[conf][rp]) +
+                            (S_r_t[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]) +
                             (S_r_t[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
 
-
                     //Quantum
-                    C_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] +=
-                            (S_r_t[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]);
-                    C_tr[ts][r+(4*Parameters_.ns)][rp+(4*Parameters_.ns)] +=
-                            (S_r_t[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]);
-                    C_tr[ts][r+(5*Parameters_.ns)][rp+(5*Parameters_.ns)] +=
+                    C_Quantum_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] +=
+                            (S_r_t[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]) +
+                            (S_r_t[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]) +
                             (S_r_t[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
+
                 }
             }
         }
@@ -572,23 +571,18 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
     for(int ts=0;ts<time_steps;ts++){
         for(int r=0;r<Parameters_.ns;r++){
             for(int rp=0;rp<Parameters_.ns;rp++){
-                C_tr[ts][r][rp] = (C_tr[ts][r][rp]/No_Of_Inputs)  - ( S_tr[ts][r]*(S_tr[0][rp]) );
-                C_tr[ts][r+(Parameters_.ns)][rp+(Parameters_.ns)] =
-                        (C_tr[ts][r+(Parameters_.ns)][rp+(Parameters_.ns)]/No_Of_Inputs) -
-                        ( S_tr[ts][r+(Parameters_.ns)]*(S_tr[0][rp+(Parameters_.ns)]) );
-                C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)] =
-                        (C_tr[ts][r+(2*Parameters_.ns)][rp+(2*Parameters_.ns)]/No_Of_Inputs) -
-                        ( S_tr[ts][r+(2*Parameters_.ns)]*(S_tr[0][rp+(2*Parameters_.ns)]) );
+                C_Classical_tr[ts][r][rp] =
+                        (C_Classical_tr[ts][r][rp]/No_Of_Inputs)
+                        - ( S_tr[ts][r]*(S_tr[0][rp]) )
+                        - ( S_tr[ts][r+(Parameters_.ns)]*(S_tr[0][rp+(Parameters_.ns)]) )
+                        - ( S_tr[ts][r+(2*Parameters_.ns)]*(S_tr[0][rp+(2*Parameters_.ns)]) );
 
-                C_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] =
-                        (C_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)]/No_Of_Inputs) -
-                        ( S_tr[ts][r+(3*Parameters_.ns)]*(S_tr[0][rp+(3*Parameters_.ns)]) );
-                C_tr[ts][r+(4*Parameters_.ns)][rp+(4*Parameters_.ns)] =
-                        (C_tr[ts][r+(4*Parameters_.ns)][rp+(4*Parameters_.ns)]/No_Of_Inputs) -
-                        ( S_tr[ts][r+(4*Parameters_.ns)]*(S_tr[0][rp+(4*Parameters_.ns)]) );
-                C_tr[ts][r+(5*Parameters_.ns)][rp+(5*Parameters_.ns)] =
-                        (C_tr[ts][r+(5*Parameters_.ns)][rp+(5*Parameters_.ns)]/No_Of_Inputs) -
-                        ( S_tr[ts][r+(5*Parameters_.ns)]*(S_tr[0][rp+(5*Parameters_.ns)]) );
+                C_Quantum_tr[ts][r][rp] =
+                        (C_Quantum_tr[ts][r][rp]/No_Of_Inputs)
+                        - ( S_tr[ts][r+(3*Parameters_.ns)]*(S_tr[0][rp+(3*Parameters_.ns)]) )
+                        - ( S_tr[ts][r+(4*Parameters_.ns)]*(S_tr[0][rp+(4*Parameters_.ns)]) )
+                        - ( S_tr[ts][r+(5*Parameters_.ns)]*(S_tr[0][rp+(5*Parameters_.ns)]) );
+
 
             }
         }
@@ -601,9 +595,11 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
         for(int r=0;r<Parameters_.ns;r++){
             for(int rp=0;rp<Parameters_.ns;rp++){
 
-                STdisplaced_Crt_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  ";
+                STdisplaced_Crt_Fileout_<< C_Classical_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  "<<
+                                           C_Quantum_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   ";
                 if(r==rp && r==0){
-                    STdisplaced_Crt_r0_Fileout_<< C_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv));
+                    STdisplaced_Crt_r0_Fileout_<< C_Classical_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   "<<
+                                                  C_Quantum_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv));
                 }
 
             }
@@ -692,34 +688,13 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
 
                         //exp(iota*(-wi * dw) * (ts* dt_))
                         S_rw[pos_i][pos_j][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
-                                    ( ( C_tr[ts][pos_i][pos_j]  )  )
-                                    +
-                                    ( ( C_tr[ts][pos_i+(Parameters_.ns)][pos_j+(Parameters_.ns)]  )  )
-                                +
-                                ( ( C_tr[ts][pos_i+(2*Parameters_.ns)][pos_j+(2*Parameters_.ns)] )  )
-                                );
+                                    ( ( C_Classical_tr[ts][pos_i][pos_j]  )  )
+                                    );
 
 
                         s_quantum_rw[pos_i][pos_j][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
-                                    ( (( C_tr[ts][pos_i+(3*Parameters_.ns)][pos_j+(3*Parameters_.ns)] )  )  )
-                                +
-                                ( (( C_tr[ts][pos_i+(4*Parameters_.ns)][pos_j+(4*Parameters_.ns)] )  )  )
-                                +
-                                ( (( C_tr[ts][pos_i+(5*Parameters_.ns)][pos_j+(5*Parameters_.ns)] )  )  )
-                                );
-
-
-
-
-                        /*    T_rw[pos_i][pos_j][wi] +=exp(iota * (-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_* (
-
-
-                            );*/
-
-
-
-
-
+                                    ( ( C_Quantum_tr[ts][pos_i][pos_j]  )  )
+                                    );
 
                     }
                 }
@@ -749,18 +724,10 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
             for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
                 for(int ts=0;ts<time_steps;ts++){
                     Vec_1[ts] = exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
-                                ( ( C_tr[ts][pos_i][pos_j]  )  )
-                                +
-                                ( ( C_tr[ts][pos_i+(Parameters_.ns)][pos_j+(Parameters_.ns)]  )  )
-                            +
-                            ( ( C_tr[ts][pos_i+(2*Parameters_.ns)][pos_j+(2*Parameters_.ns)] )  )
+                                ( ( C_Classical_tr[ts][pos_i][pos_j]  )  )
                             );
                     Vec_2[ts] = exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
-                                ( ( C_tr[ts][pos_i+(3*Parameters_.ns)][pos_j+(3*Parameters_.ns)]  )  )
-                            +
-                            ( ( C_tr[ts][pos_i+(4*Parameters_.ns)][pos_j+(4*Parameters_.ns)]  )  )
-                            +
-                            ( ( C_tr[ts][pos_i+(5*Parameters_.ns)][pos_j+(5*Parameters_.ns)] )  )
+                                ( ( C_Quantum_tr[ts][pos_i][pos_j]  )  )
                             );
                 }
 
