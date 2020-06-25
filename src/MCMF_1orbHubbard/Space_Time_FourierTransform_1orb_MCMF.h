@@ -551,7 +551,7 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
                             (S_r_t[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
 
                     //Quantum
-                    C_Quantum_tr[ts][r+(3*Parameters_.ns)][rp+(3*Parameters_.ns)] +=
+                    C_Quantum_tr[ts][r][rp] +=
                             (S_r_t[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]) +
                             (S_r_t[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]) +
                             (S_r_t[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
@@ -627,6 +627,15 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
 
     int N_p;
     int no_threads_used;
+    no_threads_used = min(no_of_processors, No_Of_Inputs);
+#ifdef _OPENMP
+//            no_threads_used = min(no_of_processors, No_Of_Inputs);
+//            omp_set_num_threads(no_threads_used);
+//            N_p = omp_get_max_threads();
+//            cout<<"threads being used parallely = "<<N_p<<endl;
+//            cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+#endif
+
     Fft DO_Fft;
     DO_Fft.PI_EFF=PI;
 
@@ -678,6 +687,11 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
         for(int ts=0;ts<time_steps;ts++){
 
 #ifdef _OPENMP
+//            no_threads_used = min(no_of_processors, No_Of_Inputs);
+//           omp_set_num_threads(no_threads_used);
+//            N_p = omp_get_max_threads();
+//            cout<<"threads being used parallely = "<<N_p<<endl;
+//            cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
 #pragma omp parallel for default(shared)
 #endif
             for(int wi=0;wi<n_wpoints;wi++){
@@ -725,10 +739,10 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
                 for(int ts=0;ts<time_steps;ts++){
                     Vec_1[ts] = exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
                                 ( ( C_Classical_tr[ts][pos_i][pos_j]  )  )
-                            );
+                                );
                     Vec_2[ts] = exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
                                 ( ( C_Quantum_tr[ts][pos_i][pos_j]  )  )
-                            );
+                                );
                 }
 
                 DO_Fft.transform(Vec_1);

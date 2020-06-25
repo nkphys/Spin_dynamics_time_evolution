@@ -18,7 +18,7 @@ public:
     int TBC_mx, TBC_my;
     int TBC_cellsX, TBC_cellsY;
     int lx_cluster, ly_cluster;
-    double mus, mus_Cluster, Fill,pi,U_COUL,k_const,lamda_12,lamda_66;
+    double mus, mus_Cluster, Fill,pi,U_COUL, J_Classical;
     double t_hopping;
 
     bool Cooling_;

@@ -130,6 +130,8 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Initialize_engine(){
         Bval_array[pos]=0.0;
     }
 
+    J_Classical = Parameters_.J_Classical;
+
 
 }
 
@@ -279,23 +281,23 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Start_Engine(){
                 py_ = Coordinates_.indy(pos);
 
 
-                if(SelfConsistentEvolution = false){
-                Aux_S_x_eq[pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*cos(Phi[0][px_][py_]);
-                Aux_S_y_eq[pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*sin(Phi[0][px_][py_]);
-                Aux_S_z_eq[pos] = Moment_Size[0][px_][py_]*cos(Theta[0][px_][py_]);
+                if(SelfConsistentEvolution == false){
+                    Aux_S_x_eq[pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*cos(Phi[0][px_][py_]);
+                    Aux_S_y_eq[pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*sin(Phi[0][px_][py_]);
+                    Aux_S_z_eq[pos] = Moment_Size[0][px_][py_]*cos(Theta[0][px_][py_]);
 
-                Aux_S_x[0][pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*cos(Phi[0][px_][py_]);
-                Aux_S_y[0][pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*sin(Phi[0][px_][py_]);
-                Aux_S_z[0][pos] = Moment_Size[0][px_][py_]*cos(Theta[0][px_][py_]);
+                    Aux_S_x[0][pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*cos(Phi[0][px_][py_]);
+                    Aux_S_y[0][pos] = Moment_Size[0][px_][py_]*sin(Theta[0][px_][py_])*sin(Phi[0][px_][py_]);
+                    Aux_S_z[0][pos] = Moment_Size[0][px_][py_]*cos(Theta[0][px_][py_]);
                 }
                 else{
-                  Aux_S_x_eq[pos] = quant_s_x_eq[pos];
-                  Aux_S_y_eq[pos] = quant_s_y_eq[pos];
-                  Aux_S_z_eq[pos] = quant_s_z_eq[pos];
+                    Aux_S_x_eq[pos] = quant_s_x_eq[pos];
+                    Aux_S_y_eq[pos] = quant_s_y_eq[pos];
+                    Aux_S_z_eq[pos] = quant_s_z_eq[pos];
 
-                  Aux_S_x[0][pos] = quant_s_x[0][pos];
-                  Aux_S_y[0][pos] = quant_s_y[0][pos];
-                  Aux_S_z[0][pos] = quant_s_z[0][pos];
+                    Aux_S_x[0][pos] = quant_s_x[0][pos];
+                    Aux_S_y[0][pos] = quant_s_y[0][pos];
+                    Aux_S_z[0][pos] = quant_s_z[0][pos];
 
                 }
 
@@ -1353,6 +1355,8 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
     if(Runge_Kutta_order==1){
 
         double Aux_Sx_i,Aux_Sy_i,Aux_Sz_i;
+        double Aux_Sx_j, Aux_Sy_j, Aux_Sz_j;
+        int pos_neigh;
         double sy,sx,sz; //Quantum spins for timestep=ts and position=pos
 
         complex<double> derivative_val;
@@ -1382,6 +1386,20 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
                 Aux_S_z[ts+1][pos] += dt_*(Jval_array[pos])*(sx*Aux_Sy_i - sy*Aux_Sx_i);
 
                 // cout<<pos<<"  "<<derivative_theta<<"  "<<derivative_phi<<endl;
+
+
+                for (int ng=0;ng<4;ng++){
+                    pos_neigh = Coordinates_.neigh(pos,ng);
+
+                    Aux_Sx_j=Aux_S_x[ts][pos_neigh];
+                    Aux_Sy_j=Aux_S_y[ts][pos_neigh];
+                    Aux_Sz_j=Aux_S_z[ts][pos_neigh];
+
+                    Aux_S_x[ts+1][pos] += dt_*J_Classical*(Aux_Sy_j*Aux_Sz_i - Aux_Sz_j*Aux_Sy_i);
+                    Aux_S_y[ts+1][pos] += dt_*J_Classical*(Aux_Sz_j*Aux_Sx_i - Aux_Sx_j*Aux_Sz_i);
+                    Aux_S_z[ts+1][pos] += dt_*J_Classical*(Aux_Sx_j*Aux_Sy_i - Aux_Sy_j*Aux_Sx_i);
+
+                }
 
             }
 
@@ -1497,6 +1515,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
         double sy,sx,sz; //Quantum spins for timestep=ts and position=pos
         double Aux_Sx_i, Aux_Sy_i, Aux_Sz_i;
+        double Aux_Sx_j, Aux_Sy_j, Aux_Sz_j;
 
 
         double derivative_Aux_Sx, derivative_Aux_Sy, derivative_Aux_Sz;
@@ -1505,6 +1524,9 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
         Mat_1_doub delta1_Aux_Sz, delta2_Aux_Sz, delta3_Aux_Sz, delta4_Aux_Sz;
 
         Mat_4_Complex_doub delta1_Red_Den_mat, delta2_Red_Den_mat, delta3_Red_Den_mat, delta4_Red_Den_mat;
+
+        complex<double> phasex, phasey;
+        int l, spin_l, pos_neigh;
 
 
         //Standard RK-4 method Convention is used
@@ -1628,6 +1650,36 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
                 derivative_Aux_Sz = (Jval_array[pos])*(sx*Aux_Sy_i - sy*Aux_Sx_i);
 
 
+                for (int ng=0;ng<4;ng++){
+                    pos_neigh = Coordinates_.neigh(pos,ng);
+                    if(step_no==0){
+                        Aux_Sx_j=Aux_S_x[ts][pos_neigh];
+                        Aux_Sy_j=Aux_S_y[ts][pos_neigh];
+                        Aux_Sz_j=Aux_S_z[ts][pos_neigh];
+                    }
+                    if(step_no==1){
+                        Aux_Sx_j=Aux_S_x[ts][pos_neigh] + 0.5*delta1_Aux_Sx[pos_neigh];
+                        Aux_Sy_j=Aux_S_y[ts][pos_neigh] + 0.5*delta1_Aux_Sy[pos_neigh];
+                        Aux_Sz_j=Aux_S_z[ts][pos_neigh] + 0.5*delta1_Aux_Sz[pos_neigh];
+                    }
+                    if(step_no==2){
+                        Aux_Sx_j=Aux_S_x[ts][pos_neigh] + 0.5*delta2_Aux_Sx[pos_neigh];
+                        Aux_Sy_j=Aux_S_y[ts][pos_neigh] + 0.5*delta2_Aux_Sy[pos_neigh];
+                        Aux_Sz_j=Aux_S_z[ts][pos_neigh] + 0.5*delta2_Aux_Sz[pos_neigh];
+                    }
+                    if(step_no==3){
+                        Aux_Sx_j=Aux_S_x[ts][pos_neigh] + delta3_Aux_Sx[pos_neigh];
+                        Aux_Sy_j=Aux_S_y[ts][pos_neigh] + delta3_Aux_Sy[pos_neigh];
+                        Aux_Sz_j=Aux_S_z[ts][pos_neigh] + delta3_Aux_Sz[pos_neigh];
+                    }
+
+                    derivative_Aux_Sx +=J_Classical*(Aux_Sy_j*Aux_Sz_i - Aux_Sz_j*Aux_Sy_i);
+                    derivative_Aux_Sy +=J_Classical*(Aux_Sz_j*Aux_Sx_i - Aux_Sx_j*Aux_Sz_i);
+                    derivative_Aux_Sz +=J_Classical*(Aux_Sx_j*Aux_Sy_i - Aux_Sy_j*Aux_Sx_i);
+                }
+
+
+
                 if(step_no==0){
                     delta1_Aux_Sx[pos] = dt_*(derivative_Aux_Sx);
                     delta1_Aux_Sy[pos] = dt_*(derivative_Aux_Sy);
@@ -1662,22 +1714,20 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(derivative_val, temp_val)
 #endif
+
                 for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
                     for(int si=0;si<2;si++){
                         for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
                             for(int sj=0;sj<2;sj++){
 
-                                complex<double> phasex, phasey;
-                                int l, spin_l, orb_l;
-                                double l_i;
-                                double value_temp1;
+
                                 phasex=one_complex;
                                 phasey=one_complex;
                                 derivative_val=zero_complex;
 
 
 
-                                //------------------i connection to l :start---------------------//
+                                //------------------j connection to l :start---------------------//
                                 // Phase from As positions
 
                                 spin_l = si;
@@ -1713,11 +1763,11 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
 
 
-                                //------------------i connection to l :done---------------------//
+                                //------------------j connection to l :done---------------------//
 
 
 
-                                //------------------j connection to l :start---------------------//
+                                //------------------l connection to i :start---------------------//
                                 spin_l = sj;
                                 for (int ng=0;ng<4;ng++){
                                     l = Coordinates_.neigh(pos_j,ng);
@@ -1747,7 +1797,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
                                 }
 
-                                //------------------j connection to l :done---------------------//
+                                //------------------l connection to l :done---------------------//
 
 
                                 //-------------------coupling with Auxlliary spins--------------//

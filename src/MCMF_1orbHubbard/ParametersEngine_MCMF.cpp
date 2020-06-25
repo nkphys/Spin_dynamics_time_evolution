@@ -24,6 +24,7 @@ void Parameters_MCMF::Initialize(string inputfile_){
     RandomSeed = matchstring(inputfile_,"RandomSeed");
     Dflag = 'N';
     U_COUL=double(matchstring(inputfile_,"U_COUL"));
+    J_Classical=double(matchstring(inputfile_,"J_Classical"));
 
         Cooling_=false;
 
@@ -34,7 +35,7 @@ void Parameters_MCMF::Initialize(string inputfile_){
     pi=4.00*atan(double(1.0));
     mus=0.25;
 
-    t_hopping =1.0;
+    t_hopping = -1.0;
     cout << "____________________________________" << endl;
 }
 

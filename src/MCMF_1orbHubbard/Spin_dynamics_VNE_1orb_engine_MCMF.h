@@ -87,6 +87,7 @@ public:
 
     Mat_1_doub Jval_array;
     Mat_1_doub Jval_array_in_H;
+    double J_Classical;
     Mat_1_doub Bval_array;
     int center;
     double S_mag;

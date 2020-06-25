@@ -150,6 +150,7 @@ double Hamiltonian_MCMF::GetCLEnergy(){
 void Hamiltonian_MCMF::InteractionsCreate(){
 
 
+
     double ei, ai;
     double den;
 
@@ -162,8 +163,10 @@ void Hamiltonian_MCMF::InteractionsCreate(){
         ai = MFParams_.ephi(Coordinates_.indx(i), Coordinates_.indy(i));
         den = MFParams_.Local_density(Coordinates_.indx(i), Coordinates_.indy(i));
 
-        Ham_(i, i) +=  (0.5) * Parameters_.U_COUL * (den);
-        Ham_(i + ns_, i + ns_) += (0.5) * Parameters_.U_COUL * (den);
+        //Turn on following lines for MCMF-Hubbard-model.
+        //Ham_(i, i) += (0.5) * Parameters_.U_COUL * (den);
+        //Ham_(i + ns_, i + ns_) += (0.5) * Parameters_.U_COUL * (den);
+
         Ham_(i, i) += (-1.0)*Parameters_.U_COUL * (cos(ei)) * MFParams_.Moment_Size(Coordinates_.indx(i), Coordinates_.indy(i));
         Ham_(i + ns_, i + ns_) += (-1.0)*Parameters_.U_COUL * (-cos(ei)) * MFParams_.Moment_Size(Coordinates_.indx(i), Coordinates_.indy(i));
         Ham_(i, i + ns_) += (-1.0)*Parameters_.U_COUL * sin(ei) * complex<double>(cos(ai), -sin(ai)) * MFParams_.Moment_Size(Coordinates_.indx(i), Coordinates_.indy(i)); //S-
