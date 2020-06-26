@@ -280,6 +280,7 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
     cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
 
     begin_time = omp_get_wtime();
+    omp_set_num_threads(1);
 #endif
 
 
@@ -391,6 +392,7 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
 
 
 #ifdef _OPENMP
+    omp_set_num_threads(1);
     begin_time = omp_get_wtime();
 #endif
 
@@ -687,11 +689,11 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
         for(int ts=0;ts<time_steps;ts++){
 
 #ifdef _OPENMP
-//            no_threads_used = min(no_of_processors, No_Of_Inputs);
-//           omp_set_num_threads(no_threads_used);
-//            N_p = omp_get_max_threads();
-//            cout<<"threads being used parallely = "<<N_p<<endl;
-//            cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+            no_threads_used = min(no_of_processors, No_Of_Inputs);
+           omp_set_num_threads(no_threads_used);
+            N_p = omp_get_max_threads();
+            cout<<"threads being used parallely = "<<N_p<<endl;
+            cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
 #pragma omp parallel for default(shared)
 #endif
             for(int wi=0;wi<n_wpoints;wi++){
