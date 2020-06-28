@@ -1581,7 +1581,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
             //Classical spins time evolution, due to coupling with Quantum spins and Magnetic field
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(derivative_Aux_Sx,derivative_Aux_Sy, derivative_Aux_Sz, Aux_Sx_i, Aux_Sy_i, Aux_Sz_i, sx, sy, sz)
+#pragma omp parallel for default(shared) private(derivative_Aux_Sx,derivative_Aux_Sy, derivative_Aux_Sz, Aux_Sx_i, Aux_Sy_i, Aux_Sz_i, Aux_Sx_j, Aux_Sy_j, Aux_Sz_j, sx, sy, sz, pos_neigh)
 #endif
             for(int pos=0;pos<Parameters_.ns;pos++){
 
@@ -1712,7 +1712,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
             if(EVOLVE_RED_DEN_MAT==true){
 #ifdef _OPENMP
-#pragma omp parallel for default(shared) private(derivative_val, temp_val)
+#pragma omp parallel for default(shared) private(derivative_val, temp_val,  spin_l, l)
 #endif
 
                 for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
