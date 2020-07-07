@@ -2,7 +2,7 @@
 #Skw_conf_1.txt
 #Skw_using_Crt.txt
 infile="Skw_using_Crt_w_conv0.02.txt"
-outfile="Skw_using_Crt_w_conv0.02_Path_mU2.0_6x6_n0.9.txt"
+outfile="Skw_using_Crt_w_conv0.02_Path.txt"
 tempfile="temp.txt"
 lx=6
 ly=6

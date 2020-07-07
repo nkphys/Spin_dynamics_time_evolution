@@ -71,6 +71,9 @@ Mat_2_doub T_rt;
 */
 
     Mat_2_doub S_tr;
+    Mat_2_doub C_tr_; //Space-time dispaced correlation, avg over Ensemble
+    Mat_2_doub C_Quantum_tr_;
+    Mat_2_doub C_Classical_tr_;
     Mat_3_doub C_tr; //Space-time dispaced correlation, avg over Ensemble
     Mat_3_doub C_Quantum_tr;
     Mat_3_doub C_Classical_tr;
@@ -107,9 +110,11 @@ Mat_2_doub T_rt;
 
     void Calculate_Skw_from_Srt_file(string filename, string fileout);
     void Calculate_Skw_from_Crt(string fileout);
-
-
     void Calculate_SpaceTimeDisplacedCorrelations(string STdisplaced_Crt_fileout);
+
+    void Calculate_Skw_from_Crt_(string fileout);
+    void Calculate_SpaceTimeDisplacedCorrelations_Smarter(string STdisplaced_Crt_fileout);
+
 
 };
 
@@ -274,16 +279,14 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
     clock_t oprt_SB_time = clock();
 
     cout<<"<S(r,t)> is being calculated"<<endl;
-#ifdef _OPENMP
-    N_p = omp_get_max_threads();
-    cout<<"Maximum threads can be used parallely = "<<N_p<<endl;
-    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+    //#ifdef _OPENMP
+    //    N_p = omp_get_max_threads();
+    //    cout<<"Maximum threads can be used parallely = "<<N_p<<endl;
+    //    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
 
-    begin_time = omp_get_wtime();
-    omp_set_num_threads(1);
-#endif
-
-
+    //    begin_time = omp_get_wtime();
+    //    omp_set_num_threads(1);
+    //#endif
 
 
     ostringstream ostr_w_conv;
@@ -366,11 +369,11 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
     }
 
 
-#ifdef _OPENMP
-    end_time = omp_get_wtime();
-    cout<<"Time to Calculate <S(r,t)>, <s(r,t)> [actual time, using OMP]: "<<double(end_time - begin_time)<<endl;//cout<<"here"<<endl;
+    //#ifdef _OPENMP
+    //    end_time = omp_get_wtime();
+    //    cout<<"Time to Calculate <S(r,t)>, <s(r,t)> [actual time, using OMP]: "<<double(end_time - begin_time)<<endl;//cout<<"here"<<endl;
 
-#endif
+    //#endif
 
     cout<<"Time to Calculate <S(r,t)>, <s(r,t)> : "<<double( clock() - oprt_SB_time ) / (double)CLOCKS_PER_SEC<<endl;//cout<<"here"<<endl;
 
@@ -391,10 +394,10 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
     clock_t oprt_SB_time = clock();
 
 
-#ifdef _OPENMP
-    omp_set_num_threads(1);
-    begin_time = omp_get_wtime();
-#endif
+    //#ifdef _OPENMP
+    //    omp_set_num_threads(1);
+    //    begin_time = omp_get_wtime();
+    //#endif
 
 
     Mat_2_doub S_r_t0; //[Conf_no][r \in [0,6*N-1] ]
@@ -611,16 +614,264 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
     }
 
 
-#ifdef _OPENMP
-    end_time = omp_get_wtime();
-    cout<<"Time to Calculate <C(r,t)> [actual time, using OMP]: "<<double(end_time - begin_time)<<endl;//cout<<"here"<<endl;
+    //#ifdef _OPENMP
+    //    end_time = omp_get_wtime();
+    //    cout<<"Time to Calculate <C(r,t)> [actual time, using OMP]: "<<double(end_time - begin_time)<<endl;//cout<<"here"<<endl;
 
-#endif
+    //#endif
 
     cout<<"Time to Calculate <C(r,t)> : "<<double( clock() - oprt_SB_time ) / (double)CLOCKS_PER_SEC<<endl;//cout<<"here"<<endl;
 
 
 }
+
+
+
+
+void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(string STdisplaced_Crt_fileout){
+
+    clock_t oprt_SB_time = clock();
+
+
+    int r_new, rx_new, ry_new;
+    int rx, ry, rpx, rpy;
+
+    Mat_2_doub S_r_t0; //[Conf_no][r \in [0,6*N-1] ]
+    Mat_2_doub S_r_t; //[Conf_no][r \in [0,6*N-1] ]
+
+    S_r_t0.resize(conf_inputs.size());
+    S_r_t.resize(conf_inputs.size());
+
+    for(int i =0;i<S_r_t0.size();i++){
+        S_r_t0[i].resize(6*Parameters_.ns);
+        S_r_t[i].resize(6*Parameters_.ns);
+    }
+
+    C_Quantum_tr_.resize(time_steps+1);
+    C_Classical_tr_.resize(time_steps+1);
+
+    //#ifdef _OPENMP
+    //#pragma omp parallel for default(shared) //private()
+    //#endif
+    for(int ts=0;ts<=time_steps;ts++){
+        C_Quantum_tr_[ts].resize(Parameters_.ns);
+        C_Classical_tr_[ts].resize(Parameters_.ns);
+    }
+
+
+
+    ostringstream ostr_w_conv;
+    ostr_w_conv << w_conv;
+    string string_w_conv = ostr_w_conv.str();
+    string SpaceTimeDisplaced_Crt_r0_file = "SpaceTimeDisplaced_Crt_r0_w_conv" + string_w_conv + ".txt";
+
+    ofstream STdisplaced_Crt_r0_Fileout_(SpaceTimeDisplaced_Crt_r0_file.c_str());
+    STdisplaced_Crt_r0_Fileout_<<"#time   C(r=0,t)_S  C(r=0,t)_s"<<endl;
+
+
+    ofstream STdisplaced_Crt_Fileout_(STdisplaced_Crt_fileout.c_str());
+    STdisplaced_Crt_Fileout_<<"#time   C(rt)_S   C(rt)_s"<<endl;
+
+
+    //This parallelization gives noise, why??
+    //#ifdef _OPENMP
+    //    no_threads_used = min(no_of_processors, No_Of_Inputs);
+    //    omp_set_num_threads(no_threads_used);
+    //    N_p = omp_get_max_threads();
+    //    cout<<"threads being used parallely = "<<N_p<<endl;
+    //    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+    //#pragma omp parallel for default(shared) //private()
+    //#endif
+    for(int conf=0;conf<No_Of_Inputs;conf++){
+
+        string line_temp2;
+
+        ifstream Specific_conf_in;
+        Specific_conf_in.open(conf_inputs[conf].c_str());
+        getline(Specific_conf_in, line_temp2);
+
+        int ts=0;
+        string line_temp;
+        double row_time, double_temp;
+        int row_ts;
+        getline(Specific_conf_in, line_temp);
+        stringstream line_temp_ss(line_temp, stringstream::in);
+
+        line_temp_ss>>row_time;
+        row_ts = (int) ((row_time)/dt_ + 0.5);
+        if(row_ts != ts){
+            cout<<endl;
+            cout<<"Error;"<<endl;
+            cout<< row_time<<"   "<<row_ts <<"  "<<ts<<endl;
+            cout<< "Problem while reading from "<<conf_inputs[conf]<<endl<<endl;
+            assert(false);
+        }
+
+        for(int r=0;r<6*Parameters_.ns;r++){
+            line_temp_ss>>double_temp;
+            S_r_t0[conf][r] = double_temp;
+        }
+
+        for(int r=0;r<Parameters_.ns;r++){
+            rx=Coordinates_.indx(r);
+            ry=Coordinates_.indy(r);
+
+            for(int rp=0;rp<Parameters_.ns;rp++){
+                rpx=Coordinates_.indx(rp);
+                rpy=Coordinates_.indy(rp);
+
+                rx_new = (rpx+rx)%Parameters_.lx;
+                ry_new = (rpy+ry)%Parameters_.ly;
+                r_new = Coordinates_.Nc(rx_new, ry_new);
+
+                //Classical
+                C_Classical_tr_[ts][r] +=
+                        (S_r_t0[conf][rp]*S_r_t0[conf][r_new]) +
+                        (S_r_t0[conf][rp+Parameters_.ns]*S_r_t0[conf][r_new+Parameters_.ns]) +
+                        (S_r_t0[conf][rp+(2*Parameters_.ns)]*S_r_t0[conf][r_new+(2*Parameters_.ns)]);
+
+                //Quantum
+                C_Quantum_tr_[ts][r] +=
+                        (S_r_t0[conf][rp+(3*Parameters_.ns)]*S_r_t0[conf][r_new+(3*Parameters_.ns)]) +
+                        (S_r_t0[conf][rp+(4*Parameters_.ns)]*S_r_t0[conf][r_new+(4*Parameters_.ns)]) +
+                        (S_r_t0[conf][rp+(5*Parameters_.ns)]*S_r_t0[conf][r_new+(5*Parameters_.ns)]);
+
+            }
+        }
+    }
+
+
+    //-----------------------------REPEAT for ts!=0---------------//
+    //#ifdef _OPENMP
+    //    no_threads_used = min(no_of_processors, No_Of_Inputs);
+    //    omp_set_num_threads(no_threads_used);
+    //    N_p = omp_get_max_threads();
+    //#pragma omp parallel for default(shared) //private()
+    //#endif
+    for(int conf=0;conf<No_Of_Inputs;conf++){
+
+        string line_temp2;
+
+        ifstream Specific_conf_in;
+        Specific_conf_in.open(conf_inputs[conf].c_str());
+        getline(Specific_conf_in, line_temp2);
+        getline(Specific_conf_in, line_temp2);
+
+        for(int ts=1;ts<time_steps;ts++){
+            string line_temp;
+            double row_time, double_temp;
+            int row_ts;
+            getline(Specific_conf_in, line_temp);
+            stringstream line_temp_ss(line_temp, stringstream::in);
+
+            line_temp_ss>>row_time;
+            row_ts = (int) ((row_time)/dt_ + 0.5);
+            if(row_ts != ts){
+                cout<<endl;
+                cout<<"Error;"<<endl;
+                cout<< row_time<<"   "<<row_ts <<"  "<<ts<<endl;
+                cout<< "Problem while reading from "<<conf_inputs[conf]<<endl<<endl;
+                assert(false);
+            }
+
+            for(int r=0;r<6*Parameters_.ns;r++){
+                line_temp_ss>>double_temp;
+                S_r_t[conf][r] = double_temp;
+            }
+
+            for(int r=0;r<Parameters_.ns;r++){
+                rx=Coordinates_.indx(r);
+                ry=Coordinates_.indy(r);
+
+                for(int rp=0;rp<Parameters_.ns;rp++){
+                    rpx=Coordinates_.indx(rp);
+                    rpy=Coordinates_.indy(rp);
+
+                    rx_new = (rpx+rx)%Parameters_.lx;
+                    ry_new = (rpy+ry)%Parameters_.ly;
+                    r_new = Coordinates_.Nc(rx_new, ry_new);
+
+                    //Classical
+                    C_Classical_tr_[ts][r] +=
+                            (S_r_t[conf][rp]*S_r_t0[conf][r_new]) +
+                            (S_r_t[conf][rp+Parameters_.ns]*S_r_t0[conf][r_new+Parameters_.ns]) +
+                            (S_r_t[conf][rp+(2*Parameters_.ns)]*S_r_t0[conf][r_new+(2*Parameters_.ns)]);
+
+                    //Quantum
+                    C_Quantum_tr_[ts][r] +=
+                            (S_r_t[conf][rp+(3*Parameters_.ns)]*S_r_t0[conf][r_new+(3*Parameters_.ns)]) +
+                            (S_r_t[conf][rp+(4*Parameters_.ns)]*S_r_t0[conf][r_new+(4*Parameters_.ns)]) +
+                            (S_r_t[conf][rp+(5*Parameters_.ns)]*S_r_t0[conf][r_new+(5*Parameters_.ns)]);
+
+                }
+            }
+        }
+
+    }
+
+    //-------------------------------------------------------------//
+
+
+    cout <<"<S_tr . S_t=0,rp> is done"<<endl;
+
+
+    for(int ts=0;ts<time_steps;ts++){
+
+        for(int r=0;r<Parameters_.ns;r++){
+            rx=Coordinates_.indx(r);
+            ry=Coordinates_.indy(r);
+
+            C_Classical_tr_[ts][r] = (C_Classical_tr_[ts][r]/No_Of_Inputs);
+            C_Quantum_tr_[ts][r] = (C_Quantum_tr_[ts][r]/No_Of_Inputs);
+
+            for(int rp=0;rp<Parameters_.ns;rp++){
+                rpx=Coordinates_.indx(rp);
+                rpy=Coordinates_.indy(rp);
+
+                rx_new = (rpx+rx)%Parameters_.lx;
+                ry_new = (rpy+ry)%Parameters_.lx;
+                r_new = Coordinates_.Nc(rx_new, ry_new);
+
+                C_Classical_tr_[ts][r] +=
+                        - ( S_tr[ts][rp]*(S_tr[0][r_new]) )
+                        - ( S_tr[ts][rp+(Parameters_.ns)]*(S_tr[0][r_new+(Parameters_.ns)]) )
+                        - ( S_tr[ts][rp+(2*Parameters_.ns)]*(S_tr[0][r_new+(2*Parameters_.ns)]) );
+
+                C_Quantum_tr_[ts][r] +=
+                        - ( S_tr[ts][rp+(3*Parameters_.ns)]*(S_tr[0][r_new+(3*Parameters_.ns)]) )
+                        - ( S_tr[ts][rp+(4*Parameters_.ns)]*(S_tr[0][r_new+(4*Parameters_.ns)]) )
+                        - ( S_tr[ts][rp+(5*Parameters_.ns)]*(S_tr[0][r_new+(5*Parameters_.ns)]) );
+
+
+            }
+            C_Classical_tr_[ts][r] = C_Classical_tr_[ts][r]*(1.0/(1.0*Parameters_.ns));
+            C_Quantum_tr_[ts][r] = C_Quantum_tr_[ts][r]*(1.0/(1.0*Parameters_.ns));
+
+        }
+    }
+
+
+    for(int ts=0;ts<time_steps;ts++){
+        STdisplaced_Crt_Fileout_<<ts*dt_<<"  ";
+        STdisplaced_Crt_r0_Fileout_<<ts*dt_<<"  ";
+        for(int r=0;r<Parameters_.ns;r++){
+
+            STdisplaced_Crt_Fileout_<< C_Classical_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  "<<
+                                       C_Quantum_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   ";
+            if(r==0){
+                STdisplaced_Crt_r0_Fileout_<< C_Classical_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   "<<
+                                              C_Quantum_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv));
+            }
+        }
+        STdisplaced_Crt_Fileout_<<endl;
+        STdisplaced_Crt_r0_Fileout_<<endl;
+    }
+
+    cout<<"Time to Calculate <C(r,t)> : "<<double( clock() - oprt_SB_time ) / (double)CLOCKS_PER_SEC<<endl;//cout<<"here"<<endl;
+
+
+}
+
 
 
 void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
@@ -631,11 +882,11 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
     int no_threads_used;
     no_threads_used = min(no_of_processors, No_Of_Inputs);
 #ifdef _OPENMP
-//            no_threads_used = min(no_of_processors, No_Of_Inputs);
-//            omp_set_num_threads(no_threads_used);
-//            N_p = omp_get_max_threads();
-//            cout<<"threads being used parallely = "<<N_p<<endl;
-//            cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+    //            no_threads_used = min(no_of_processors, No_Of_Inputs);
+    //            omp_set_num_threads(no_threads_used);
+    //            N_p = omp_get_max_threads();
+    //            cout<<"threads being used parallely = "<<N_p<<endl;
+    //            cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
 #endif
 
     Fft DO_Fft;
@@ -690,7 +941,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
 
 #ifdef _OPENMP
             no_threads_used = min(no_of_processors, No_Of_Inputs);
-           omp_set_num_threads(no_threads_used);
+            omp_set_num_threads(no_threads_used);
             N_p = omp_get_max_threads();
             cout<<"threads being used parallely = "<<N_p<<endl;
             cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
@@ -865,6 +1116,230 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
 
 
 }
+
+
+void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt_(string fileout){
+
+    int N_p;
+    int no_threads_used;
+    no_threads_used = min(no_of_processors, No_Of_Inputs);
+
+    Fft DO_Fft;
+    DO_Fft.PI_EFF=PI;
+
+    int pos_i, pos_j;
+
+    complex<double> iota(0,1);
+    S_rw.resize(Parameters_.lx);
+    s_quantum_rw.resize(Parameters_.lx);
+
+    for(int pos_ix=0;pos_ix<Parameters_.lx;pos_ix++){
+        S_rw[pos_ix].resize(Parameters_.ly);
+        s_quantum_rw[pos_ix].resize(Parameters_.ly);
+
+        for(int pos_iy=0;pos_iy<Parameters_.ly;pos_iy++){
+            S_rw[pos_ix][pos_iy].resize(n_wpoints);
+            s_quantum_rw[pos_ix][pos_iy].resize(n_wpoints);
+
+            for(int wi=0;wi<n_wpoints;wi++){
+                S_rw[pos_ix][pos_iy][wi]=0;
+                s_quantum_rw[pos_ix][pos_iy][wi]=0;
+            }
+        }
+    }
+
+    //    Sz_eq.resize(Parameters_.ns);Sx_eq.resize(Parameters_.ns);Sy_eq.resize(Parameters_.ns);
+    //    sz_eq.resize(Parameters_.ns);sx_eq.resize(Parameters_.ns);sy_eq.resize(Parameters_.ns);
+
+    //    Sz_t.resize(Parameters_.ns);Sx_t.resize(Parameters_.ns);Sy_t.resize(Parameters_.ns);
+    //    sz_t.resize(Parameters_.ns);sx_t.resize(Parameters_.ns);sy_t.resize(Parameters_.ns);
+
+
+    string line_temp;
+    double temp_waste;
+
+    double begin_time, end_time;
+    clock_t oprt_SB_time;
+
+#ifdef _OPENMP
+    begin_time = omp_get_wtime();
+#endif
+
+    oprt_SB_time = clock();
+
+    if(!Use_FFT){
+        for(int ts=0;ts<time_steps;ts++){
+
+#ifdef _OPENMP
+            no_threads_used = min(no_of_processors, No_Of_Inputs);
+            omp_set_num_threads(no_threads_used);
+            N_p = omp_get_max_threads();
+            cout<<"threads being used parallely = "<<N_p<<endl;
+            cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+#pragma omp parallel for default(shared) private(pos_i)
+#endif
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                for(int pos_ix=0;pos_ix<Parameters_.lx;pos_ix++){
+                    for(int pos_iy=0;pos_iy<Parameters_.ly;pos_iy++){
+
+                        pos_i = Coordinates_.Nc(pos_ix,pos_iy);
+
+                        //exp(iota*(-wi * dw) * (ts* dt_))
+                        S_rw[pos_ix][pos_iy][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                                    (( C_Classical_tr_[ts][pos_i] ))
+                                    );
+
+
+                        s_quantum_rw[pos_ix][pos_iy][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                                    ( ( C_Quantum_tr_[ts][pos_i]  )  )
+                                    );
+
+                    }
+                }
+            }
+
+        }
+    }
+
+    else{
+        //USING FFT
+
+
+
+#ifdef _OPENMP
+        no_threads_used = min(no_of_processors, Parameters_.ns);
+        omp_set_num_threads(no_threads_used);
+        N_p = omp_get_max_threads();
+        cout<<"threads being used parallely = "<<N_p<<endl;
+        cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+#pragma omp parallel for default(shared) private(pos_i)
+#endif
+        for(int pos_ix=0;pos_ix<Parameters_.lx;pos_ix++){
+
+            Mat_1_Complex_doub Vec_1, Vec_2;
+            Vec_1.resize(time_steps);Vec_2.resize(time_steps);
+
+            for(int pos_iy=0;pos_iy<Parameters_.ly;pos_iy++){
+
+                pos_i = Coordinates_.Nc(pos_ix,pos_iy);
+
+                for(int ts=0;ts<time_steps;ts++){
+
+                    Vec_1[ts] = exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                                ( ( C_Classical_tr_[ts][pos_i] )  )
+                                );
+                    Vec_2[ts] = exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
+                                ( ( C_Quantum_tr_[ts][pos_i] )  )
+                                );
+                }
+
+                DO_Fft.transform(Vec_1);
+                DO_Fft.transform(Vec_2);
+
+
+                for(int wi=0;wi<n_wpoints;wi++){
+                    S_rw[pos_ix][pos_iy][wi] = Vec_1[wi];
+                    s_quantum_rw[pos_ix][pos_iy][wi] =Vec_2[wi];
+                }
+            }
+
+            vector< complex<double> >().swap( Vec_1 );
+            vector< complex<double> >().swap( Vec_1 );
+        }
+
+    }
+
+
+
+    //Now "rw - space" to "kw - space"
+    S_kw.resize(Parameters_.lx);
+    s_quantum_kw.resize(Parameters_.lx);
+
+    for(int x_i=0;x_i<Parameters_.lx;x_i++){
+        S_kw[x_i].resize(Parameters_.ly);
+        s_quantum_kw[x_i].resize(Parameters_.ly);
+        for(int y_j=0;y_j<Parameters_.ly;y_j++){
+            S_kw[x_i][y_j].resize(n_wpoints);
+            s_quantum_kw[x_i][y_j].resize(n_wpoints);
+        }
+    }
+
+
+    double kx, ky;
+
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+
+            kx = (2*nx*PI)/(1.0*Parameters_.lx);
+            ky = (2*ny*PI)/(1.0*Parameters_.ly);
+
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(pos_i,pos_j)
+#endif
+
+            for(int wi=0;wi<n_wpoints;wi++){
+                complex<double> temp2(0,0);
+                complex<double> temp(0,0);
+                for(int x_i=0;x_i<Parameters_.lx;x_i++){
+                    for(int y_i=0;y_i<Parameters_.ly;y_i++){
+
+                        pos_i = Coordinates_.Nc(x_i,y_i);
+
+                        temp += S_rw[x_i][y_i][wi]*exp(iota*( (x_i)*kx +  (y_i)*ky ) );
+                      //temp += S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                        temp2 += s_quantum_rw[x_i][y_i][wi]*exp(iota*( (x_i)*kx +  (y_i)*ky ) );
+
+                    }
+                }
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                //file_out_full<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<wi<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<"none"<<"   "<<"none"<<"    "<<"none"<<"   "<<"none"<<endl;
+                S_kw[nx][ny][wi]=temp;
+                s_quantum_kw[nx][ny][wi]=temp2;
+            }
+        }
+    }
+
+
+
+#ifdef _OPENMP
+    end_time = omp_get_wtime();
+    cout<<"Time to Calculate <SS(kx,ky,w)> [actual time, using OMP]: "<<double(end_time - begin_time)<<endl;//cout<<"here"<<endl;
+
+#endif
+
+    cout<<"Time to Calculate <SS(kx,ky,w)> : "<<double( clock() - oprt_SB_time ) / (double)CLOCKS_PER_SEC<<endl;//cout<<"here"<<endl;
+
+
+
+
+    ofstream file_out_full(fileout.c_str());
+
+    file_out_full<<"#nx   ny   k_ind   wi*dw   wi   S_kw[nx][ny][wi]    s_quantum_kw[nx][ny][wi]          T_kw[nx][ny][wi]"<<endl;
+    int k_ind=0;
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out_full<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<wi<<"   "<<S_kw[nx][ny][wi].real()<<"   "<<S_kw[nx][ny][wi].imag()<<"    "<<s_quantum_kw[nx][ny][wi].real()<<
+                               "    "<<s_quantum_kw[nx][ny][wi].imag()<<endl;
+                //Skw_Mat[nx][ny][wi]=temp;
+            }
+
+            k_ind +=1;
+            file_out_full<<endl;
+
+        }
+
+    }
+
+
+
+}
+
 
 void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Srt_file( string filename, string fileout){
 

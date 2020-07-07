@@ -381,10 +381,14 @@ int main(int argc, char** argv){
 
 
             string SpaceTimeDisplaced_Crt_file = "SpaceTimeDisplaced_Crt_w_conv" + string_w_conv + ".txt";
-            SpaceTime_Fourier.Calculate_SpaceTimeDisplacedCorrelations(SpaceTimeDisplaced_Crt_file);
+            //SpaceTime_Fourier.Calculate_SpaceTimeDisplacedCorrelations(SpaceTimeDisplaced_Crt_file);
+            SpaceTime_Fourier.Calculate_SpaceTimeDisplacedCorrelations_Smarter(SpaceTimeDisplaced_Crt_file);
+
+
 
             string Skw_using_Crt_file = "Skw_using_Crt_w_conv" + string_w_conv + ".txt";
-            SpaceTime_Fourier.Calculate_Skw_from_Crt(Skw_using_Crt_file);
+            //SpaceTime_Fourier.Calculate_Skw_from_Crt(Skw_using_Crt_file);
+            SpaceTime_Fourier.Calculate_Skw_from_Crt_(Skw_using_Crt_file);
 
 
         }
