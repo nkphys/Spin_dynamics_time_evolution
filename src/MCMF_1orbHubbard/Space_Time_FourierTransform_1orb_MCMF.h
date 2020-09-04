@@ -824,30 +824,38 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
             C_Classical_tr_[ts][r] = (C_Classical_tr_[ts][r]/No_Of_Inputs);
             C_Quantum_tr_[ts][r] = (C_Quantum_tr_[ts][r]/No_Of_Inputs);
 
-            for(int rp=0;rp<Parameters_.ns;rp++){
-                rpx=Coordinates_.indx(rp);
-                rpy=Coordinates_.indy(rp);
+            if(No_Of_Inputs>1){
+                for(int rp=0;rp<Parameters_.ns;rp++){
+                    rpx=Coordinates_.indx(rp);
+                    rpy=Coordinates_.indy(rp);
 
-                rx_new = (rpx+rx)%Parameters_.lx;
-                ry_new = (rpy+ry)%Parameters_.lx;
-                r_new = Coordinates_.Nc(rx_new, ry_new);
+                    rx_new = (rpx+rx)%Parameters_.lx;
+                    ry_new = (rpy+ry)%Parameters_.lx;
+                    r_new = Coordinates_.Nc(rx_new, ry_new);
 
-                C_Classical_tr_[ts][r] +=
-                        - ( S_tr[ts][rp]*(S_tr[0][r_new]) )
-                        - ( S_tr[ts][rp+(Parameters_.ns)]*(S_tr[0][r_new+(Parameters_.ns)]) )
-                        - ( S_tr[ts][rp+(2*Parameters_.ns)]*(S_tr[0][r_new+(2*Parameters_.ns)]) );
 
-                C_Quantum_tr_[ts][r] +=
-                        - ( S_tr[ts][rp+(3*Parameters_.ns)]*(S_tr[0][r_new+(3*Parameters_.ns)]) )
-                        - ( S_tr[ts][rp+(4*Parameters_.ns)]*(S_tr[0][r_new+(4*Parameters_.ns)]) )
-                        - ( S_tr[ts][rp+(5*Parameters_.ns)]*(S_tr[0][r_new+(5*Parameters_.ns)]) );
+                    C_Classical_tr_[ts][r] +=
+                            - ( S_tr[ts][rp]*(S_tr[0][r_new]) )
+                            - ( S_tr[ts][rp+(Parameters_.ns)]*(S_tr[0][r_new+(Parameters_.ns)]) )
+                            - ( S_tr[ts][rp+(2*Parameters_.ns)]*(S_tr[0][r_new+(2*Parameters_.ns)]) );
 
+                    C_Quantum_tr_[ts][r] +=
+                            - ( S_tr[ts][rp+(3*Parameters_.ns)]*(S_tr[0][r_new+(3*Parameters_.ns)]) )
+                            - ( S_tr[ts][rp+(4*Parameters_.ns)]*(S_tr[0][r_new+(4*Parameters_.ns)]) )
+                            - ( S_tr[ts][rp+(5*Parameters_.ns)]*(S_tr[0][r_new+(5*Parameters_.ns)]) );
+
+
+                }
 
             }
             C_Classical_tr_[ts][r] = C_Classical_tr_[ts][r]*(1.0/(1.0*Parameters_.ns));
             C_Quantum_tr_[ts][r] = C_Quantum_tr_[ts][r]*(1.0/(1.0*Parameters_.ns));
 
         }
+    }
+
+    if(No_Of_Inputs==1){
+     cout<<"Only <<S_tr . S_t=0,rp>>  is used"<<endl;
     }
 
 
@@ -1288,7 +1296,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt_(string fileout){
                         pos_i = Coordinates_.Nc(x_i,y_i);
 
                         temp += S_rw[x_i][y_i][wi]*exp(iota*( (x_i)*kx +  (y_i)*ky ) );
-                      //temp += S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
+                        //temp += S_rw[pos_i][pos_j][wi]*cos(( (x_j - x_i)*kx +  (y_j - y_i)*ky ) );
                         temp2 += s_quantum_rw[x_i][y_i][wi]*exp(iota*( (x_i)*kx +  (y_i)*ky ) );
 
                     }
