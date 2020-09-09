@@ -1,11 +1,11 @@
 #!/bin/bash
 #Skw_conf_1.txt
 #Skw_using_Crt.txt
-infile="Skw_using_Crt_w_conv0.02.txt"
-outfile="Skw_using_Crt_w_conv0.02_Path.txt"
+infile="Dqw_conv0.01_2states.txt"
+outfile="Dqw_conv0.01_2states_Path.txt"
 tempfile="temp.txt"
-lx=6
-ly=6
+lx=8
+ly=8
 kx=0
 ky=0
 index=0

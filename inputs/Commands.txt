@@ -1,0 +1,3 @@
+time ./Calculate_Fqw 1orb_MCMF input_dynamics_test.inp 1 0 S_vs_t_run0.txt
+
+time ./Calculate_Sqw 1orb_MCMF input_dynamics_test.inp 2 Aq_state_18.txt Aq_state_19.txt Fw_w_conv0.01_state_18.txt Fw_w_conv0.01_state_19.txt Sqw_conv0.01_2states.txt Dqw_conv0.01_2states.txt

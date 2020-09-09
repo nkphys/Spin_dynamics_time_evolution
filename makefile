@@ -20,6 +20,8 @@ all :	$(OBJS)
 	$(CC) $(LIBS_1) $(LFLAGS) $(OBJS) -o dynamics $(MKL_include) $(MKL_LIB2) $(MKL_LIB)
 	cp dynamics NI_Skw
 	cp dynamics ST_Fourier
+	cp dynamics Calculate_Fqw
+	cp dynamics Calculate_Sqw
 
 functions.o : functions.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) functions.cpp $(MKL_include) $(MKL_LIB) 
@@ -84,10 +86,16 @@ main.o : main.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) main.cpp $(MKL_include) $(MKL_LIB)
 
 clean:
-	rm *.o dynamics NI_Skw ST_Fourier
+	rm *.o dynamics NI_Skw ST_Fourier Calculate_Fqw
 
 NI_Skw : dynamics
 	cp dynamics NI_Skw
 
 ST_Fourier : dynamics
 	cp dynamics ST_Fourier
+
+Calculate_Fqw: dynamics
+	cp dynamics Calculate_Fqw
+
+Calculate_Sqw: dynamics
+	cp dynamics Calculate_Sqw
