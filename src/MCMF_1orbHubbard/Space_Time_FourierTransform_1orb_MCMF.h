@@ -1564,6 +1564,8 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
 
 
+    cout<< "Printing results in files"<<endl;
+
     ofstream file_out_full(fileout.c_str());
 
     file_out_full<<"#w_details:  "<<"   "<<w_max<<"  "<<w_min<<"  "<<dw<<"  "<<n_wpoints<<endl;
@@ -1613,7 +1615,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
     }
 
 
-
+   cout<<"Calculate_Fw_and_Aq completed"<<end;
 
 }
 

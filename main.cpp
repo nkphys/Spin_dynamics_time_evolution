@@ -467,6 +467,7 @@ int main(int argc, char** argv){
             SpaceTime_Fourier.Calculate_Fw_and_Aq(Fw_file, Aq_file);
 
 
+            cout<<"JOB DONE"<<endl;
 
         }
 
