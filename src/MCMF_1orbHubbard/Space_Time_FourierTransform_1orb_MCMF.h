@@ -1426,7 +1426,14 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
             S_tr[ts][r] = double_temp;
         }
 
+        if(ts%100==0){
+            cout<<"Reading Str upto time slice i.e. t/dt="<<ts<<endl;
+        }
+
     }
+
+
+    cout<<"Reading S[t][r] is completed"<<endl;
 
 
 
@@ -1470,6 +1477,8 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
         }
 
         vector< complex<double> >().swap( Vec_1 );
+
+      cout<<"FFT for S[t][rx="   << pos_ix <<  ", ry] is completed for all ry, and all 6 types of S"<<endl;
 
     }
 
