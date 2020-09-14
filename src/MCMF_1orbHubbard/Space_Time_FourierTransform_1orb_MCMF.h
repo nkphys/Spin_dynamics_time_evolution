@@ -150,6 +150,10 @@ void ST_Fourier_1orb_MCMF::Initialize_engine(){
             line_temp_ss>>t1;
         }
         line_last=line_temp;
+
+        if(curLine%100==0){
+            cout<<"test read of "<<conf_inputs[0]<<", line no = "<<curLine<<endl;
+        }
     }
 
 
@@ -1615,7 +1619,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
     }
 
 
-   cout<<"Calculate_Fw_and_Aq completed"<<end;
+   cout<<"Calculate_Fw_and_Aq completed"<<endl;
 
 }
 
