@@ -453,6 +453,8 @@ int main(int argc, char** argv){
 #endif
 
             SpaceTime_Fourier.Read_parameters();
+            SpaceTime_Fourier.time_max=Skw_Engine_.time_max;
+            SpaceTime_Fourier.dt_ = Skw_Engine_.dt_;
             SpaceTime_Fourier.Initialize_engine();
 
             //SpaceTime_Fourier.Perform_Smarter_Averaging_on_one_point();

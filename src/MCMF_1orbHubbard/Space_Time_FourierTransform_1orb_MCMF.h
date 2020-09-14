@@ -139,25 +139,40 @@ void ST_Fourier_1orb_MCMF::Initialize_engine(){
 
 
     double t0, t1;
-    for(int curLine = 0; getline(check_file, line_temp); curLine++) {
+//    for(int curLine = 0; getline(check_file, line_temp); curLine++) {
 
-        if(curLine==1){
-            stringstream line_temp_ss(line_temp, stringstream::in);
-            line_temp_ss>>t0;
-        }
-        if(curLine==2){
-            stringstream line_temp_ss(line_temp, stringstream::in);
-            line_temp_ss>>t1;
-        }
-        line_last=line_temp;
+//        if(curLine==1){
+//            stringstream line_temp_ss(line_temp, stringstream::in);
+//            line_temp_ss>>t0;
+//        }
+//        if(curLine==2){
+//            stringstream line_temp_ss(line_temp, stringstream::in);
+//            line_temp_ss>>t1;
+//        }
+//        line_last=line_temp;
 
-        if(curLine%100==0){
-            cout<<"test read of "<<conf_inputs[0]<<", line no = "<<curLine<<endl;
-        }
+//        if(curLine%100==0){
+//            cout<<"test read of "<<conf_inputs[0]<<", line no = "<<curLine<<endl;
+//        }
+//    }
+
+
+    getline(check_file, line_temp); //line=0
+
+    getline(check_file, line_temp);  //line=1
+    stringstream line_temp_ss0(line_temp, stringstream::in);
+    line_temp_ss0>>t0;
+
+    getline(check_file, line_temp);  //line=2
+    stringstream line_temp_ss1(line_temp, stringstream::in);
+    line_temp_ss1>>t1;
+
+    if( (dt_  - (t1 -t0)) > 10e-10  ){
+        cout <<"dt from file and input does not match"<<endl;
+        assert( (dt_  - (t1 -t0)) < 10e-10 );
     }
 
-
-    dt_ = t1 - t0;
+    //dt_ = t1 - t0;
 
 
     stringstream line_temp_ss(line_last, stringstream::in);
@@ -205,6 +220,9 @@ void ST_Fourier_1orb_MCMF::Initialize_engine(){
 
 
     Space_Fourier_using_single_S=false;
+
+
+    cout<<"ST_Fourier engine initialized"<<endl;
 
 
 }
