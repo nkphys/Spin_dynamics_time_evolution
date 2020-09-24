@@ -537,7 +537,7 @@ int main(int argc, char** argv){
 #endif
 
             SpaceTime_Fourier.Read_parameters();
-          //  SpaceTime_Fourier.Initialize_engine();
+            //  SpaceTime_Fourier.Initialize_engine();
 
             string Sqw_file = argv[4+(2*SpaceTime_Fourier.No_Of_Inputs)] ;
             string Dqw_file = argv[5+(2*SpaceTime_Fourier.No_Of_Inputs)] ;
@@ -550,6 +550,49 @@ int main(int argc, char** argv){
 
     }
 
+
+    if(ex_string == "ion_w"){
+        if(model_=="1orb_MCMF"){
+
+
+            Parameters_MCMF Parameters_;
+            Parameters_.Initialize(input);
+
+            Coordinates_MCMF Coordinates_(Parameters_.lx, Parameters_.ly);
+
+            mt19937_64 Generator_(Parameters_.RandomSeed);
+            MFParams_MCMF MFParams_(Parameters_,Coordinates_,Generator_);
+
+            Hamiltonian_MCMF Hamiltonian_(Parameters_,Coordinates_,MFParams_);
+            Observables_MCMF Observables_(Parameters_,Coordinates_,MFParams_,Hamiltonian_);
+
+
+            SC_SW_ENGINE_VNE_1orb_MCMF Skw_Engine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
+            Skw_Engine_.Read_parameters(input);
+            Skw_Engine_.Initialize_engine();
+
+
+
+            ST_Fourier_1orb_MCMF SpaceTime_Fourier(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_, Skw_Engine_);
+            SpaceTime_Fourier.Space_Fourier_using_single_S=false;
+
+
+
+            SpaceTime_Fourier.Read_parameters();
+            //  SpaceTime_Fourier.Initialize_engine();
+
+            string Sqw_file_in = argv[3];
+            string Sqw_file_out = argv[4];
+
+
+            SpaceTime_Fourier.Convolute_the_spectrum(Sqw_file_in, Sqw_file_out);
+
+
+
+
+        }
+
+    }
 
 
 

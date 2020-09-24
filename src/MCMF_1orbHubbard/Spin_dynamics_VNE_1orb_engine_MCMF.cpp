@@ -150,7 +150,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Read_equilibrium_configuration(){
 
 
     for(int x=0;x<Parameters_.lx;x++){
-        for(int y=0;y<Parameters_.lx;y++){
+        for(int y=0;y<Parameters_.ly;y++){
 
             file_in>>temp_lx;
             file_in>>temp_ly;
@@ -1536,7 +1536,6 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
         delta3_Aux_Sy.resize(Parameters_.ns);delta4_Aux_Sy.resize(Parameters_.ns);
         delta1_Aux_Sz.resize(Parameters_.ns);delta2_Aux_Sz.resize(Parameters_.ns);
         delta3_Aux_Sz.resize(Parameters_.ns);delta4_Aux_Sz.resize(Parameters_.ns);
-
 
 
         delta1_Red_Den_mat.resize(Parameters_.ns);delta2_Red_Den_mat.resize(Parameters_.ns);

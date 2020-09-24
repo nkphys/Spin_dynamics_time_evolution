@@ -22,6 +22,7 @@ all :	$(OBJS)
 	cp dynamics ST_Fourier
 	cp dynamics Calculate_Fqw
 	cp dynamics Calculate_Sqw
+	cp dynamics convolution_w
 
 functions.o : functions.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) functions.cpp $(MKL_include) $(MKL_LIB) 
@@ -99,3 +100,6 @@ Calculate_Fqw: dynamics
 
 Calculate_Sqw: dynamics
 	cp dynamics Calculate_Sqw
+
+convolution_w: dynamics
+	cp dynamics convolution_w
