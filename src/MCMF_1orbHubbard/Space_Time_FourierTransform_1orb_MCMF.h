@@ -1393,6 +1393,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
     int GCATm2=GaussianCenteredAtTmaxby2;
     double begin_time, end_time;
     clock_t oprt_SB_time;
+    double expnt;
 
 #ifdef _OPENMP
     begin_time = omp_get_wtime();
@@ -1488,15 +1489,18 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
                 for(int ts=0;ts<time_steps;ts++){
 
-                    Vec_1[ts] = exp(-0.5*((ts - (0.5*GCATm2*time_steps))*(ts - (0.5*GCATm2*time_steps))*dt_*dt_*w_conv*w_conv))*dt_*(
-                                ( ( S_tr[ts][index] )  )
-                                );
+                    expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
+                    expnt = expnt*expnt;
+
+                    Vec_1[ts] = exp(-0.5*expnt)*dt_*(( ( S_tr[ts][index] )  ));
                 }
 
                 DO_Fft.transform(Vec_1);
 
                 for(int wi=0;wi<n_wpoints;wi++){
-                    F_rw[index][wi] = Vec_1[wi];
+                    //F_rw[index][wi] = Vec_1[wi].real();
+                    F_rw[index][wi] = Vec_1[wi] * exp(iota*wi*dw*0.5*GCATm2*time_steps);
+
                 }
 
             }
