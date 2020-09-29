@@ -1499,7 +1499,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
                 for(int wi=0;wi<n_wpoints;wi++){
                     //F_rw[index][wi] = Vec_1[wi].real();
-                    F_rw[index][wi] = Vec_1[wi] * exp(iota*wi*dw*0.5*GCATm2*time_steps);
+                    F_rw[index][wi] = Vec_1[wi]*exp(iota*(-0.5*GCATm2*time_steps*dt_)*(wi*dw));;
 
                 }
 
@@ -1533,7 +1533,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
                         pos_i = Coordinates_.Nc(x_i,y_i);
                         index  = pos_i + (type*Parameters_.ns);
-                        temp += S_tr[0][index]*exp(iota*(1.0*( (x_i)*kx +  (y_i)*ky ) ) );
+                        temp += S_tr[(GCATm2*time_steps)/2][index]*exp(iota*(1.0*( (x_i)*kx +  (y_i)*ky ) ) );
 
                     }
                 }
