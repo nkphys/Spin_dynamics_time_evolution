@@ -149,6 +149,7 @@ int main(int argc, char** argv){
                 SC_SW_ENGINE_VNE_1orb_MCMF Skw_Engine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
                 Skw_Engine_.Read_parameters(input);
                 Skw_Engine_.Initialize_engine();
+                Skw_Engine_.IndexMapping_bw_Y_and_Variables();
 
                 if(!Skw_Engine_.RESTART){
                     Skw_Engine_.Read_equilibrium_configuration();

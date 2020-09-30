@@ -80,6 +80,8 @@ public:
 
     Mat_4_Complex_doub Red_Den_mat; //c^dagger[i][spin]c[j][spin2]
 
+    Mat_1_Complex_doub YVec0, YVec1;
+
 
     Mat_5_Complex_doub Red_Den_mat_time; //[ts]c^dagger[i][spin]c[j][spin2]
     Mat_3_doub Theta_time;   //[time_step][lx][ly]
@@ -101,6 +103,13 @@ public:
     Mat_3_Complex_doub T_rw;
     Mat_2_Complex_doub T_kw;
 
+
+    Mat_1_int AuxSx_to_index, AuxSy_to_index, AuxSz_to_index;
+    Mat_4_int RedDen_to_index;
+    Mat_1_int index_to_AuxSx, index_to_AuxSy, index_to_AuxSz;
+    Mat_1_fourint index_to_RedDen;
+
+    Mat_2_Complex_doub Pauli_x,Pauli_y,Pauli_z;
 
 
 
@@ -139,9 +148,13 @@ public:
     void Read_Restart_Data();
     void Evolve_classical_spins_Runge_Kutta(int ts);
     void Evolve_classical_spins_Predictor_Corrector();
-
+    void Map_Variables_to_Y(Mat_4_Complex_doub & Red_Den_mat_temp, Mat_1_doub & AuxSx, Mat_1_doub & AuxSy, Mat_1_doub & AuxSz, Mat_1_Complex_doub & Y_);
+    void Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Mat_4_Complex_doub & Red_Den_mat_temp, Mat_1_doub & AuxSx, Mat_1_doub & AuxSy, Mat_1_doub & AuxSz);
+    void RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
+    void RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
+    void Derivative(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt);
     void Write_final_time_result();
-
+    void IndexMapping_bw_Y_and_Variables();
 
 
 };

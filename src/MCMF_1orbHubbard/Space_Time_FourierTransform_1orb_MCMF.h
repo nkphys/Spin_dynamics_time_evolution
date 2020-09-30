@@ -181,7 +181,7 @@ void ST_Fourier_1orb_MCMF::Initialize_engine(){
     line_temp_ss>>time_max;
 
     //cout<<line_temp<<endl;
-    time_steps=(int) ((time_max - t0)/dt_ + 0.5);
+    time_steps=(int) ((time_max - t0)/(fabs(dt_)) + 0.5);
 
     if(t0 != 0){
         cout<<endl;
@@ -234,14 +234,14 @@ void ST_Fourier_1orb_MCMF::Perform_Averaging_on_one_point(){
     ofstream Temp_file_Srt_out(Temp_file_Srt.c_str());
 
 
-    Temp_file_Srt_out<<"#time   Sz   Sx  Sy  sz  sx  sy"<<endl;
+    Temp_file_Srt_out<<"#time   Sz   Sx  Sy"<<endl;
 
     string line_temp;
     double row_time, double_temp;
     int row_ts;
 
     Mat_1_doub Sr;
-    Sr.resize(6*Parameters_.ns);
+    Sr.resize(3*Parameters_.ns);
 
 
     for(int ts=0;ts<=time_steps;ts++){
@@ -282,7 +282,7 @@ void ST_Fourier_1orb_MCMF::Perform_Averaging_on_one_point(){
                 assert(false);
             }
 
-            for(int r=0;r<6*Parameters_.ns;r++){
+            for(int r=0;r<3*Parameters_.ns;r++){
                 line_temp_ss>>double_temp;
 
                 Sr[r] += double_temp;
@@ -294,7 +294,7 @@ void ST_Fourier_1orb_MCMF::Perform_Averaging_on_one_point(){
 
         }
 
-        for(int r=0;r<6*Parameters_.ns;r++){
+        for(int r=0;r<3*Parameters_.ns;r++){
             Temp_file_Srt_out<<Sr[r]/(No_Of_Inputs)<<"  ";
         }
         Temp_file_Srt_out<<endl;
@@ -342,8 +342,8 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
     //#pragma omp parallel for default(shared) //private()
     //#endif
     for(int ts=0;ts<=time_steps;ts++){
-        S_tr[ts].resize(6*Parameters_.ns);
-        for(int r=0;r<6*Parameters_.ns;r++){
+        S_tr[ts].resize(3*Parameters_.ns);
+        for(int r=0;r<3*Parameters_.ns;r++){
             S_tr[ts][r]=0;
         }
     }
@@ -385,7 +385,7 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
                 assert(false);
             }
 
-            for(int r=0;r<6*Parameters_.ns;r++){
+            for(int r=0;r<3*Parameters_.ns;r++){
                 line_temp_ss>>double_temp;
                 S_tr[ts][r]+= double_temp;
             }
@@ -396,7 +396,7 @@ void ST_Fourier_1orb_MCMF::Perform_Smarter_Averaging_on_one_point(){
 
     for(int ts=0;ts<=time_steps;ts++){
         Temp_file_Srt_out<<ts*dt_<<"  ";
-        for(int r=0;r<6*Parameters_.ns;r++){
+        for(int r=0;r<3*Parameters_.ns;r++){
             S_tr[ts][r] = S_tr[ts][r]/(No_Of_Inputs);
             Temp_file_Srt_out<<S_tr[ts][r]<<"  ";
         }
@@ -445,8 +445,8 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
     //#pragma omp parallel for default(shared) //private()
     //#endif
     for(int i =0;i<S_r_t0.size();i++){
-        S_r_t0[i].resize(6*Parameters_.ns);
-        S_r_t[i].resize(6*Parameters_.ns);
+        S_r_t0[i].resize(3*Parameters_.ns);
+        S_r_t[i].resize(3*Parameters_.ns);
     }
 
 
@@ -518,7 +518,7 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
             assert(false);
         }
 
-        for(int r=0;r<6*Parameters_.ns;r++){
+        for(int r=0;r<3*Parameters_.ns;r++){
             line_temp_ss>>double_temp;
             S_r_t0[conf][r] = double_temp;
         }
@@ -532,11 +532,6 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
                         (S_r_t0[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]) +
                         (S_r_t0[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
 
-                //Quantum
-                C_Quantum_tr[ts][r][rp] +=
-                        (S_r_t0[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]) +
-                        (S_r_t0[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]) +
-                        (S_r_t0[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
 
             }
         }
@@ -576,7 +571,7 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
                 assert(false);
             }
 
-            for(int r=0;r<6*Parameters_.ns;r++){
+            for(int r=0;r<3*Parameters_.ns;r++){
                 line_temp_ss>>double_temp;
                 S_r_t[conf][r] = double_temp;
             }
@@ -589,12 +584,6 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
                             (S_r_t[conf][r]*S_r_t0[conf][rp]) +
                             (S_r_t[conf][r+Parameters_.ns]*S_r_t0[conf][rp+Parameters_.ns]) +
                             (S_r_t[conf][r+(2*Parameters_.ns)]*S_r_t0[conf][rp+(2*Parameters_.ns)]);
-
-                    //Quantum
-                    C_Quantum_tr[ts][r][rp] +=
-                            (S_r_t[conf][r+(3*Parameters_.ns)]*S_r_t0[conf][rp+(3*Parameters_.ns)]) +
-                            (S_r_t[conf][r+(4*Parameters_.ns)]*S_r_t0[conf][rp+(4*Parameters_.ns)]) +
-                            (S_r_t[conf][r+(5*Parameters_.ns)]*S_r_t0[conf][rp+(5*Parameters_.ns)]);
 
                 }
             }
@@ -617,13 +606,6 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
                         - ( S_tr[ts][r+(Parameters_.ns)]*(S_tr[0][rp+(Parameters_.ns)]) )
                         - ( S_tr[ts][r+(2*Parameters_.ns)]*(S_tr[0][rp+(2*Parameters_.ns)]) );
 
-                C_Quantum_tr[ts][r][rp] =
-                        (C_Quantum_tr[ts][r][rp]/No_Of_Inputs)
-                        - ( S_tr[ts][r+(3*Parameters_.ns)]*(S_tr[0][rp+(3*Parameters_.ns)]) )
-                        - ( S_tr[ts][r+(4*Parameters_.ns)]*(S_tr[0][rp+(4*Parameters_.ns)]) )
-                        - ( S_tr[ts][r+(5*Parameters_.ns)]*(S_tr[0][rp+(5*Parameters_.ns)]) );
-
-
             }
         }
     }
@@ -635,11 +617,9 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations(string STdis
         for(int r=0;r<Parameters_.ns;r++){
             for(int rp=0;rp<Parameters_.ns;rp++){
 
-                STdisplaced_Crt_Fileout_<< C_Classical_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  "<<
-                                           C_Quantum_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   ";
+                STdisplaced_Crt_Fileout_<< C_Classical_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  ";
                 if(r==rp && r==0){
-                    STdisplaced_Crt_r0_Fileout_<< C_Classical_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   "<<
-                                                  C_Quantum_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv));
+                    STdisplaced_Crt_r0_Fileout_<< C_Classical_tr[ts][r][rp]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   ";
                 }
 
             }
@@ -679,8 +659,8 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
     S_r_t.resize(conf_inputs.size());
 
     for(int i =0;i<S_r_t0.size();i++){
-        S_r_t0[i].resize(6*Parameters_.ns);
-        S_r_t[i].resize(6*Parameters_.ns);
+        S_r_t0[i].resize(3*Parameters_.ns);
+        S_r_t[i].resize(3*Parameters_.ns);
     }
 
     C_Quantum_tr_.resize(time_steps+1);
@@ -702,11 +682,11 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
     string SpaceTimeDisplaced_Crt_r0_file = "SpaceTimeDisplaced_Crt_r0_w_conv" + string_w_conv + ".txt";
 
     ofstream STdisplaced_Crt_r0_Fileout_(SpaceTimeDisplaced_Crt_r0_file.c_str());
-    STdisplaced_Crt_r0_Fileout_<<"#time   C(r=0,t)_S  C(r=0,t)_s"<<endl;
+    STdisplaced_Crt_r0_Fileout_<<"#time   C(r=0,t)_S "<<endl;
 
 
     ofstream STdisplaced_Crt_Fileout_(STdisplaced_Crt_fileout.c_str());
-    STdisplaced_Crt_Fileout_<<"#time   C(rt)_S   C(rt)_s"<<endl;
+    STdisplaced_Crt_Fileout_<<"#time   C(rt)_S "<<endl;
 
 
     //This parallelization gives noise, why??
@@ -743,7 +723,7 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
             assert(false);
         }
 
-        for(int r=0;r<6*Parameters_.ns;r++){
+        for(int r=0;r<3*Parameters_.ns;r++){
             line_temp_ss>>double_temp;
             S_r_t0[conf][r] = double_temp;
         }
@@ -766,11 +746,6 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
                         (S_r_t0[conf][rp+Parameters_.ns]*S_r_t0[conf][r_new+Parameters_.ns]) +
                         (S_r_t0[conf][rp+(2*Parameters_.ns)]*S_r_t0[conf][r_new+(2*Parameters_.ns)]);
 
-                //Quantum
-                C_Quantum_tr_[ts][r] +=
-                        (S_r_t0[conf][rp+(3*Parameters_.ns)]*S_r_t0[conf][r_new+(3*Parameters_.ns)]) +
-                        (S_r_t0[conf][rp+(4*Parameters_.ns)]*S_r_t0[conf][r_new+(4*Parameters_.ns)]) +
-                        (S_r_t0[conf][rp+(5*Parameters_.ns)]*S_r_t0[conf][r_new+(5*Parameters_.ns)]);
 
             }
         }
@@ -810,7 +785,7 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
                 assert(false);
             }
 
-            for(int r=0;r<6*Parameters_.ns;r++){
+            for(int r=0;r<3*Parameters_.ns;r++){
                 line_temp_ss>>double_temp;
                 S_r_t[conf][r] = double_temp;
             }
@@ -832,12 +807,6 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
                             (S_r_t[conf][rp]*S_r_t0[conf][r_new]) +
                             (S_r_t[conf][rp+Parameters_.ns]*S_r_t0[conf][r_new+Parameters_.ns]) +
                             (S_r_t[conf][rp+(2*Parameters_.ns)]*S_r_t0[conf][r_new+(2*Parameters_.ns)]);
-
-                    //Quantum
-                    C_Quantum_tr_[ts][r] +=
-                            (S_r_t[conf][rp+(3*Parameters_.ns)]*S_r_t0[conf][r_new+(3*Parameters_.ns)]) +
-                            (S_r_t[conf][rp+(4*Parameters_.ns)]*S_r_t0[conf][r_new+(4*Parameters_.ns)]) +
-                            (S_r_t[conf][rp+(5*Parameters_.ns)]*S_r_t0[conf][r_new+(5*Parameters_.ns)]);
 
                 }
             }
@@ -875,11 +844,6 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
                             - ( S_tr[ts][rp+(Parameters_.ns)]*(S_tr[0][r_new+(Parameters_.ns)]) )
                             - ( S_tr[ts][rp+(2*Parameters_.ns)]*(S_tr[0][r_new+(2*Parameters_.ns)]) );
 
-                    C_Quantum_tr_[ts][r] +=
-                            - ( S_tr[ts][rp+(3*Parameters_.ns)]*(S_tr[0][r_new+(3*Parameters_.ns)]) )
-                            - ( S_tr[ts][rp+(4*Parameters_.ns)]*(S_tr[0][r_new+(4*Parameters_.ns)]) )
-                            - ( S_tr[ts][rp+(5*Parameters_.ns)]*(S_tr[0][r_new+(5*Parameters_.ns)]) );
-
 
                 }
 
@@ -900,11 +864,9 @@ void ST_Fourier_1orb_MCMF::Calculate_SpaceTimeDisplacedCorrelations_Smarter(stri
         STdisplaced_Crt_r0_Fileout_<<ts*dt_<<"  ";
         for(int r=0;r<Parameters_.ns;r++){
 
-            STdisplaced_Crt_Fileout_<< C_Classical_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  "<<
-                                       C_Quantum_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   ";
+            STdisplaced_Crt_Fileout_<< C_Classical_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv)) <<"  ";
             if(r==0){
-                STdisplaced_Crt_r0_Fileout_<< C_Classical_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   "<<
-                                              C_Quantum_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv));
+                STdisplaced_Crt_r0_Fileout_<< C_Classical_tr_[ts][r]*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))<<"   ";
             }
         }
         STdisplaced_Crt_Fileout_<<endl;
@@ -1000,11 +962,6 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt(string fileout){
                         //exp(iota*(-wi * dw) * (ts* dt_))
                         S_rw[pos_i][pos_j][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
                                     ( ( C_Classical_tr[ts][pos_i][pos_j]  )  )
-                                    );
-
-
-                        s_quantum_rw[pos_i][pos_j][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*(ts*dt_*w_conv*ts*dt_*w_conv))*dt_*(
-                                    ( ( C_Quantum_tr[ts][pos_i][pos_j]  )  )
                                     );
 
                     }
@@ -1388,8 +1345,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt_(string fileout){
 void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq){
 
 
-
-    int GaussianCenteredAtTmaxby2=1;
+    int GaussianCenteredAtTmaxby2=0;
     int GCATm2=GaussianCenteredAtTmaxby2;
     double begin_time, end_time;
     clock_t oprt_SB_time;
@@ -1407,23 +1363,22 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
     no_threads_used = min(no_of_processors, No_Of_Inputs);
 
     Fft DO_Fft;
-    DO_Fft.PI_EFF=PI;
     complex<double> iota(0,1);
 
 
     S_tr.resize(time_steps);
     for(int i=0;i<time_steps;i++){
-        S_tr[i].resize(6*Parameters_.ns);
+        S_tr[i].resize(3*Parameters_.ns);
     }
 
-    F_rw.resize(6*Parameters_.ns);
-    F_qw.resize(6*Parameters_.ns);
-    for(int i=0;i<6*Parameters_.ns;i++){
+    F_rw.resize(3*Parameters_.ns);
+    F_qw.resize(3*Parameters_.ns);
+    for(int i=0;i<3*Parameters_.ns;i++){
         F_rw[i].resize(n_wpoints);
         F_qw[i].resize(n_wpoints);
     }
 
-    Aq.resize(6*Parameters_.ns);
+    Aq.resize(3*Parameters_.ns);
 
     string line_temp2;
 
@@ -1449,7 +1404,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
             assert(false);
         }
 
-        for(int r=0;r<6*Parameters_.ns;r++){
+        for(int r=0;r<3*Parameters_.ns;r++){
             line_temp_ss>>double_temp;
             S_tr[ts][r] = double_temp;
         }
@@ -1482,7 +1437,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
         for(int pos_iy=0;pos_iy<Parameters_.ly;pos_iy++){
 
-            for(int type=0;type<6;type++){
+            for(int type=0;type<3;type++){
 
                 pos_i = Coordinates_.Nc(pos_ix,pos_iy);
                 index  = pos_i + (type*Parameters_.ns);
@@ -1492,9 +1447,10 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
                     expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
                     expnt = expnt*expnt;
 
-                    Vec_1[ts] = exp(-0.5*expnt)*dt_*(( ( S_tr[ts][index] )  ));
+                    Vec_1[ts] = exp(-0.5*expnt)*fabs(dt_)*(( ( S_tr[ts][index] )  ));
                 }
 
+                DO_Fft.PI_EFF=PI*(dt_/fabs(dt_));
                 DO_Fft.transform(Vec_1);
 
                 for(int wi=0;wi<n_wpoints;wi++){
@@ -1519,7 +1475,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
     int k_index;
     complex<double> temp;
 
-    for(int type=0;type<6;type++){
+    for(int type=0;type<3;type++){
         for(int nx=0;nx<Parameters_.lx;nx++){
             for(int ny=0;ny<Parameters_.ly;ny++){
 
@@ -1546,7 +1502,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
 
 
-    for(int type=0;type<6;type++){
+    for(int type=0;type<3;type++){
         for(int nx=0;nx<Parameters_.lx;nx++){
             for(int ny=0;ny<Parameters_.ly;ny++){
 
@@ -1610,7 +1566,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
                 //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
                 file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
-                for(int type=0;type<6;type++){
+                for(int type=0;type<3;type++){
 
                     file_out_full<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
                 }
@@ -1635,7 +1591,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
             file_out_Aq<<nx<<"   "<<ny<<"   "<<k_index<<"   ";
 
-            for(int type=0;type<6;type++){
+            for(int type=0;type<3;type++){
                 file_out_Aq<<Aq[k_index + (type*Parameters_.ns)].real()<<"   "<<Aq[k_index + (type*Parameters_.ns)].imag()<<"    ";
 
             }
@@ -1669,9 +1625,9 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
     line_temp2_ss>>n_wpoints;
 
 
-    S_qw.resize(6*Parameters_.ns);
-    D_qw.resize(6*Parameters_.ns);
-    for(int i=0;i<6*Parameters_.ns;i++){
+    S_qw.resize(3*Parameters_.ns);
+    D_qw.resize(3*Parameters_.ns);
+    for(int i=0;i<3*Parameters_.ns;i++){
         S_qw[i].resize(n_wpoints);
         D_qw[i].resize(n_wpoints);
         for(int n=0;n<n_wpoints;n++){
@@ -1680,15 +1636,15 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
         }
     }
 
-    F_qw.resize(6*Parameters_.ns);
-    for(int i=0;i<6*Parameters_.ns;i++){
+    F_qw.resize(3*Parameters_.ns);
+    for(int i=0;i<3*Parameters_.ns;i++){
         F_qw[i].resize(n_wpoints);
     }
 
-    Aq.resize(6*Parameters_.ns);
-    delAq.resize(6*Parameters_.ns);
-    Aq_avg.resize(6*Parameters_.ns);
-    for(int i=0;i<6*Parameters_.ns;i++){
+    Aq.resize(3*Parameters_.ns);
+    delAq.resize(3*Parameters_.ns);
+    Aq_avg.resize(3*Parameters_.ns);
+    for(int i=0;i<3*Parameters_.ns;i++){
         Aq_avg[i]=complex<double>(0,0);
     }
 
@@ -1718,7 +1674,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
                 // file_out_Aq<<nx<<"   "<<ny<<"   "<<k_index<<"   ";
 
 
-                for(int type=0;type<6;type++){
+                for(int type=0;type<3;type++){
                     //file_out_Aq<<Aq[k_index + (type*Parameters_.ns)].real()<<"   "<<Aq[k_index + (type*Parameters_.ns)].imag()<<"    ";
 
                     line_temp_ss>>temp1>>temp2;
@@ -1735,7 +1691,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
     }
 
 
-    for(int i=0;i<6*Parameters_.ns;i++){
+    for(int i=0;i<3*Parameters_.ns;i++){
         Aq_avg[i]=Aq_avg[i]*(1.0/(No_Of_Inputs*1.0));
     }
 
@@ -1761,7 +1717,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
                 // file_out_Aq<<nx<<"   "<<ny<<"   "<<k_index<<"   ";
 
 
-                for(int type=0;type<6;type++){
+                for(int type=0;type<3;type++){
                     //file_out_Aq<<Aq[k_index + (type*Parameters_.ns)].real()<<"   "<<Aq[k_index + (type*Parameters_.ns)].imag()<<"    ";
 
                     line_temp_ss>>temp1>>temp2;
@@ -1800,7 +1756,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
                     line_temp_ss>>double_temp>>wi_temp;
                     assert((nx_temp==nx) && (ny_temp==ny) && (k_index_temp==k_index) && (wi==wi_temp) );
 
-                    for(int type=0;type<6;type++){
+                    for(int type=0;type<3;type++){
 
                         //file_out_full<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "
                         //<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
@@ -1828,7 +1784,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
 
 
 
-    for(int i=0;i<6*Parameters_.ns;i++){
+    for(int i=0;i<3*Parameters_.ns;i++){
         for(int n=0;n<n_wpoints;n++){
             S_qw[i][n]=S_qw[i][n]*(1.0/(1.0*No_Of_Inputs*Parameters_.ns));
             D_qw[i][n]=D_qw[i][n]*(1.0/(1.0*No_Of_Inputs*Parameters_.ns*Parameters_.ns));
@@ -1851,7 +1807,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
                 //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
                 file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
-                for(int type=0;type<6;type++){
+                for(int type=0;type<3;type++){
 
                     file_out_full<<S_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<S_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
                 }
@@ -1881,7 +1837,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw
                 //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
                 file_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
-                for(int type=0;type<6;type++){
+                for(int type=0;type<3;type++){
                     file_out<< abs(D_qw[k_index + (type*Parameters_.ns)][wi] * conj(D_qw[k_index + (type*Parameters_.ns)][wi]))<<"    ";
                     file_out<< D_qw[k_index + (type*Parameters_.ns)][wi].real() * D_qw[k_index + (type*Parameters_.ns)][wi].real()<<"    ";
                 }
@@ -2190,7 +2146,7 @@ void ST_Fourier_1orb_MCMF::Convolute_the_spectrum(string Sqw_file_in, string Sqw
     double omega_val;
     double real_temp, imag_temp;
 
-    S_qw.resize(6*Parameters_.ns);
+    S_qw.resize(3*Parameters_.ns);
     for(int i=0;i<S_qw.size();i++){
         S_qw[i].clear();
     }
@@ -2208,7 +2164,7 @@ void ST_Fourier_1orb_MCMF::Convolute_the_spectrum(string Sqw_file_in, string Sqw
 
         line_temp_ss >> nx >> ny >> k_ind >> omega_val >> omega_ind;
 
-        for(int type=0;type<6;type++){
+        for(int type=0;type<3;type++){
           line_temp_ss >> real_temp >> imag_temp;
           S_qw[k_ind + (type*Parameters_.ns)].push_back( complex<double> (real_temp, imag_temp) );
         }
@@ -2227,7 +2183,7 @@ void ST_Fourier_1orb_MCMF::Convolute_the_spectrum(string Sqw_file_in, string Sqw
     cout<<"w_max = "<<w_max<<endl;
     cout<<"n_wpoints = "<<n_wpoints<<endl;
 
-    S_qw_conv.resize(6*Parameters_.ns);
+    S_qw_conv.resize(3*Parameters_.ns);
     for(int i=0;i<S_qw_conv.size();i++){
         S_qw_conv[i].resize(n_wpoints);
     }
@@ -2236,7 +2192,7 @@ void ST_Fourier_1orb_MCMF::Convolute_the_spectrum(string Sqw_file_in, string Sqw
     double wj_val, wi_val;
 
 
-    for(int i=0;i<6*Parameters_.ns;i++){
+    for(int i=0;i<3*Parameters_.ns;i++){
         for(int wj=0;wj<n_wpoints;wj++){
             wj_val = 1.0*wj*dw;
             S_qw_conv[i][wj] = zero_complex;
@@ -2270,7 +2226,7 @@ void ST_Fourier_1orb_MCMF::Convolute_the_spectrum(string Sqw_file_in, string Sqw
                 //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
                 Sqw_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
-                for(int type=0;type<6;type++){
+                for(int type=0;type<3;type++){
 
                     Sqw_out<<S_qw_conv[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<S_qw_conv[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
                 }
