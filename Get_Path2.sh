@@ -8,10 +8,10 @@ do
 N_MS=20
 #U-2.0_JClassical0.05/16x16_Tmax1000_dT0.01_RKOrder4_Np192_AnsatzStripeRandom0.05/Temp0.0010/Fourier_w_conv0.01/Fw_w_conv0.01_state_1.txt
 #U-2.0_JClassical0.05/16x16_Tmax4000_dT0.01_RKOrder4_Np192_AnsatzStripeRandom0.05/Temp0.0010/Fourier_w_conv0.002/Fw_w_conv0.002_state_41.txt
-infile="Dqw_check.txt"
+infile="Sqw_check.txt"
 #"Sqw_conv0.0_50states_1stwconv_0.0005_2ndwconv0.03_Tmax8000.txt"
 #"U-2.0_JClassical0.05/16x16_Tmax8000_dT0.01_RKOrder4_Np192_AnsatzStripeRandom0.05/Temp0.0010/Fourier_w_conv0.0005_threads4asked_but_notused//Sqw_conv0.0005_50states.txt"
-outfile="Dqw_check_Path2.txt"
+outfile="Sqw_check_Path2.txt"
 #"U-2.0_JClassical0.05/16x16_Tmax8000_dT0.01_RKOrder4_Np192_AnsatzStripeRandom0.05/Temp0.0010/Fourier_w_conv0.0005_threads4asked_but_notused//Sqw_conv0.0005_50states_Path2.txt"
 tempfile="temp.txt"
 lx=8

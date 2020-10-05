@@ -542,8 +542,10 @@ int main(int argc, char** argv){
 
             string Sqw_file = argv[4+(2*SpaceTime_Fourier.No_Of_Inputs)] ;
             string Dqw_file = argv[5+(2*SpaceTime_Fourier.No_Of_Inputs)] ;
-            SpaceTime_Fourier.Calculate_Sqw_using_Fwq(Sqw_file, Dqw_file);
+            SpaceTime_Fourier.Calculate_Sqw_using_Fwq_with_negativeandpositive_Time(Sqw_file, Dqw_file);
 
+
+            //SpaceTime_Fourier.Calculate_Sqw_using_Fwq(Sqw_file, Dqw_file);
             //SpaceTime_Fourier.Calculate_Sqw_using_Aq_Fwq(Sqw_file, Dqw_file);
 
 
