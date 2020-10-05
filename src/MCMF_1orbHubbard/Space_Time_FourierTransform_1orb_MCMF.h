@@ -1708,24 +1708,20 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
 
 
+    cout<<"Now Sqw is being calculated :"<<endl;
 
 
     for(int i=0;i<3*Parameters_.ns;i++){
-        for(int n=0;n<n_wpoints;n++){
-            for(int wi=0;wi<n_wpoints;wi++){
-                for(int type=0;type<3;type++){
+        for(int wi=0;wi<n_wpoints;wi++){
 
-                    for(int ms=0;ms<No_Of_Inputs;ms++){
-                        for(int ns=0;ns<No_Of_Inputs;ns++){
+            for(int ms=0;ms<No_Of_Inputs;ms++){
+                for(int ns=0;ns<No_Of_Inputs;ns++){
 
-                            S_qw[k_index + (type*Parameters_.ns)][wi] = S_qw[k_index + (type*Parameters_.ns)][wi] -
-                                    ((F_qw_[ms][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[ns][k_index + (type*Parameters_.ns)][wi]) )*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs))   );
+                    S_qw[i][wi] = S_qw[i][wi] -
+                            ((F_qw_[ms][i][wi]*conj(F_qw_[ns][i][wi]) )*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs))   );
 
-                        }
-                    }
                 }
             }
-
         }
     }
 
