@@ -1572,13 +1572,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
 
 
     else if(Runge_Kutta_order==6){
-
-        //Sixth Order Runge-Kutta Method is used
-        //From "https://www.ams.org/journals/mcom/1968-22-102/S0025-5718-68-99876-1/S0025-5718-68-99876-1.pdf"
-        //or google "An Explicit Sixth-Order Runge-Kutta Formula By H. A. Luther"
-
         RungeKuttaSix(YVec0, YVec1);
-
     }
 
 
@@ -1910,6 +1904,13 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_C
 }
 
 void SC_SW_ENGINE_VNE_1orb_MCMF::RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1){
+
+
+
+    //Sixth Order Runge-Kutta Method is used
+    //From "https://www.ams.org/journals/mcom/1968-22-102/S0025-5718-68-99876-1/S0025-5718-68-99876-1.pdf"
+    //or google "An Explicit Sixth-Order Runge-Kutta Formula By H. A. Luther"
+
 
 
     double nu, surd;

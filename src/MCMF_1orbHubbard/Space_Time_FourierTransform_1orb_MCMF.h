@@ -79,6 +79,7 @@ Mat_2_doub T_rt;
     Mat_3_doub C_Classical_tr;
 
     Mat_2_Complex_doub F_rw, F_qw, S_qw, D_qw, S_qw_conv;
+    Mat_3_Complex_doub F_qw_;
     Mat_1_Complex_doub Aq, delAq, Aq_avg;
 
 
@@ -122,6 +123,8 @@ Mat_2_doub T_rt;
     void Calculate_Fw_and_Aq(string fileout, string fileout_Aq);
 
     void Calculate_Sqw_using_Aq_Fwq(string Sqw_file, string Dqw_file);
+
+    void Calculate_Sqw_using_Fwq(string Sqw_file, string Dqw_file);
 
     void Convolute_the_spectrum(string Sqw_file_in, string Sqw_file_out);
 
@@ -1608,6 +1611,187 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
 
 
 
+void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_file){
+
+
+    F_qw_.resize(No_Of_Inputs);
+
+    string line_temp2;
+    ifstream file_Fwq(F_wq_inputs[0].c_str());
+    getline(file_Fwq, line_temp2);
+    stringstream line_temp2_ss(line_temp2, stringstream::in);
+
+    //"#w_details:  "<<"   "<<w_max<<"  "<<w_min<<"  "<<dw<<"  "<<n_wpoints<<endl;
+
+    line_temp2_ss>>line_temp2;
+    line_temp2_ss>>w_max;
+    line_temp2_ss>>w_min;
+    line_temp2_ss>>dw;
+    line_temp2_ss>>n_wpoints;
+
+
+    S_qw.resize(3*Parameters_.ns);
+    D_qw.resize(3*Parameters_.ns);
+    for(int i=0;i<3*Parameters_.ns;i++){
+        S_qw[i].resize(n_wpoints);
+        D_qw[i].resize(n_wpoints);
+        for(int n=0;n<n_wpoints;n++){
+            S_qw[i][n]=complex<double>(0,0);
+            D_qw[i][n]=complex<double>(0,0);
+        }
+    }
+
+
+
+    for(int j=0;j<F_qw_.size();j++){
+        F_qw_[j].resize(3*Parameters_.ns);
+        for(int i=0;i<3*Parameters_.ns;i++){
+            F_qw_[j][i].resize(n_wpoints);
+        }
+    }
+
+
+
+    string line_temp;
+    int nx_temp, ny_temp, k_index_temp, k_index, wi_temp;
+    double double_temp, temp1, temp2;
+
+
+    for(int ms=0;ms<No_Of_Inputs;ms++){
+
+
+        ifstream file_Fwq_in(F_wq_inputs[ms].c_str());
+        getline(file_Fwq_in, line_temp);
+        getline(file_Fwq_in, line_temp);
+        //stringstream line_temp_ss(line_temp, stringstream::in);
+
+        // file_out_full<<"#nx   ny   k_ind   wi*dw   wi   F_qw[k_ind][wi].real()   F_qw[k_ind][wi].imag()"<<endl;
+        for(int nx=0;nx<Parameters_.lx;nx++){
+            for(int ny=0;ny<Parameters_.ly;ny++){
+                k_index=Coordinates_.Nc(nx,ny);
+
+                for(int wi=0;wi<n_wpoints;wi++){
+
+                    // file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+                    getline(file_Fwq_in, line_temp);
+                    stringstream line_temp_ss(line_temp, stringstream::in);
+                    line_temp_ss>>nx_temp>>ny_temp>>k_index_temp;
+                    line_temp_ss>>double_temp>>wi_temp;
+                    assert((nx_temp==nx) && (ny_temp==ny) && (k_index_temp==k_index) && (wi==wi_temp) );
+
+                    for(int type=0;type<3;type++){
+
+                        //file_out_full<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "
+                        //<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+
+                        line_temp_ss>>temp1>>temp2;
+                        F_qw_[ms][k_index + (type*Parameters_.ns)][wi]=complex<double>(temp1, temp2);
+
+
+                        S_qw[k_index + (type*Parameters_.ns)][wi] += (F_qw_[ms][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[ms][k_index + (type*Parameters_.ns)][wi]) )*(1.0/(1.0*No_Of_Inputs));
+                        D_qw[k_index + (type*Parameters_.ns)][wi] += (F_qw_[ms][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[ms][k_index + (type*Parameters_.ns)][wi]))*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs));
+
+                    }
+
+                    //file_out_full<<endl;
+
+                }
+
+                //file_out_full<<endl;
+                getline(file_Fwq_in, line_temp);
+
+            }
+        }
+
+
+    }
+
+
+
+
+
+    for(int i=0;i<3*Parameters_.ns;i++){
+        for(int n=0;n<n_wpoints;n++){
+            for(int wi=0;wi<n_wpoints;wi++){
+                for(int type=0;type<3;type++){
+
+                    for(int ms=0;ms<No_Of_Inputs;ms++){
+                        for(int ns=0;ns<No_Of_Inputs;ns++){
+
+                            S_qw[k_index + (type*Parameters_.ns)][wi] = S_qw[k_index + (type*Parameters_.ns)][wi] -
+                                    ((F_qw_[ms][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[ns][k_index + (type*Parameters_.ns)][wi]) )*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs))   );
+
+                        }
+                    }
+                }
+            }
+
+        }
+    }
+
+
+
+    ofstream file_out_full(fileout.c_str());
+
+    file_out_full<<"#nx   ny   k_ind   wi*dw   wi   S_qw[k_ind][wi].real()   S_qw[k_ind][wi].imag()"<<endl;
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+            k_index=Coordinates_.Nc(nx,ny);
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                for(int type=0;type<3;type++){
+
+                    file_out_full<<S_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<S_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+                }
+
+                file_out_full<<endl;
+
+            }
+
+            file_out_full<<endl;
+
+        }
+    }
+
+
+
+
+
+    ofstream file_out(Dqw_file.c_str());
+
+    file_out<<"#nx   ny   k_ind   wi*dw   wi   |D_qw[k_ind][wi]|   (D_qw[k_ind][wi].real())  (D_qw[k_ind][wi].imag()) "<<endl;
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+            k_index=Coordinates_.Nc(nx,ny);
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                for(int type=0;type<3;type++){
+                    file_out<< abs(D_qw[k_index + (type*Parameters_.ns)][wi])<<"    ";
+                    file_out<< D_qw[k_index + (type*Parameters_.ns)][wi].real()<<"    ";
+                    file_out<< D_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"    ";
+                }
+
+                file_out<<endl;
+            }
+
+            file_out<<endl;
+        }
+    }
+
+
+
+}
+
+
+
 void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Aq_Fwq(string fileout, string Dqw_file){
 
 
@@ -2160,18 +2344,18 @@ void ST_Fourier_1orb_MCMF::Convolute_the_spectrum(string Sqw_file_in, string Sqw
 
         if( curLine>0 && ( !line_temp.empty() ) ){
 
-        stringstream line_temp_ss(line_temp, stringstream::in);
+            stringstream line_temp_ss(line_temp, stringstream::in);
 
-        line_temp_ss >> nx >> ny >> k_ind >> omega_val >> omega_ind;
+            line_temp_ss >> nx >> ny >> k_ind >> omega_val >> omega_ind;
 
-        for(int type=0;type<3;type++){
-          line_temp_ss >> real_temp >> imag_temp;
-          S_qw[k_ind + (type*Parameters_.ns)].push_back( complex<double> (real_temp, imag_temp) );
-        }
+            for(int type=0;type<3;type++){
+                line_temp_ss >> real_temp >> imag_temp;
+                S_qw[k_ind + (type*Parameters_.ns)].push_back( complex<double> (real_temp, imag_temp) );
+            }
 
 
-        w_max = omega_val;
-        n_wpoints = omega_ind + 1;
+            w_max = omega_val;
+            n_wpoints = omega_ind + 1;
 
         }
 
