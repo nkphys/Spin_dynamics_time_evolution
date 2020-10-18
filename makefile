@@ -23,6 +23,7 @@ all :	$(OBJS)
 	cp dynamics Calculate_Fqw
 	cp dynamics Calculate_Sqw
 	cp dynamics convolution_w
+	cp dynamics sum_rule
 
 functions.o : functions.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) functions.cpp $(MKL_include) $(MKL_LIB) 
@@ -88,6 +89,9 @@ main.o : main.cpp
 
 clean:
 	rm *.o dynamics NI_Skw ST_Fourier Calculate_Fqw
+
+sum_rule : dynamics
+	cp dynamics sum_rule
 
 NI_Skw : dynamics
 	cp dynamics NI_Skw

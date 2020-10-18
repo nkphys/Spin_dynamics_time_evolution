@@ -80,7 +80,7 @@ Mat_2_doub T_rt;
 
     Mat_2_Complex_doub F_rw, F_qw, S_qw, D_qw, S_qw_conv;
     Mat_3_Complex_doub F_qw_;
-    Mat_1_Complex_doub Aq, delAq, Aq_avg;
+    Mat_1_Complex_doub Aq, delAq, Aq_avg, Aq2_avg;
 
 
     Mat_3_Complex_doub S_rw; //
@@ -126,6 +126,7 @@ Mat_2_doub T_rt;
 
     void Calculate_Sqw_using_Fwq(string Sqw_file, string Dqw_file);
     void Calculate_Sqw_using_Fwq_with_negativeandpositive_Time(string fileout, string Dqw_file);
+    void Sum_Rule_For_Way1(string Sqw_file_in, string Sq_static_out, string Sq_dynamical_out);
 
     void Convolute_the_spectrum(string Sqw_file_in, string Sqw_file_out);
 
@@ -1349,6 +1350,14 @@ void ST_Fourier_1orb_MCMF::Calculate_Skw_from_Crt_(string fileout){
 void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq){
 
 
+
+    if(!Use_FFT){
+        cout<<"FFT is NOT used"<<endl;
+    }
+    else{
+        cout<<"FFT is used"<<endl;
+    }
+
     int GaussianCenteredAtTmaxby2=0;
     int GCATm2=GaussianCenteredAtTmaxby2;
     double begin_time, end_time;
@@ -1446,21 +1455,40 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
                 pos_i = Coordinates_.Nc(pos_ix,pos_iy);
                 index  = pos_i + (type*Parameters_.ns);
 
-                for(int ts=0;ts<time_steps;ts++){
 
-                    expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
-                    expnt = expnt*expnt;
+                if(!Use_FFT){
 
-                    Vec_1[ts] = exp(-0.5*expnt)*fabs(dt_)*(( ( S_tr[ts][index] )  ));
+                    for(int wi=0;wi<n_wpoints;wi++){
+
+                        for(int ts=0;ts<time_steps;ts++){
+
+                            expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
+                            expnt = expnt*expnt;
+                            F_rw[index][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*expnt)*dt_*(
+                                        ((  S_tr[ts][index] ))
+                                        );
+                        }
+
+                    }
                 }
 
-                DO_Fft.PI_EFF=PI*(dt_/fabs(dt_));
-                DO_Fft.transform(Vec_1);
+                else{
 
-                for(int wi=0;wi<n_wpoints;wi++){
-                    //F_rw[index][wi] = Vec_1[wi].real();
-                    F_rw[index][wi] = Vec_1[wi]*exp(iota*(-0.5*GCATm2*time_steps*dt_)*(wi*dw));;
+                    for(int ts=0;ts<time_steps;ts++){
 
+                        expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
+                        expnt = expnt*expnt;
+                        Vec_1[ts] = exp(-0.5*expnt)*fabs(dt_)*(( ( S_tr[ts][index] )  ));
+                    }
+
+                    DO_Fft.PI_EFF=PI*(dt_/fabs(dt_));
+                    DO_Fft.transform(Vec_1);
+
+                    for(int wi=0;wi<n_wpoints;wi++){
+                        //F_rw[index][wi] = Vec_1[wi].real();
+                        F_rw[index][wi] = Vec_1[wi];
+
+                    }
                 }
 
             }
@@ -1533,7 +1561,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
                     }
                     //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
                     //file_out_full<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<wi<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<"none"<<"   "<<"none"<<"    "<<"none"<<"   "<<"none"<<endl;
-                    F_qw[k_index][wi]=temp;
+                    F_qw[k_index][wi]=temp*(1.0/(Parameters_.lx*Parameters_.ly));
                 }
             }
         }
@@ -1728,10 +1756,10 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq_with_negativeandpositive_Time
 
                     S_qw[i][wi] = S_qw[i][wi] -
                             ((     (  (F_qw_[ms][i][wi]  +  F_qw_[ms+(No_Of_Inputs/2)][i][wi])
-                            *(  conj(F_qw_[ns][i][wi])  + conj(F_qw_[ns+(No_Of_Inputs/2)][i][wi]) )
+                                   *(  conj(F_qw_[ns][i][wi])  + conj(F_qw_[ns+(No_Of_Inputs/2)][i][wi]) )
+                             )
                             )
-                                 )
-                             *(1.0/(0.25*No_Of_Inputs*No_Of_Inputs))   );
+                            *(1.0/(0.25*No_Of_Inputs*No_Of_Inputs))   );
 
                 }
             }
@@ -2612,12 +2640,181 @@ void ST_Fourier_1orb_MCMF::Convolute_the_spectrum(string Sqw_file_in, string Sqw
     Sqw_out<<"#w_conv = "<<w_conv<<endl;
 
 
-
-
 }
 
 
+void ST_Fourier_1orb_MCMF::Sum_Rule_For_Way1(string Sqw_file_in, string Sq_static_out, string Sq_dynamical_out){
 
+
+    string line_temp;
+
+    ifstream Sqw_in;
+    Sqw_in.open(Sqw_file_in.c_str());
+
+    //stringstream line_temp_ss(line_temp, stringstream::in);
+
+    int nx, ny, k_ind, omega_ind;
+    double omega_val;
+    double real_temp, imag_temp;
+
+    Mat_2_Complex_doub Sq_dyn, Sq_static;
+
+    Sq_dyn.resize(Parameters_.lx);
+    Sq_static.resize(Parameters_.lx);
+    for(int ix=0;ix<Parameters_.lx;ix++){
+        Sq_dyn[ix].resize(Parameters_.ly);
+        Sq_static[ix].resize(Parameters_.ly);
+    }
+
+
+    S_qw.resize(3*Parameters_.ns);
+    for(int i=0;i<S_qw.size();i++){
+        S_qw[i].clear();
+    }
+
+
+
+
+    for(int curLine = 0; getline(Sqw_in, line_temp); curLine++) {
+
+        if( curLine>0 && ( !line_temp.empty() ) ){
+
+            stringstream line_temp_ss(line_temp, stringstream::in);
+
+            line_temp_ss >> nx >> ny >> k_ind >> omega_val >> omega_ind;
+
+            for(int type=0;type<3;type++){
+                line_temp_ss >> real_temp >> imag_temp;
+                S_qw[k_ind + (type*Parameters_.ns)].push_back( complex<double> (real_temp, imag_temp) );
+            }
+
+
+            w_max = omega_val;
+            n_wpoints = omega_ind + 1;
+
+        }
+
+    }
+
+    dw = w_max/(1.0*(n_wpoints - 1));
+
+    cout<<"dw = "<<dw<<endl;
+    cout<<"w_max = "<<w_max<<endl;
+    cout<<"n_wpoints = "<<n_wpoints<<endl;
+
+
+
+
+    for(int nx_=0;nx_<Parameters_.lx;nx_++){
+        for(int ny_=0;ny_<Parameters_.ly;ny_++){
+            k_ind = Coordinates_.Nc(nx_,ny_);
+
+            Sq_dyn[nx_][ny_]=zero_complex;
+            for(int wi=0;wi<S_qw[0].size();wi++){
+                for(int type=0;type<3;type++){
+                    Sq_dyn[nx_][ny_] += (S_qw[k_ind + (type*Parameters_.ns)][wi]*dw);
+                }
+
+            }
+        }
+
+    }
+
+
+    //Calculate Sq_static from A(q)'s ;;HERE
+    Aq.resize(3*Parameters_.ns);
+    delAq.resize(3*Parameters_.ns);
+    Aq_avg.resize(3*Parameters_.ns);
+    Aq2_avg.resize(3*Parameters_.ns);
+
+    for(int i=0;i<3*Parameters_.ns;i++){
+        Aq_avg[i]=complex<double>(0,0);
+        Aq2_avg[i]=complex<double>(0,0);
+    }
+
+
+    int nx_temp, ny_temp, k_index_temp, k_index, wi_temp;
+    double double_temp, temp1, temp2;
+
+
+    for(int ms=0;ms<No_Of_Inputs;ms++){
+
+        ifstream file_Aq_in(Aq_inputs[ms].c_str());
+        getline(file_Aq_in, line_temp);
+
+        //file_out_Aq<<"#nx   ny   k_ind     Aq.real()    Aq.imag()"<<endl;
+
+        for(int nx=0;nx<Parameters_.lx;nx++){
+            for(int ny=0;ny<Parameters_.ly;ny++){
+                k_index=Coordinates_.Nc(nx,ny);
+
+                getline(file_Aq_in, line_temp);
+                stringstream line_temp_ss(line_temp, stringstream::in);
+                line_temp_ss>>nx_temp>>ny_temp>>k_index_temp;
+                assert((nx_temp==nx) && (ny_temp==ny) && (k_index==k_index_temp));
+                // file_out_Aq<<nx<<"   "<<ny<<"   "<<k_index<<"   ";
+
+
+                for(int type=0;type<3;type++){
+                    //file_out_Aq<<Aq[k_index + (type*Parameters_.ns)].real()<<"   "<<Aq[k_index + (type*Parameters_.ns)].imag()<<"    ";
+
+                    line_temp_ss>>temp1>>temp2;
+                    //Aq[k_index + (type*Parameters_.ns)]=complex<double> (temp1, temp2);
+                    Aq2_avg[k_index + (type*Parameters_.ns)] +=complex<double> (temp1, temp2)*conj(complex<double> (temp1, temp2));
+                    Aq_avg[k_index + (type*Parameters_.ns)] +=complex<double> (temp1, temp2);
+
+                }
+                //file_out_Aq<<endl;
+
+            }
+            //file_out_Aq<<endl;
+            getline(file_Aq_in, line_temp);
+        }
+    }
+
+
+    for(int i=0;i<3*Parameters_.ns;i++){
+        Aq_avg[i]=Aq_avg[i]*(1.0/(No_Of_Inputs*1.0));
+        Aq2_avg[i]=Aq2_avg[i]*(1.0/(No_Of_Inputs*1.0));
+    }
+
+
+    for(int nx_=0;nx_<Parameters_.lx;nx_++){
+        for(int ny_=0;ny_<Parameters_.ly;ny_++){
+            k_index=Coordinates_.Nc(nx_,ny_);
+
+            Sq_static[nx_][ny_]=zero_complex;
+            for(int type=0;type<3;type++){
+
+                Sq_static[nx_][ny_] += Aq2_avg[k_index + (type*Parameters_.ns)]
+                        - (Aq_avg[k_index + (type*Parameters_.ns)]*conj(Aq_avg[k_index + (type*Parameters_.ns)]));
+
+            }
+        }
+    }
+
+
+
+    ofstream DynamicalSq_out(Sq_dynamical_out.c_str());
+    ofstream StaticSq_out(Sq_static_out.c_str());
+    DynamicalSq_out<<"#nx    ny    k_ind   S(q).real  Sq.imag"<<endl;
+    StaticSq_out<<"#nx    ny    k_ind   S(q).real  Sq.imag"<<endl;
+
+    for(int nx_=0;nx_<Parameters_.lx;nx_++){
+        for(int ny_=0;ny_<Parameters_.ly;ny_++){
+            k_index=Coordinates_.Nc(nx_,ny_);
+
+            DynamicalSq_out << nx_<<"     "<<ny_<<"     "<<k_index<<"     "<<Sq_dyn[nx_][ny_].real()<<"    "<<Sq_dyn[nx_][ny_].imag()<<endl;
+            StaticSq_out << nx_<<"     "<<ny_<<"     "<<k_index<<"     "<<Sq_static[nx_][ny_].real()<<"    "<<Sq_static[nx_][ny_].imag()<<endl;
+
+        }
+        DynamicalSq_out<<endl;
+        StaticSq_out<<endl;
+    }
+
+
+
+}
 
 
 

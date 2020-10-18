@@ -554,6 +554,71 @@ int main(int argc, char** argv){
 
     }
 
+    if(ex_string == "_rule"){
+
+        if(model_=="1orb_MCMF"){
+
+
+            Parameters_MCMF Parameters_;
+            Parameters_.Initialize(input);
+
+            Coordinates_MCMF Coordinates_(Parameters_.lx, Parameters_.ly);
+
+            mt19937_64 Generator_(Parameters_.RandomSeed);
+            MFParams_MCMF MFParams_(Parameters_,Coordinates_,Generator_);
+
+            Hamiltonian_MCMF Hamiltonian_(Parameters_,Coordinates_,MFParams_);
+            Observables_MCMF Observables_(Parameters_,Coordinates_,MFParams_,Hamiltonian_);
+
+
+            SC_SW_ENGINE_VNE_1orb_MCMF Skw_Engine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
+            Skw_Engine_.Read_parameters(input);
+            Skw_Engine_.Initialize_engine();
+
+
+
+            ST_Fourier_1orb_MCMF SpaceTime_Fourier(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_, Skw_Engine_);
+            SpaceTime_Fourier.Space_Fourier_using_single_S=false;
+
+            string No_of_inputs= argv[3];
+
+            stringstream No_of_inputs_ss(No_of_inputs, stringstream::in);
+            No_of_inputs_ss>>SpaceTime_Fourier.No_Of_Inputs;
+
+
+            if( (SpaceTime_Fourier.No_Of_Inputs==1) && (!SpaceTime_Fourier.Space_Fourier_using_single_S) ){
+                cout << "Use SpaceTime_Fourier.Space_Fourier_using_single_S=true"<<endl;
+                assert(SpaceTime_Fourier.Space_Fourier_using_single_S);
+            }
+
+
+            SpaceTime_Fourier.Aq_inputs.resize(SpaceTime_Fourier.No_Of_Inputs);
+
+            for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
+                SpaceTime_Fourier.Aq_inputs[i]=argv[i+4];
+            }
+
+
+#ifdef _OPENMP
+            cout<<"Parallel threads are used"<<endl;
+#endif
+#ifndef _OPENMP
+            cout<<"single thread is used"<<endl;
+#endif
+
+            SpaceTime_Fourier.Read_parameters();
+            //  SpaceTime_Fourier.Initialize_engine();
+
+            //string Sqw_file_in, string Sq_static_out, string Sq_dynamical_out
+            string Sqw_file_in = argv[4+(SpaceTime_Fourier.No_Of_Inputs)] ;
+            string Sq_static_file = argv[5+(SpaceTime_Fourier.No_Of_Inputs)] ;
+            string Sq_dynamical_file = argv[6+(SpaceTime_Fourier.No_Of_Inputs)] ;
+            SpaceTime_Fourier.Sum_Rule_For_Way1(Sqw_file_in, Sq_static_file, Sq_dynamical_file);
+
+        }
+
+    }
+
 
     if(ex_string == "ion_w"){
         if(model_=="1orb_MCMF"){
