@@ -1,5 +1,5 @@
 #include <cassert>
-
+#include <vector>
 #ifndef Matrix_class
 #define Matrix_class
 

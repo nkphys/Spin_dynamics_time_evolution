@@ -1,0 +1,13 @@
+#Commands to use
+
+
+./dynamics MODELNAME  INPUTFILE
+./dynamics MultiOrbSF input_dynamics_1orb.inp 
+
+
+./Calculate_Fqw MODELNAME  INPUTFILE NO_OF_FILES=1  STRING_TO_APPEND_IN_OUTPUTFILES  TIMEVOLUTION_INPUTFILE
+./Calculate_Fqw MultiOrbSF input_dynamics_1orb.inp 1 4 S_vs_t_run4_threads4.txt
+
+
+./Calculate_Sqw MODELNAME INPUTFILE NO_OF_CONFS  AqFILES  Fw_w_FILES  Sqw_OUTPUTFILENAME   Sqw_OUTPUTFILENAME
+./Calculate_Sqw MultiOrbSF input_dynamics.inp 5 Aq_state_0.txt Aq_state_1.txt Aq_state_2.txt Aq_state_3.txt Aq_state_4.txt Fw_w_conv0.02_state_0.txt Fw_w_conv0.02_state_1.txt Fw_w_conv0.02_state_2.txt Fw_w_conv0.02_state_3.txt Fw_w_conv0.02_state_4.txt Sqw_out_5MS.txt Dqw_out_5MS.txt

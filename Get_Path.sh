@@ -1,8 +1,8 @@
 #!/bin/bash
 #Skw_conf_1.txt
 #Skw_using_Crt.txt
-infile="Dqw_conv0.01_2states.txt"
-outfile="Dqw_conv0.01_2states_Path.txt"
+infile="Fw_w_conv0.02_state_4.txt"
+outfile="Fw_w_conv0.02_state_4_PATH.txt"
 tempfile="temp.txt"
 lx=8
 ly=8

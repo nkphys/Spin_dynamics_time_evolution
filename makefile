@@ -1,4 +1,4 @@
-OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o main.o
+OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o Spin_dynamics_VNE_MultiOrbSF.o Coordinates_MultiOrbSF.o ParametersEngine_MultiOrbSF.o Hamiltonian_MultiOrbSF.o Observables_MultiOrbSF.o MFParams_MultiOrbSF.o main.o
 DEBUG = #-g3
 OPTFLAG = -O3
 CPPFLAGS = -std=c++11
@@ -81,6 +81,24 @@ Observables_MCMF.o : src/MCMF_1orbHubbard/Observables_MCMF.cpp
 MFParams_MCMF.o : src/MCMF_1orbHubbard/MFParams_MCMF.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) src/MCMF_1orbHubbard/MFParams_MCMF.cpp $(MKL_include) $(MKL_LIB)
 
+
+Spin_dynamics_VNE_MultiOrbSF.o : src/MultiOrb_SpinFermion/Spin_dynamics_VNE_MultiOrbSF.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/MultiOrb_SpinFermion/Spin_dynamics_VNE_MultiOrbSF.cpp $(MKL_include) $(MKL_LIB)
+
+Coordinates_MultiOrbSF.o : src/MultiOrb_SpinFermion/Coordinates_MultiOrbSF.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/MultiOrb_SpinFermion/Coordinates_MultiOrbSF.cpp $(MKL_include) $(MKL_LIB)
+
+ParametersEngine_MultiOrbSF.o : src/MultiOrb_SpinFermion/ParametersEngine_MultiOrbSF.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/MultiOrb_SpinFermion/ParametersEngine_MultiOrbSF.cpp $(MKL_include) $(MKL_LIB)
+
+Hamiltonian_MultiOrbSF.o : src/MultiOrb_SpinFermion/Hamiltonian_MultiOrbSF.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/MultiOrb_SpinFermion/Hamiltonian_MultiOrbSF.cpp $(MKL_include) $(MKL_LIB)
+
+Observables_MultiOrbSF.o : src/MultiOrb_SpinFermion/Observables_MultiOrbSF.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/MultiOrb_SpinFermion/Observables_MultiOrbSF.cpp $(MKL_include) $(MKL_LIB)
+
+MFParams_MultiOrbSF.o : src/MultiOrb_SpinFermion/MFParams_MultiOrbSF.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/MultiOrb_SpinFermion/MFParams_MultiOrbSF.cpp $(MKL_include) $(MKL_LIB)
 
 
 
