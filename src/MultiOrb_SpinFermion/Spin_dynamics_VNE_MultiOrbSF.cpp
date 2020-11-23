@@ -942,7 +942,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
 
 
 
-    double sign_check=1.0; // In Batista's paper sign_check=-1 [may be that is typo]
+    double sign_check=-1.0; // In Batista's paper sign_check=-1 [It is correct]
     dYbydt.resize(Y_.size());
     for(int i=0;i<Y_.size();i++){
         dYbydt[i]=zero_complex;

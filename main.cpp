@@ -50,6 +50,8 @@ int main(int argc, char** argv){
             (model_!="3orbPnictides")
             &&
             (model_!="1orb_MCMF")
+             &&
+             (model_!="MultiOrbSF")
             ){
         cout<<"You are using "<<argv[1]<<" , this model is not present"<<endl;
         cout<<"Please something from following :"<<endl;
