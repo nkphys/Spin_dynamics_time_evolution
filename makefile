@@ -106,7 +106,7 @@ main.o : main.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) main.cpp $(MKL_include) $(MKL_LIB)
 
 clean:
-	rm *.o dynamics NI_Skw ST_Fourier Calculate_Fqw
+	rm *.o dynamics NI_Skw ST_Fourier Calculate_Fqw Calculate_Sqw
 
 sum_rule : dynamics
 	cp dynamics sum_rule

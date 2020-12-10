@@ -1848,13 +1848,13 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
 
     S_qw.resize(3*Parameters_.ns);
-    D_qw.resize(3*Parameters_.ns);
+    //D_qw.resize(3*Parameters_.ns);
     for(int i=0;i<3*Parameters_.ns;i++){
         S_qw[i].resize(n_wpoints);
-        D_qw[i].resize(n_wpoints);
+        //D_qw[i].resize(n_wpoints);
         for(int n=0;n<n_wpoints;n++){
             S_qw[i][n]=complex<double>(0,0);
-            D_qw[i][n]=complex<double>(0,0);
+           // D_qw[i][n]=complex<double>(0,0);
         }
     }
 
@@ -1915,7 +1915,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
                         F_qw[k_index + (type*Parameters_.ns)][wi] +=(1.0/(1.0*No_Of_Inputs))*complex<double>(temp1, temp2);
 
                         S_qw[k_index + (type*Parameters_.ns)][wi] += (fqw_temp*conj(fqw_temp))*(1.0/(1.0*No_Of_Inputs));
-                        D_qw[k_index + (type*Parameters_.ns)][wi] += (fqw_temp*conj(fqw_temp))*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs));
+                       // D_qw[k_index + (type*Parameters_.ns)][wi] += (fqw_temp*conj(fqw_temp))*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs));
 
                     }
 
@@ -1932,6 +1932,38 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
         cout<<"Microstate "<<ms<<" done"<<endl;
     }
+
+
+
+
+
+
+    ofstream file_out(Dqw_file.c_str());
+
+    file_out<<"#nx   ny   k_ind   wi*dw   wi   |D_qw[k_ind][wi]|   (D_qw[k_ind][wi].real())  (D_qw[k_ind][wi].imag()) "<<endl;
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+            k_index=Coordinates_.Nc(nx,ny);
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                for(int type=0;type<3;type++){
+                    file_out<< abs(S_qw[k_index + (type*Parameters_.ns)][wi])*(1.0/(1.0*No_Of_Inputs))<<"    ";
+                    file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].real()*(1.0/(1.0*No_Of_Inputs))<<"    ";
+                    file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].imag()*(1.0/(1.0*No_Of_Inputs))<<"    ";
+                }
+
+                file_out<<endl;
+            }
+
+            file_out<<endl;
+        }
+    }
+
+
 
 
 
@@ -1979,30 +2011,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
 
 
-    ofstream file_out(Dqw_file.c_str());
 
-    file_out<<"#nx   ny   k_ind   wi*dw   wi   |D_qw[k_ind][wi]|   (D_qw[k_ind][wi].real())  (D_qw[k_ind][wi].imag()) "<<endl;
-    for(int nx=0;nx<Parameters_.lx;nx++){
-        for(int ny=0;ny<Parameters_.ly;ny++){
-            k_index=Coordinates_.Nc(nx,ny);
-
-            for(int wi=0;wi<n_wpoints;wi++){
-
-                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
-                file_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
-
-                for(int type=0;type<3;type++){
-                    file_out<< abs(D_qw[k_index + (type*Parameters_.ns)][wi])<<"    ";
-                    file_out<< D_qw[k_index + (type*Parameters_.ns)][wi].real()<<"    ";
-                    file_out<< D_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"    ";
-                }
-
-                file_out<<endl;
-            }
-
-            file_out<<endl;
-        }
-    }
 
 
 
