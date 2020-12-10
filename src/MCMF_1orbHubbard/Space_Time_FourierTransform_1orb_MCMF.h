@@ -1878,8 +1878,10 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
     cout<<"done"<<endl;
 
     string line_temp;
+    stringstream line_temp_ss;
     int nx_temp, ny_temp, k_index_temp, k_index, wi_temp;
     double double_temp, temp1, temp2;
+    int nx, ny, wi, type;
 
 
     for(int ms=0;ms<(No_Of_Inputs);ms++){
@@ -1892,20 +1894,21 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
         //stringstream line_temp_ss(line_temp, stringstream::in);
 
         // file_out_full<<"#nx   ny   k_ind   wi*dw   wi   F_qw[k_ind][wi].real()   F_qw[k_ind][wi].imag()"<<endl;
-        for(int nx=0;nx<Parameters_.lx;nx++){
-            for(int ny=0;ny<Parameters_.ly;ny++){
+        for(nx=0;nx<Parameters_.lx;nx++){
+            for(ny=0;ny<Parameters_.ly;ny++){
                 k_index=Coordinates_.Nc(nx,ny);
 
-                for(int wi=0;wi<n_wpoints;wi++){
+                for(wi=0;wi<n_wpoints;wi++){
 
                     // file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
                     getline(file_Fwq_in, line_temp);
-                    stringstream line_temp_ss(line_temp, stringstream::in);
+                    line_temp_ss.str("");
+                    line_temp_ss.str(line_temp);
                     line_temp_ss>>nx_temp>>ny_temp>>k_index_temp;
                     line_temp_ss>>double_temp>>wi_temp;
                     assert((nx_temp==nx) && (ny_temp==ny) && (k_index_temp==k_index) && (wi==wi_temp) );
 
-                    for(int type=0;type<3;type++){
+                    for(type=0;type<3;type++){
 
                         //file_out_full<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "
                         //<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
@@ -1941,16 +1944,16 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
     ofstream file_out(Dqw_file.c_str());
 
     file_out<<"#nx   ny   k_ind   wi*dw   wi   |D_qw[k_ind][wi]|   (D_qw[k_ind][wi].real())  (D_qw[k_ind][wi].imag()) "<<endl;
-    for(int nx=0;nx<Parameters_.lx;nx++){
-        for(int ny=0;ny<Parameters_.ly;ny++){
+    for(nx=0;nx<Parameters_.lx;nx++){
+        for(ny=0;ny<Parameters_.ly;ny++){
             k_index=Coordinates_.Nc(nx,ny);
 
-            for(int wi=0;wi<n_wpoints;wi++){
+            for(wi=0;wi<n_wpoints;wi++){
 
                 //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
                 file_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
-                for(int type=0;type<3;type++){
+                for(type=0;type<3;type++){
                     file_out<< abs(S_qw[k_index + (type*Parameters_.ns)][wi])*(1.0/(1.0*No_Of_Inputs))<<"    ";
                     file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].real()*(1.0/(1.0*No_Of_Inputs))<<"    ";
                     file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].imag()*(1.0/(1.0*No_Of_Inputs))<<"    ";
@@ -1971,7 +1974,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
 
     for(int i=0;i<3*Parameters_.ns;i++){
-        for(int wi=0;wi<n_wpoints;wi++){
+        for(wi=0;wi<n_wpoints;wi++){
 
             S_qw[i][wi] = S_qw[i][wi] -
                     ((F_qw[i][wi]*conj(F_qw[i][wi]) )   );
@@ -1984,16 +1987,16 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
     ofstream file_out_full(fileout.c_str());
 
     file_out_full<<"#nx   ny   k_ind   wi*dw   wi   S_qw[k_ind][wi].real()   S_qw[k_ind][wi].imag()"<<endl;
-    for(int nx=0;nx<Parameters_.lx;nx++){
-        for(int ny=0;ny<Parameters_.ly;ny++){
+    for(nx=0;nx<Parameters_.lx;nx++){
+        for(ny=0;ny<Parameters_.ly;ny++){
             k_index=Coordinates_.Nc(nx,ny);
 
-            for(int wi=0;wi<n_wpoints;wi++){
+            for(wi=0;wi<n_wpoints;wi++){
 
                 //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
                 file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
-                for(int type=0;type<3;type++){
+                for(type=0;type<3;type++){
 
                     file_out_full<<S_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<S_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
                 }
