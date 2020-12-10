@@ -6,3 +6,10 @@ dynamics
 *.o
 *.inp
 Spin_dynamics_time_evolution.creator.user
+Calculate_Fqw
+Calculate_Sqw
+NI_Skw
+ST_Fourier
+convolution_w
+dynamics
+sum_rule
