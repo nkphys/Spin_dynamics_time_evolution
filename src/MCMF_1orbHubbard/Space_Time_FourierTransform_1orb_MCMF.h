@@ -1831,7 +1831,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq_with_negativeandpositive_Time
 void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_file){
 
 
-    F_qw_.resize(1);
+   // F_qw_.resize(1);
 
     string line_temp2;
     ifstream file_Fwq(F_wq_inputs[0].c_str());
@@ -1860,20 +1860,22 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
 
 
-    cout<<"F_qw_ initializing"<<endl;
-    for(int j=0;j<F_qw_.size();j++){
-        F_qw_[j].resize(3*Parameters_.ns);
-        for(int i=0;i<3*Parameters_.ns;i++){
-            F_qw_[j][i].resize(n_wpoints);
-        }
-    }
-    cout<<"done"<<endl;
 
+//    for(int j=0;j<F_qw_.size();j++){
+//        F_qw_[j].resize(3*Parameters_.ns);
+//        for(int i=0;i<3*Parameters_.ns;i++){
+//            F_qw_[j][i].resize(n_wpoints);
+//        }
+//    }
+
+    complex<double> fqw_temp;
+
+     cout<<"F_qw_ initializing"<<endl;
     F_qw.resize(3*Parameters_.ns);
     for(int i=0;i<3*Parameters_.ns;i++){
         F_qw[i].resize(n_wpoints);
     }
-
+    cout<<"done"<<endl;
 
     string line_temp;
     int nx_temp, ny_temp, k_index_temp, k_index, wi_temp;
@@ -1909,11 +1911,11 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
                         //<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
 
                         line_temp_ss>>temp1>>temp2;
-                        F_qw_[0][k_index + (type*Parameters_.ns)][wi]=complex<double>(temp1, temp2);
+                        fqw_temp=complex<double>(temp1, temp2);
                         F_qw[k_index + (type*Parameters_.ns)][wi] +=(1.0/(1.0*No_Of_Inputs))*complex<double>(temp1, temp2);
 
-                        S_qw[k_index + (type*Parameters_.ns)][wi] += (F_qw_[0][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[0][k_index + (type*Parameters_.ns)][wi]) )*(1.0/(1.0*No_Of_Inputs));
-                        D_qw[k_index + (type*Parameters_.ns)][wi] += (F_qw_[0][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[0][k_index + (type*Parameters_.ns)][wi]))*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs));
+                        S_qw[k_index + (type*Parameters_.ns)][wi] += (fqw_temp*conj(fqw_temp))*(1.0/(1.0*No_Of_Inputs));
+                        D_qw[k_index + (type*Parameters_.ns)][wi] += (fqw_temp*conj(fqw_temp))*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs));
 
                     }
 
