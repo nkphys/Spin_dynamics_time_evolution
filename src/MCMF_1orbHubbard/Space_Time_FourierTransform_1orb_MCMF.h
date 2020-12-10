@@ -1860,12 +1860,14 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
 
 
+    cout<<"F_qw_ initializing"<<endl;
     for(int j=0;j<F_qw_.size();j++){
         F_qw_[j].resize(3*Parameters_.ns);
         for(int i=0;i<3*Parameters_.ns;i++){
             F_qw_[j][i].resize(n_wpoints);
         }
     }
+    cout<<"done"<<endl;
 
 
 
@@ -1878,6 +1880,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
 
 
         ifstream file_Fwq_in(F_wq_inputs[ms].c_str());
+        cout<<"'"<<F_wq_inputs[ms]<<"'"<<endl;
         getline(file_Fwq_in, line_temp);
         getline(file_Fwq_in, line_temp);
         //stringstream line_temp_ss(line_temp, stringstream::in);
@@ -1920,7 +1923,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
             }
         }
 
-
+    cout<<"Microstate "<<ms<<" done"<<endl;
     }
 
 
