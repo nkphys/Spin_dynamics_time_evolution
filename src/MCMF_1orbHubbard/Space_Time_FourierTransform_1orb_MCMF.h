@@ -1441,7 +1441,7 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
     N_p = omp_get_max_threads();
     cout<<"threads being used parallely = "<<N_p<<endl;
     cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
-#pragma omp parallel for default(shared) private(pos_i, index)
+#pragma omp parallel for default(shared) private(pos_i, index, expnt)
 #endif
     for(int pos_ix=0;pos_ix<Parameters_.lx;pos_ix++){
 
@@ -1468,7 +1468,6 @@ void ST_Fourier_1orb_MCMF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq
                                         ((  S_tr[ts][index] ))
                                         );
                         }
-
                     }
                 }
 
@@ -1954,9 +1953,9 @@ void ST_Fourier_1orb_MCMF::Calculate_Sqw_using_Fwq(string fileout, string Dqw_fi
                 file_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
                 for(type=0;type<3;type++){
-                    file_out<< abs(S_qw[k_index + (type*Parameters_.ns)][wi])*(1.0/(1.0*No_Of_Inputs))<<"    ";
-                    file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].real()*(1.0/(1.0*No_Of_Inputs))<<"    ";
-                    file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].imag()*(1.0/(1.0*No_Of_Inputs))<<"    ";
+                    file_out<< abs(S_qw[k_index + (type*Parameters_.ns)][wi])*(1.0/(1.0))<<"    ";
+                    file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].real()*(1.0/(1.0))<<"    ";
+                    file_out<< S_qw[k_index + (type*Parameters_.ns)][wi].imag()*(1.0/(1.0))<<"    ";
                 }
 
                 file_out<<endl;

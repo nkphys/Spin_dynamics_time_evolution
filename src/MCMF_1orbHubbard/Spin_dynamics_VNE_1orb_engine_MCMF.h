@@ -151,6 +151,8 @@ public:
     void Map_Variables_to_Y(Mat_4_Complex_doub & Red_Den_mat_temp, Mat_1_doub & AuxSx, Mat_1_doub & AuxSy, Mat_1_doub & AuxSz, Mat_1_Complex_doub & Y_);
     void Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Mat_4_Complex_doub & Red_Den_mat_temp, Mat_1_doub & AuxSx, Mat_1_doub & AuxSy, Mat_1_doub & AuxSz);
     void RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
+    void RungeKuttaFive(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
+    void RungeKuttaEight(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void Derivative(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt);
     void Write_final_time_result();

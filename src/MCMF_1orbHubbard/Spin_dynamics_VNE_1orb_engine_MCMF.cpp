@@ -931,648 +931,14 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Evolve_classical_spins_Runge_Kutta(int ts){
         RungeKuttaFour(YVec0, YVec1);
     }
 
-
-    /*
     else if(Runge_Kutta_order==5){
-
-        //Butcher’s Fifth Order Runge-Kutta Method is used
-
-        //we let the quantum spins change as well in the intermediate steps of dt interval in RK-4 method,
-        //here we not diagonalize the matrix again to calculate quantum spins for the changed classical spins.
-
-
-        double pi,ti; //phi_i,theta_i,phi_j,theta_j for timestep=ts
-        double sy,sx,sz; //Quantum spins for timestep=ts and position=pos
-
-        double derivative_theta, derivative_phi;
-        Mat_1_doub delta1_theta, delta2_theta, delta3_theta, delta4_theta, delta5_theta, delta6_theta;
-        Mat_1_doub delta1_phi, delta2_phi, delta3_phi, delta4_phi, delta5_phi, delta6_phi;
-        Mat_6_Complex_doub delta1_Red_Den_mat, delta2_Red_Den_mat, delta3_Red_Den_mat;
-        Mat_6_Complex_doub delta4_Red_Den_mat, delta5_Red_Den_mat, delta6_Red_Den_mat;
-
-
-        delta1_theta.resize(Parameters_.ns);delta2_theta.resize(Parameters_.ns);
-        delta3_theta.resize(Parameters_.ns);delta4_theta.resize(Parameters_.ns);
-        delta5_theta.resize(Parameters_.ns);delta6_theta.resize(Parameters_.ns);
-
-
-        delta1_phi.resize(Parameters_.ns);delta2_phi.resize(Parameters_.ns);
-        delta3_phi.resize(Parameters_.ns);delta4_phi.resize(Parameters_.ns);
-        delta5_phi.resize(Parameters_.ns);delta6_phi.resize(Parameters_.ns);
-
-
-        delta1_Red_Den_mat.resize(Parameters_.ns);delta2_Red_Den_mat.resize(Parameters_.ns);
-        delta3_Red_Den_mat.resize(Parameters_.ns); delta4_Red_Den_mat.resize(Parameters_.ns);
-        delta5_Red_Den_mat.resize(Parameters_.ns); delta6_Red_Den_mat.resize(Parameters_.ns);
-
-
-
-        for(int i=0;i<Parameters_.ns;i++){
-            delta1_Red_Den_mat[i].resize(Parameters_.orbs);delta2_Red_Den_mat[i].resize(Parameters_.orbs);
-            delta3_Red_Den_mat[i].resize(Parameters_.orbs);delta4_Red_Den_mat[i].resize(Parameters_.orbs);
-            delta5_Red_Den_mat[i].resize(Parameters_.orbs);delta6_Red_Den_mat[i].resize(Parameters_.orbs);
-            for(int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
-                delta1_Red_Den_mat[i][orb_i].resize(2);delta2_Red_Den_mat[i][orb_i].resize(2);
-                delta3_Red_Den_mat[i][orb_i].resize(2);delta4_Red_Den_mat[i][orb_i].resize(2);
-                delta5_Red_Den_mat[i][orb_i].resize(2);delta6_Red_Den_mat[i][orb_i].resize(2);
-                for(int si=0;si<2;si++){
-                    delta1_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);delta2_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);
-                    delta3_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);delta4_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);
-                    delta5_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);delta6_Red_Den_mat[i][orb_i][si].resize(Parameters_.ns);
-                    for(int j=0;j<Parameters_.ns;j++){
-                        delta1_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);delta2_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);
-                        delta3_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);delta4_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);
-                        delta5_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);delta6_Red_Den_mat[i][orb_i][si][j].resize(Parameters_.orbs);
-                        for(int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
-                            delta1_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);delta2_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);
-                            delta3_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);delta4_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);
-                            delta5_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);delta6_Red_Den_mat[i][orb_i][si][j][orb_j].resize(2);
-                        }
-                    }
-                }
-            }
-        }
-
-
-        for(int i=0;i<Parameters_.ns;i++){
-            delta1_theta[i]=0.0;delta2_theta[i]=0.0;
-            delta3_theta[i]=0.0;delta4_theta[i]=0.0;
-            delta5_theta[i]=0.0;delta6_theta[i]=0.0;
-            delta1_phi[i]=0.0;delta2_phi[i]=0.0;
-            delta3_phi[i]=0.0;delta4_phi[i]=0.0;
-            delta5_phi[i]=0.0;delta6_phi[i]=0.0;
-            for(int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
-                for(int si=0;si<2;si++){
-                    for(int j=0;j<Parameters_.ns;j++){
-                        for(int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
-                            for(int sj=0;sj<2;sj++){
-                                delta1_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;delta2_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;
-                                delta3_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;delta4_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;
-                                delta5_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;delta6_Red_Den_mat[i][orb_i][si][j][orb_j][sj]=zero;
-
-                            }
-                        }
-                    }
-                }
-
-            }
-
-        }
-
-
-
-        //calculating delta1(2,3,4,5,6)_thetha(phi)
-        bool intermediate_update = true;
-        for(int step_no=0;step_no<6;step_no++){
-
-            //Classical spins time evolution, due to coupling with Quantum spins and Magnetic field
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(derivative_theta,derivative_phi, pi, ti, sx, sy, sz)
-#endif
-            for(int pos=0;pos<Parameters_.ns;pos++){
-
-                //if(omp_get_thread_num()==1){
-                //cout<<pos<<"in thread = "<<omp_get_thread_num()<<endl;}
-                int pos_x = Coordinates_.indx(pos);
-                int pos_y = Coordinates_.indy(pos);
-                derivative_theta=0;
-                derivative_phi=0;
-
-                if(step_no==0){
-                    pi=Phi[ts][pos_x][pos_y];
-                    ti=Theta[ts][pos_x][pos_y];
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1] );
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1] );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1] );
-                    }
-                }
-                if(step_no==1){
-                    pi=Phi[ts][pos_x][pos_y] + (1.0/4.0)*(delta1_phi[pos]);
-                    ti=Theta[ts][pos_x][pos_y] + (1.0/4.0)*(delta1_theta[pos]);
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx += 0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + (1.0/4.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]));
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + (1.0/4.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1])
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                + (1.0/4.0)*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1])
-                                );
-                    }
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-                if(step_no==2){
-                    pi=Phi[ts][pos_x][pos_y] + (1.0/8.0)*( (delta1_phi[pos]) + (delta2_phi[pos]) );
-                    ti=Theta[ts][pos_x][pos_y] + (1.0/8.0)*( (delta1_theta[pos]) + (delta2_theta[pos]) );
-
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + ((1.0/8.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((1.0/8.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                );
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + ((1.0/8.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((1.0/8.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                + ((1.0/8.0)*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((1.0/8.0)*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                );
-                    }
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-                if(step_no==3){
-                    pi=Phi[ts][pos_x][pos_y] + (delta3_phi[pos]) - ((1.0/2.0)*delta2_phi[pos]);
-                    ti=Theta[ts][pos_x][pos_y] + (delta3_theta[pos])  - ((1.0/2.0)*delta2_theta[pos]);
-
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + (delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1])
-                                - ((1.0/2.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-
-                                );
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + (delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1])
-                                - ((1.0/2.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                + (delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1])
-                                - ((1.0/2.0)*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                );
-                    }
-
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-                if(step_no==4){
-                    pi=Phi[ts][pos_x][pos_y] + ((3.0/16.0)*(delta1_phi[pos])) + ((9.0/16.0)*delta4_phi[pos]);
-                    ti=Theta[ts][pos_x][pos_y] + ((3.0/16.0)*delta1_theta[pos])  + ((9.0/16.0)*delta4_theta[pos]);
-
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + ((3.0/16.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((9.0/16.0)*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                );
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + ((3.0/16.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((9.0/16.0)*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                + ((3.0/16.0)*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((9.0/16.0)*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                );
-                    }
-
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-                if(step_no==5){
-                    pi=Phi[ts][pos_x][pos_y] + ((-3.0/7.0)*(delta1_phi[pos])) + ((2.0/7.0)*(delta2_phi[pos])) +
-                            ((12.0/7.0)*(delta3_phi[pos])) + ((-12.0/7.0)*(delta4_phi[pos]))
-                            + ((8.0/7.0)*(delta5_phi[pos]));
-                    ti=Theta[ts][pos_x][pos_y] + ((-3.0/7.0)*(delta1_theta[pos])) + ((2.0/7.0)*(delta2_theta[pos])) +
-                            ((12.0/7.0)*(delta3_theta[pos])) + ((-12.0/7.0)*(delta4_theta[pos]))
-                            + ((8.0/7.0)*(delta5_theta[pos]));;
-
-                    sx=0.0;sy=0.0;sz=0.0;
-                    for(int orb=0;orb<Parameters_.orbs;orb++){
-                        sx +=0.5*real( Red_Den_mat_temp[pos][orb][1][pos][orb][0] + Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + ((-3.0/7.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] + delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((2.0/7.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] + delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((12.0/7.0)*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] + delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-12.0/7.0)*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] + delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((8.0/7.0)*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] + delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                );
-                        sy +=0.5*imag( Red_Den_mat_temp[pos][orb][1][pos][orb][0] - Red_Den_mat_temp[pos][orb][0][pos][orb][1]
-                                + ((-3.0/7.0)*(delta1_Red_Den_mat[pos][orb][1][pos][orb][0] - delta1_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((2.0/7.0)*(delta2_Red_Den_mat[pos][orb][1][pos][orb][0] - delta2_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((12.0/7.0)*(delta3_Red_Den_mat[pos][orb][1][pos][orb][0] - delta3_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((-12.0/7.0)*(delta4_Red_Den_mat[pos][orb][1][pos][orb][0] - delta4_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                + ((8.0/7.0)*(delta5_Red_Den_mat[pos][orb][1][pos][orb][0] - delta5_Red_Den_mat[pos][orb][0][pos][orb][1]))
-                                );
-                        sz +=0.5*real( Red_Den_mat_temp[pos][orb][0][pos][orb][0] - Red_Den_mat_temp[pos][orb][1][pos][orb][1]
-                                + ((-3.0/7.0)*(delta1_Red_Den_mat[pos][orb][0][pos][orb][0] - delta1_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((2.0/7.0)*(delta2_Red_Den_mat[pos][orb][0][pos][orb][0] - delta2_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((12.0/7.0)*(delta3_Red_Den_mat[pos][orb][0][pos][orb][0] - delta3_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((-12.0/7.0)*(delta4_Red_Den_mat[pos][orb][0][pos][orb][0] - delta4_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                + ((8.0/7.0)*(delta5_Red_Den_mat[pos][orb][0][pos][orb][0] - delta5_Red_Den_mat[pos][orb][1][pos][orb][1]))
-                                );
-                    }
-
-
-                    if(intermediate_update==true){
-                        if(pi > 2*PI){
-                            pi += -2*PI;
-
-                        }
-                        if(pi < 0){
-                            pi +=  2*PI;
-
-                        }
-                        if(ti > PI){
-                            ti = ti -2*PI;
-                            pi = fmod(pi + PI, 2.0*PI );
-                        }
-                        if(ti < 0){
-                            ti = - ti;
-                            pi = fmod(pi + PI, 2.0*PI );
-
-                        }
-                    }
-                }
-
-
-                derivative_phi = (-1.0)*( Jval_array[pos]*((((sin(pi)*cos(ti))/(sin(ti)))*sy) +
-                                                           (((cos(pi)*cos(ti))/(sin(ti)))*sx) -  sz ))  -  Bval_array[pos]; //-Bval_array[pos]
-                derivative_theta = ( Jval_array[pos]*((cos(pi)*sy) - (sin(pi)*sx)));
-
-                if(step_no==0){
-                    delta1_phi[pos] = (dt_*(derivative_phi ));
-                    delta1_theta[pos] = (dt_*( derivative_theta));
-
-                }
-                if(step_no==1){
-                    delta2_phi[pos] = (dt_*(derivative_phi ));
-                    delta2_theta[pos] = (dt_*( derivative_theta));
-
-                }
-                if(step_no==2){
-                    delta3_phi[pos] = (dt_*(derivative_phi ));
-                    delta3_theta[pos] = (dt_*( derivative_theta));
-
-                }
-                if(step_no==3){
-                    delta4_phi[pos] = (dt_*(derivative_phi ));
-                    delta4_theta[pos] = (dt_*( derivative_theta));
-
-                }
-                if(step_no==4){
-                    delta5_phi[pos] = (dt_*(derivative_phi ));
-                    delta5_theta[pos] = (dt_*( derivative_theta));
-
-                }
-                if(step_no==5){
-                    delta6_phi[pos] = (dt_*(derivative_phi ));
-                    delta6_theta[pos] = (dt_*( derivative_theta));
-
-                }
-
-                //Phi[ts+1][pos] = Phi[ts][pos] ;
-                //Theta[ts+1][pos] = Theta[ts][pos] ;
-
-
-
-
-                int pos_ng;
-                double pj,tj, value_;
-                for(int ng=0;ng<8;ng++){
-
-                    if(ng<2){
-                        value_=1.14*Parameters_.J_NN;  // +x, -x
-                    }
-                    else if(ng>=2 && ng <4){
-                        value_=Parameters_.J_NN;   // +y, -y
-                    }
-                    else{
-                        value_=Parameters_.J_NNN;  //+x+y, +x-y, -x+y, -x-y
-                    }
-
-                    pos_ng = Coordinates_.neigh(pos,ng);
-
-                    int pos_ng_x = Coordinates_.indx(pos_ng);
-                    int pos_ng_y = Coordinates_.indy(pos_ng);
-
-
-                    if(step_no==0){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y];
-                        tj=Theta[ts][pos_ng_x][pos_ng_y];
-                    }
-
-
-                    if(step_no==1){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/4.0)*(delta1_phi[pos_ng]);
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/4.0)*(delta1_theta[pos_ng]);
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    if(step_no==2){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (1.0/8.0)*(delta1_phi[pos_ng] + delta2_phi[pos_ng]);
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (1.0/8.0)*(delta1_theta[pos_ng] +delta2_theta[pos_ng] );
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    if(step_no==3){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (delta3_phi[pos_ng] - ((1.0/2.0)*delta2_phi[pos_ng]));
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (delta3_theta[pos_ng] - ((1.0/2.0)*delta2_theta[pos_ng]));
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    if(step_no==4){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + (((3.0/16.0)*delta1_phi[pos_ng]) + ((9.0/16.0)*delta4_phi[pos_ng]));
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + (((3.0/16.0)*delta1_theta[pos_ng]) + ((9.0/16.0)*delta4_theta[pos_ng]));
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    if(step_no==5){
-                        pj=Phi[ts][pos_ng_x][pos_ng_y] + ((-3.0/7.0)*delta1_phi[pos_ng]) + ((2.0/7.0)*delta2_phi[pos_ng]) +
-                                ((12.0/7.0)*delta3_phi[pos_ng])
-                                + ((-12.0/7.0)*delta4_phi[pos_ng]) + ((8.0/7.0)*delta5_phi[pos_ng]);
-                        tj=Theta[ts][pos_ng_x][pos_ng_y] + ((-3.0/7.0)*delta1_theta[pos_ng]) + ((2.0/7.0)*delta2_theta[pos_ng]) +
-                                ((12.0/7.0)*delta3_theta[pos_ng])
-                                + ((-12.0/7.0)*delta4_theta[pos_ng]) + ((8.0/7.0)*delta5_theta[pos_ng]);
-
-                        if(intermediate_update==true){
-                            if(pj > 2*PI){
-                                pj += -2*PI;
-
-                            }
-                            if(pj < 0){
-                                pj +=  2*PI;
-
-                            }
-                            if(tj > PI){
-                                tj = tj -2*PI;
-                                pj = fmod(pj + PI, 2.0*PI );
-                            }
-                            if(tj < 0){
-                                tj = - tj;
-                                pj = fmod(pj + PI, 2.0*PI );
-
-                            }
-                        }
-                    }
-
-                    derivative_phi = (-1.0)*(( (S_mag)*(value_)*(((sin(tj)*cos(ti)*cos(pi - pj))/(sin(ti))) - cos(tj) ) ));
-                    derivative_theta = (S_mag)*(value_)*(sin(tj)*sin(pj - pi));
-
-
-                    if(step_no==0){
-                        delta1_phi[pos] += (dt_*derivative_phi );
-                        delta1_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==1){
-                        delta2_phi[pos] += (dt_*derivative_phi );
-                        delta2_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==2){
-                        delta3_phi[pos] += (dt_*derivative_phi );
-                        delta3_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==3){
-                        delta4_phi[pos] += (dt_*derivative_phi );
-                        delta4_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==4){
-                        delta5_phi[pos] += (dt_*derivative_phi );
-                        delta5_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                    if(step_no==5){
-                        delta6_phi[pos] += (dt_*derivative_phi );
-                        delta6_theta[pos] += (dt_*derivative_theta);
-                    }
-
-                }
-
-            }
-
-        }
-
-
-#ifdef _OPENMP
-#pragma omp parallel for default(shared)
-#endif
-        for(int pos=0;pos<Parameters_.ns;pos++){
-
-            int pos_x= Coordinates_.indx(pos);
-            int pos_y= Coordinates_.indy(pos);
-
-
-            Phi[ts+1][pos_x][pos_y] = Phi[ts][pos_x][pos_y]  + (1.0/90.0)*( ((7.0)*delta1_phi[pos]) + ((32.0)*delta3_phi[pos]) + ((12.0)*delta4_phi[pos])
-                                                                            + ((32.0)*delta5_phi[pos]) + ((7.0)*delta6_phi[pos]) );
-            Theta[ts+1][pos_x][pos_y]  = Theta[ts][pos_x][pos_y]  + (1.0/90.0)*( ((7.0)*delta1_theta[pos]) + ((32.0)*delta3_theta[pos]) + ((12.0)*delta4_theta[pos])
-                                                                                 + ((32.0)*delta5_theta[pos]) + ((7.0)*delta6_theta[pos]) );
-
-
-
-            //Phi[ts+1][pos] = Phi[ts][pos] + (1.0/1.0)*(0.0*delta1_phi[pos] + 1.0*delta2_phi[pos] + 0.0*delta3_phi[pos] + 0.0*delta4_phi[pos]);
-            //Theta[ts+1][pos] = Theta[ts][pos] + (1.0/1.0)*(0.0*delta1_theta[pos] + 1.0*delta2_theta[pos] + 0.0*delta3_theta[pos] + 0.0*delta4_theta[pos]);
-
-
-            if(Phi[ts+1][pos_x][pos_y]  > 2*PI){
-                Phi[ts+1][pos_x][pos_y]  += -2*PI;
-
-            }
-            if(Phi[ts+1][pos_x][pos_y]  < 0){
-                Phi[ts+1][pos_x][pos_y]  +=  2*PI;
-
-            }
-
-
-            if(Theta[ts+1][pos_x][pos_y]  > PI){
-                Theta[ts+1][pos_x][pos_y]  = Theta[ts+1][pos_x][pos_y]  -2*PI;
-                Phi[ts+1][pos_x][pos_y]  = fmod( Phi[ts+1][pos_x][pos_y]  + PI, 2.0*PI );
-            }
-            if(Theta[ts+1][pos_x][pos_y]  < 0){
-                Theta[ts+1][pos_x][pos_y]  = - Theta[ts+1][pos_x][pos_y] ;
-                Phi[ts+1][pos_x][pos_y]  = fmod( Phi[ts+1][pos_x][pos_y]  + PI, 2.0*PI );
-
-            }
-
-            //cout<<delta1_phi[pos]<<"   "<<delta2_phi[pos]<<"   "<<delta3_phi[pos]<<"   "<<delta4_phi[pos]<<"   "<<(1.0/6.0)*(delta1_phi[pos] + 2.0*delta2_phi[pos] + 2.0*delta3_phi[pos] + delta4_phi[pos])<<endl;
-        }
-
-#ifdef _OPENMP
-#pragma omp parallel for default(shared)
-#endif
-        for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
-            for (int orb_i=0;orb_i<Parameters_.orbs;orb_i++){
-                for(int si=0;si<2;si++){
-                    for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
-                        for (int orb_j=0;orb_j<Parameters_.orbs;orb_j++){
-                            for(int sj=0;sj<2;sj++){
-                                Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] = Red_Den_mat_temp[pos_i][orb_i][si][pos_j][orb_j][sj] + (1.0/90.0)*(7.0*delta1_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] + 32.0*delta3_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] +
-                                                                                                                                                     12.0*delta4_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj] + 32.0*delta5_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]
-                                                                                                                                                     + 7.0*delta6_Red_Den_mat[pos_i][orb_i][si][pos_j][orb_j][sj]);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
+        RungeKuttaFive(YVec0, YVec1);
     }
-
-*/
-
-
-
     else if(Runge_Kutta_order==6){
         RungeKuttaSix(YVec0, YVec1);
+    }
+    else if(Runge_Kutta_order==8){
+        RungeKuttaEight(YVec0, YVec1);
     }
 
 
@@ -1751,6 +1117,7 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Compl
 
 
     dYbydt.resize(Y_.size());
+    //PARALLELIZE THIS
     for(int i=0;i<Y_.size();i++){
         dYbydt[i]=zero_complex;
     }
@@ -1762,6 +1129,12 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Compl
 
 
 #ifdef _OPENMP
+#pragma omp parallel
+    {
+        //Inside the OpenMP parallel region
+       //cout<<"Inside the Drivative parallel region, no. of threads"<< omp_get_num_threads()<<endl;
+    }
+
 #pragma omp parallel for default(shared) private(sx, sy, sz, pos_neigh)
 #endif
     for(int pos=0;pos<Parameters_.ns;pos++){
@@ -1875,6 +1248,8 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_C
 
     //step_no==0
     Derivative(Yn,K1);
+
+    //PARALELLIZE THIS
     for(int i=0;i<Yn.size();i++){
         Y_temp[i] = Yn[i]  + (K1[i]*dt_*0.5);
     }
@@ -1902,6 +1277,150 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_C
 
 
 }
+
+void SC_SW_ENGINE_VNE_1orb_MCMF::RungeKuttaFive(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1){
+
+
+
+    Mat_1_Complex_doub Y_temp;
+    Y_temp.resize(Yn.size());
+
+    Ynp1.resize(Yn.size());
+    Mat_1_Complex_doub K1, K2, K3, K4, K5, K6;
+
+
+    //step_no==0
+    Derivative(Yn,K1);
+
+    //PARALELLIZE THIS
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K1[i]*dt_*0.25);
+    }
+
+    //step_no==1
+    Derivative(Y_temp,K2);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K1[i]*dt_*(3.0/32.0)) + (K2[i]*dt_*(9.0/32.0));
+    }
+
+    //step_no==2
+    Derivative(Y_temp,K3);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K1[i]*dt_*(1932.0/2197.0)) + (K2[i]*dt_*(-7200.0/2197.0)) + (K3[i]*dt_*(7296.0/2197.0));
+    }
+
+    //step_no==3
+    Derivative(Y_temp,K4);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K1[i]*dt_*(439.0/216.0)) + (K2[i]*dt_*(-8.0)) + (K3[i]*dt_*(3680.0/513.0)) + (K4[i]*dt_*(-845.0/4104.0)) ;
+    }
+
+
+    //step_no==4
+    Derivative(Y_temp,K5);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K1[i]*dt_*(-8.0/27.0)) + (K2[i]*dt_*(2.0)) + (K3[i]*dt_*(-3544.0/2565.0)) + (K4[i]*dt_*(1859.0/4104.0)) + (K5[i]*dt_*(-11.0/40.0)) ;
+    }
+
+    //step_no==5
+    Derivative(Y_temp,K6);
+
+
+
+    for(int i=0;i<Yn.size();i++){
+        Ynp1[i] = Yn[i] + (dt_)*((16.0/135.0)*K1[i] + (0.0)*K2[i] + (6656.0/12825.0)*K3[i] + (28561.0/56430.0)*K4[i] + (-9.0/50.0)*K5[i] + (2.0/55.0)*K6[i]);
+
+    }
+
+
+}
+
+
+
+void SC_SW_ENGINE_VNE_1orb_MCMF::RungeKuttaEight(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1){
+
+
+    //Shanks Eighth order Runge Kutta
+
+    Mat_1_Complex_doub Y_temp;
+    Y_temp.resize(Yn.size());
+
+    Ynp1.resize(Yn.size());
+    Mat_1_Complex_doub K0, K1, K2, K3, K4, K5, K6, K7, K8, K9;
+
+
+    //step_no==0
+    Derivative(Yn,K0);
+
+    //PARALELLIZE THIS
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + ((4.0/27.0)*K0[i]*dt_);
+    }
+
+    //step_no==1
+    Derivative(Y_temp,K1);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1.0/18.0)) + (K1[i]*dt_*(3.0/18.0));
+    }
+
+    //step_no==2
+    Derivative(Y_temp,K2);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1.0/12.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(3.0/12.0));
+    }
+
+    //step_no==3
+    Derivative(Y_temp,K3);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1.0/8.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(0.0)) + (K3[i]*dt_*(3.0/8.0)) ;
+    }
+
+
+    //step_no==4
+    Derivative(Y_temp,K4);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(13.0/54.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(-27.0/54.0)) + (K3[i]*dt_*(42.0/54.0)) + (K4[i]*dt_*(8.0/54.0)) ;
+    }
+
+    //step_no==5
+    Derivative(Y_temp,K5);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(389.0/4320.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(-54.0/4320.0)) + (K3[i]*dt_*(966.0/4320.0)) + (K4[i]*dt_*(-824.0/4320.0)) + (K5[i]*dt_*(243.0/4320.0)) ;
+    }
+
+
+    //step_no==6
+    Derivative(Y_temp,K6);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(-231.0/20.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(81.0/20.0)) + (K3[i]*dt_*(-1164.0/20.0)) + (K4[i]*dt_*(656.0/20.0)) + (K5[i]*dt_*(-122.0/20.0)) + (K6[i]*dt_*(800.0/20.0)) ;
+    }
+
+
+    //step_no==7
+    Derivative(Y_temp,K7);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(-127.0/288.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(18.0/288.0)) + (K3[i]*dt_*(-678.0/288.0)) + (K4[i]*dt_*(456.0/288.0)) + (K5[i]*dt_*(-9.0/288.0)) + (K6[i]*dt_*(576.0/288.0)) + (K7[i]*dt_*(4.0/288.0) ) ;
+    }
+
+
+    //step_no==8
+    Derivative(Y_temp,K8);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1481.0/820.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(-81.0/820.0)) + (K3[i]*dt_*(7104.0/820.0)) + (K4[i]*dt_*(-3376.0/820.0)) + (K5[i]*dt_*(72.0/820.0)) + (K6[i]*dt_*(-5040.0/820.0)) + (K7[i]*dt_*(-60.0/820.0)) + (K8[i]*dt_*(720.0/820.0) ) ;
+    }
+
+    //step_no==9
+    Derivative(Y_temp,K9);
+
+
+    for(int i=0;i<Yn.size();i++){
+        Ynp1[i] = Yn[i] + (dt_*(1.0/840))*( (41.0)*K0[i] +  (0.0)*K1[i] + (0.0)*K2[i] + (27.0)*K3[i] + (272.0)*K4[i] + (27.0)*K5[i] + (216.0)*K6[i] + (0.0)*K7[i] + (216.0)*K8[i] + (41.0)*K9[i]);
+
+    }
+
+
+}
+
 
 void SC_SW_ENGINE_VNE_1orb_MCMF::RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1){
 
@@ -2048,9 +1567,6 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Read_Restart_Data(){
                 }
             }
         }
-
-
-
     }
 
     ifstream file_in_Classical(Restart_Classical_file.c_str());
