@@ -219,28 +219,31 @@ void SC_SW_ENGINE_VNE_1orb_MCMF::Start_Engine(){
     double kx, ky;
     double dk_ = 1.0/64.0;
 
-    S_rw.resize(Parameters_.ns);
-    for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
-        S_rw[pos_i].resize(Parameters_.ns);
-        for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
-            S_rw[pos_i][pos_j].resize(n_wpoints);
-            for(int wi=0;wi<n_wpoints;wi++){
-                S_rw[pos_i][pos_j][wi]=zero;
-            }
-        }
-    }
+
+//    //can be removed
+//    S_rw.resize(Parameters_.ns);
+//    for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+//        S_rw[pos_i].resize(Parameters_.ns);
+//        for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+//            S_rw[pos_i][pos_j].resize(n_wpoints);
+//            for(int wi=0;wi<n_wpoints;wi++){
+//                S_rw[pos_i][pos_j][wi]=zero;
+//            }
+//        }
+//    }
 
 
-    s_quantum_rw.resize(Parameters_.ns);
-    for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
-        s_quantum_rw[pos_i].resize(Parameters_.ns);
-        for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
-            s_quantum_rw[pos_i][pos_j].resize(n_wpoints);
-            for(int wi=0;wi<n_wpoints;wi++){
-                s_quantum_rw[pos_i][pos_j][wi]=zero;
-            }
-        }
-    }
+//    //can be removed
+//    s_quantum_rw.resize(Parameters_.ns);
+//    for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+//        s_quantum_rw[pos_i].resize(Parameters_.ns);
+//        for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+//            s_quantum_rw[pos_i][pos_j].resize(n_wpoints);
+//            for(int wi=0;wi<n_wpoints;wi++){
+//                s_quantum_rw[pos_i][pos_j][wi]=zero;
+//            }
+//        }
+//    }
 
 
     ofstream file_out(spins_r_t_out.c_str());

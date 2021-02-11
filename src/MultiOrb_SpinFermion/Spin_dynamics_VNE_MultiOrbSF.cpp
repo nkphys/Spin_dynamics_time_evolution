@@ -960,17 +960,18 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
     for(int pos=0;pos<Parameters_.ns;pos++){
 
 
-        for(int alpha=0;alpha<Parameters_.n_orbs;alpha++){
-            sx =0.5*real( Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*0]] + Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*1]] );
-            sy =0.5*imag( Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*0]] - Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*1]] );
-            sz =0.5*real( Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*0]] - Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*1]] );
+        if(!IgnoreFermions){
+            for(int alpha=0;alpha<Parameters_.n_orbs;alpha++){
+                sx =0.5*real( Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*0]] + Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*1]] );
+                sy =0.5*imag( Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*0]] - Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*1]] );
+                sz =0.5*real( Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*0]] - Y_[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*1]] );
 
 
-            dYbydt[AuxSx_to_index[pos]] += (Parameters_.J_Hund[alpha])*(sy*Y_[AuxSz_to_index[pos]] - sz*Y_[AuxSy_to_index[pos]]);
-            dYbydt[AuxSy_to_index[pos]] += (Parameters_.J_Hund[alpha])*(sz*Y_[AuxSx_to_index[pos]] - sx*Y_[AuxSz_to_index[pos]]);
-            dYbydt[AuxSz_to_index[pos]] += (Parameters_.J_Hund[alpha])*(sx*Y_[AuxSy_to_index[pos]] - sy*Y_[AuxSx_to_index[pos]]);
+                dYbydt[AuxSx_to_index[pos]] += (Parameters_.J_Hund[alpha])*(sy*Y_[AuxSz_to_index[pos]] - sz*Y_[AuxSy_to_index[pos]]);
+                dYbydt[AuxSy_to_index[pos]] += (Parameters_.J_Hund[alpha])*(sz*Y_[AuxSx_to_index[pos]] - sx*Y_[AuxSz_to_index[pos]]);
+                dYbydt[AuxSz_to_index[pos]] += (Parameters_.J_Hund[alpha])*(sx*Y_[AuxSy_to_index[pos]] - sy*Y_[AuxSx_to_index[pos]]);
+            }
         }
-
         for (int ng=0;ng<4;ng++){
             pos_neigh = Coordinates_.neigh(pos,ng);
             dYbydt[AuxSx_to_index[pos]] +=J_Classical*(Y_[AuxSy_to_index[pos_neigh]]*Y_[AuxSz_to_index[pos]] - Y_[AuxSz_to_index[pos_neigh]]*Y_[AuxSy_to_index[pos]]);
@@ -982,102 +983,103 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
     }
 
 
-    int k;
-    double hopping_val;
+    if(!IgnoreFermions){
+        int k;
+        double hopping_val;
 
 
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(k, hopping_val)
 #endif
-    for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
-        for(int si=0;si<2;si++){
-            for(int alpha=0;alpha<Parameters_.n_orbs;alpha++){
-                for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
-                    for(int sj=0;sj<2;sj++){
-                        for(int beta=0;beta<Parameters_.n_orbs;beta++){
+        for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+            for(int si=0;si<2;si++){
+                for(int alpha=0;alpha<Parameters_.n_orbs;alpha++){
+                    for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+                        for(int sj=0;sj<2;sj++){
+                            for(int beta=0;beta<Parameters_.n_orbs;beta++){
 
 
-                            //------------------i-k connection :start---------------------//
-                            //All neighbours
-                            for (int ng=0;ng<4;ng++){
-                                k = Coordinates_.neigh(pos_i,ng);
+                                //------------------i-k connection :start---------------------//
+                                //All neighbours
+                                for (int ng=0;ng<4;ng++){
+                                    k = Coordinates_.neigh(pos_i,ng);
 
-                                for(int eta=0;eta<Parameters_.n_orbs;eta++){
-                                if(ng==Coordinates_.PX || ng==Coordinates_.MX){
-                                    hopping_val = Parameters_.hopping_NN_X(eta,alpha);
-                                }
-                                if(ng==Coordinates_.PY || ng==Coordinates_.MY){
-                                   hopping_val = Parameters_.hopping_NN_Y(eta,alpha);
-                                }
+                                    for(int eta=0;eta<Parameters_.n_orbs;eta++){
+                                        if(ng==Coordinates_.PX || ng==Coordinates_.MX){
+                                            hopping_val = Parameters_.hopping_NN_X(eta,alpha);
+                                        }
+                                        if(ng==Coordinates_.PY || ng==Coordinates_.MY){
+                                            hopping_val = Parameters_.hopping_NN_Y(eta,alpha);
+                                        }
 
-                                dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                        iota_complex*sign_check*complex<double>(1.0*hopping_val, 0.0)*
-                                        Y_[RedDen_to_index[k][eta+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]];
-                            }
-                            }
-
-                            //------------------i-k connection :done---------------------//
-
-
-                            //------------------j-k connection:start---------------------//
-                            for (int ng=0;ng<4;ng++){
-                                k = Coordinates_.neigh(pos_j,ng);
-
-                                for(int eta=0;eta<Parameters_.n_orbs;eta++){
-                                if(ng==Coordinates_.PX || ng==Coordinates_.MX){
-                                    hopping_val = Parameters_.hopping_NN_X(beta,eta);
-                                }
-                                if(ng==Coordinates_.PY || ng==Coordinates_.MY){
-                                   hopping_val = Parameters_.hopping_NN_Y(beta,eta);
+                                        dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
+                                                iota_complex*sign_check*complex<double>(1.0*hopping_val, 0.0)*
+                                                Y_[RedDen_to_index[k][eta+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]];
+                                    }
                                 }
 
-                                dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                        iota_complex*sign_check*complex<double>(-1.0*hopping_val, 0.0)*
-                                        Y_[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][k][eta+Parameters_.n_orbs*sj]];
+                                //------------------i-k connection :done---------------------//
+
+
+                                //------------------j-k connection:start---------------------//
+                                for (int ng=0;ng<4;ng++){
+                                    k = Coordinates_.neigh(pos_j,ng);
+
+                                    for(int eta=0;eta<Parameters_.n_orbs;eta++){
+                                        if(ng==Coordinates_.PX || ng==Coordinates_.MX){
+                                            hopping_val = Parameters_.hopping_NN_X(beta,eta);
+                                        }
+                                        if(ng==Coordinates_.PY || ng==Coordinates_.MY){
+                                            hopping_val = Parameters_.hopping_NN_Y(beta,eta);
+                                        }
+
+                                        dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
+                                                iota_complex*sign_check*complex<double>(-1.0*hopping_val, 0.0)*
+                                                Y_[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][k][eta+Parameters_.n_orbs*sj]];
+                                    }
+                                }
+
+                                //------------------j-k connection :done---------------------//
+
+
+
+
+                                //-------------------coupling with Auxlliary spins--------------//
+
+                                for(int tau=0;tau<2;tau++){
+
+                                    dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
+                                            iota_complex*sign_check*(0.5*Jval_array[pos_i])*(
+                                                (Y_[AuxSx_to_index[pos_i]])*Pauli_x[si][tau]
+                                            +
+                                            (Y_[AuxSy_to_index[pos_i]])*Pauli_y[si][tau]
+                                            +
+                                            (Y_[AuxSz_to_index[pos_i]])*Pauli_z[si][tau]
+                                            )*Y_[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*tau][pos_j][beta+Parameters_.n_orbs*sj]];
+
+                                    dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
+                                            iota_complex*sign_check*(-0.5*Jval_array[pos_j])*(
+                                                (Y_[AuxSx_to_index[pos_j]])*Pauli_x[tau][sj]
+                                            +
+                                            (Y_[AuxSy_to_index[pos_j]])*Pauli_y[tau][sj]
+                                            +
+                                            (Y_[AuxSz_to_index[pos_j]])*Pauli_z[tau][sj]
+                                            )*Y_[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*tau]];
+
+
+                                }
+
+                                //-------------------coupling with Auxlliary spins: done--------------//
+
+
                             }
-                            }
-
-                            //------------------j-k connection :done---------------------//
-
-
-
-
-                            //-------------------coupling with Auxlliary spins--------------//
-
-                            for(int tau=0;tau<2;tau++){
-
-                                dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                        iota_complex*sign_check*(0.5*Jval_array[pos_i])*(
-                                            (Y_[AuxSx_to_index[pos_i]])*Pauli_x[si][tau]
-                                        +
-                                        (Y_[AuxSy_to_index[pos_i]])*Pauli_y[si][tau]
-                                        +
-                                        (Y_[AuxSz_to_index[pos_i]])*Pauli_z[si][tau]
-                                        )*Y_[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*tau][pos_j][beta+Parameters_.n_orbs*sj]];
-
-                                dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                        iota_complex*sign_check*(-0.5*Jval_array[pos_j])*(
-                                            (Y_[AuxSx_to_index[pos_j]])*Pauli_x[tau][sj]
-                                        +
-                                        (Y_[AuxSy_to_index[pos_j]])*Pauli_y[tau][sj]
-                                        +
-                                        (Y_[AuxSz_to_index[pos_j]])*Pauli_z[tau][sj]
-                                        )*Y_[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*tau]];
-
-
-                            }
-
-                            //-------------------coupling with Auxlliary spins: done--------------//
-
-
                         }
                     }
                 }
             }
         }
+
     }
-
-
 
 
 
@@ -1334,7 +1336,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
 
     string no_of_processors_, No_Of_Processors_ = "no_of_threads = ";
 
-
+    string ignore_fermions_, Ignore_Fermions_ = "IgnoreFermions = ";
     string restart_, Restart_ = "Restart = ";
     string restart_time_, Restart_Time_ = "Restart_time = ";
     string restart_dm_file_, Restart_Dm_File_ = "Restart_DM_Configuration = ";
@@ -1373,6 +1375,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
 
             if ((offset = line.find(Restart_, 0)) != string::npos) {
                 restart_ = line.substr (offset + Restart_.length());		}
+
+            if ((offset = line.find(Ignore_Fermions_, 0)) != string::npos) {
+                ignore_fermions_ = line.substr (offset + Ignore_Fermions_.length());		}
 
             if ((offset = line.find(Insitu_SpaceTimeFourier_, 0)) != string::npos) {
                 insitu_spacetimefourier_ = line.substr (offset + Insitu_SpaceTimeFourier_.length());		}
@@ -1473,6 +1478,13 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
     else{
         RESTART=false;
 
+    }
+
+    if(ignore_fermions_ == "true"){
+        IgnoreFermions=true;
+    }
+    else{
+        IgnoreFermions=false;
     }
 
     if (insitu_spacetimefourier_ == "true" ){

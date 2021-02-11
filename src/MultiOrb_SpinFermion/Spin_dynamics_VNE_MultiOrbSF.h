@@ -52,6 +52,7 @@ public:
     string RK4_type;
     string final_conf_out;
     double w_conv;
+    bool IgnoreFermions;
 
 
     int n_wpoints;
