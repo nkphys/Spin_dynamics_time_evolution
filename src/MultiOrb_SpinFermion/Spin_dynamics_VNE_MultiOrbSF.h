@@ -154,6 +154,7 @@ public:
     void RungeKuttaOne(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
+    void RungeKuttaEight(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void Derivative(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt);
     void Write_final_time_result();
     void IndexMapping_bw_Y_and_Variables();

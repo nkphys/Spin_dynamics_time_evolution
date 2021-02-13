@@ -237,6 +237,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
             if(!RESTART){
 
                 MFParams_.Read_classical_DOFs(conf_input);
+
+                if(!IgnoreFermions){
                 Hamiltonian_.InteractionsCreate();
                 //char flag='V';
                 Hamiltonian_.Diagonalize('V');
@@ -254,6 +256,23 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
                 Observables_.Get_red_den_mat(Red_Den_mat, mu_);
                 Red_Den_mat_time[0]=Red_Den_mat;
                 cout<<"Hamiltonian is diagonalized at t=0 "<<endl;
+                }
+                else{
+                    cout<<"Fermions are ignored"<<endl;
+
+                    for(int i=0;i<Parameters_.ns;i++){
+                        for(int s=0;s<Parameters_.n_orbs*2;s++){
+                            for(int j=0;j<Parameters_.ns;j++){
+                                for(int k=0;k<Parameters_.n_orbs*2;k++){
+                                Red_Den_mat[i][s][j][k]=0.0;
+                                }
+                            }
+                        }
+                    }
+                    Red_Den_mat_time[0]=Red_Den_mat;
+
+                }
+
             }
             else{
                 cout<<"Restart is done"<<endl;
@@ -762,6 +781,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Evolve_classical_spins_Runge_Kutta(int ts){
     else if(Runge_Kutta_order==6){
         RungeKuttaSix(YVec0, YVec1);
     }
+    else if(Runge_Kutta_order==8){
+        RungeKuttaEight(YVec0, YVec1);
+    }
 
 
 
@@ -1116,25 +1138,28 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_
 
     //step_no==0
     Derivative(Yn,K1);
+
     for(int i=0;i<Yn.size();i++){
         Y_temp[i] = Yn[i]  + (K1[i]*dt_*0.5);
     }
 
+
     //step_no==1
     Derivative(Y_temp,K2);
+
     for(int i=0;i<Yn.size();i++){
         Y_temp[i] = Yn[i]  + (K2[i]*dt_*0.5);
     }
 
     //step_no==2
     Derivative(Y_temp,K3);
+
     for(int i=0;i<Yn.size();i++){
         Y_temp[i] = Yn[i]  + (K3[i]*dt_);
     }
 
     //step_no==3
     Derivative(Y_temp,K4);
-
 
     for(int i=0;i<Yn.size();i++){
         Ynp1[i] = Yn[i] + (dt_/6.0)*(K1[i] + 2.0*K2[i] + 2.0*K3[i] + K4[i]);
@@ -1228,6 +1253,93 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_C
 
     for(int i=0;i<Yn.size();i++){
         Ynp1[i] = Yn[i] + (dt_/180.0)*(9.0*K1[i] + 64.0*K3[i] + 49.0*K5[i] + 49.0*K6[i]  +  9.0*K7[i]);
+
+    }
+
+
+}
+
+
+
+
+void SC_SW_ENGINE_VNE_MultiOrbSF::RungeKuttaEight(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1){
+
+
+    //Shanks Eighth order Runge Kutta
+
+    Mat_1_Complex_doub Y_temp;
+    Y_temp.resize(Yn.size());
+
+    Ynp1.resize(Yn.size());
+    Mat_1_Complex_doub K0, K1, K2, K3, K4, K5, K6, K7, K8, K9;
+
+
+    //step_no==0
+    Derivative(Yn,K0);
+
+    //PARALELLIZE THIS
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + ((4.0/27.0)*K0[i]*dt_);
+    }
+
+    //step_no==1
+    Derivative(Y_temp,K1);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1.0/18.0)) + (K1[i]*dt_*(3.0/18.0));
+    }
+
+    //step_no==2
+    Derivative(Y_temp,K2);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1.0/12.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(3.0/12.0));
+    }
+
+    //step_no==3
+    Derivative(Y_temp,K3);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1.0/8.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(0.0)) + (K3[i]*dt_*(3.0/8.0)) ;
+    }
+
+
+    //step_no==4
+    Derivative(Y_temp,K4);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(13.0/54.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(-27.0/54.0)) + (K3[i]*dt_*(42.0/54.0)) + (K4[i]*dt_*(8.0/54.0)) ;
+    }
+
+    //step_no==5
+    Derivative(Y_temp,K5);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(389.0/4320.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(-54.0/4320.0)) + (K3[i]*dt_*(966.0/4320.0)) + (K4[i]*dt_*(-824.0/4320.0)) + (K5[i]*dt_*(243.0/4320.0)) ;
+    }
+
+
+    //step_no==6
+    Derivative(Y_temp,K6);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(-231.0/20.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(81.0/20.0)) + (K3[i]*dt_*(-1164.0/20.0)) + (K4[i]*dt_*(656.0/20.0)) + (K5[i]*dt_*(-122.0/20.0)) + (K6[i]*dt_*(800.0/20.0)) ;
+    }
+
+
+    //step_no==7
+    Derivative(Y_temp,K7);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(-127.0/288.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(18.0/288.0)) + (K3[i]*dt_*(-678.0/288.0)) + (K4[i]*dt_*(456.0/288.0)) + (K5[i]*dt_*(-9.0/288.0)) + (K6[i]*dt_*(576.0/288.0)) + (K7[i]*dt_*(4.0/288.0) ) ;
+    }
+
+
+    //step_no==8
+    Derivative(Y_temp,K8);
+    for(int i=0;i<Yn.size();i++){
+        Y_temp[i] = Yn[i]  + (K0[i]*dt_*(1481.0/820.0)) + (K1[i]*dt_*(0.0)) + (K2[i]*dt_*(-81.0/820.0)) + (K3[i]*dt_*(7104.0/820.0)) + (K4[i]*dt_*(-3376.0/820.0)) + (K5[i]*dt_*(72.0/820.0)) + (K6[i]*dt_*(-5040.0/820.0)) + (K7[i]*dt_*(-60.0/820.0)) + (K8[i]*dt_*(720.0/820.0) ) ;
+    }
+
+    //step_no==9
+    Derivative(Y_temp,K9);
+
+
+    for(int i=0;i<Yn.size();i++){
+        Ynp1[i] = Yn[i] + (dt_*(1.0/840))*( (41.0)*K0[i] +  (0.0)*K1[i] + (0.0)*K2[i] + (27.0)*K3[i] + (272.0)*K4[i] + (27.0)*K5[i] + (216.0)*K6[i] + (0.0)*K7[i] + (216.0)*K8[i] + (41.0)*K9[i]);
 
     }
 
