@@ -1357,7 +1357,7 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
         cout<<"FFT is used"<<endl;
     }
 
-    int GaussianCenteredAtTmaxby2=0;
+    int GaussianCenteredAtTmaxby2=1;
     int GCATm2=GaussianCenteredAtTmaxby2;
     double begin_time, end_time;
     clock_t oprt_SB_time;
@@ -1484,8 +1484,8 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
                     DO_Fft.transform(Vec_1);
 
                     for(int wi=0;wi<n_wpoints;wi++){
-                        //F_rw[index][wi] = Vec_1[wi].real();
-                        F_rw[index][wi] = Vec_1[wi];
+                        F_rw[index][wi] = Vec_1[wi].real();
+                        //F_rw[index][wi] = Vec_1[wi];
 
                     }
                 }
@@ -1521,6 +1521,7 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
                         pos_i = Coordinates_.Ncell_(x_i,y_i);
                         index  = pos_i + (type*Parameters_.ns);
                         temp += S_tr[(GCATm2*time_steps)/2][index]*exp(iota*(1.0*( (x_i)*kx +  (y_i)*ky ) ) );
+                        //temp += F_rw[index][10].real()*exp(iota*(1.0*( (x_i)*kx +  (y_i)*ky ) ) );
 
                     }
                 }
@@ -1554,7 +1555,7 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
                             pos_i = Coordinates_.Ncell_(x_i,y_i);
                             index  = pos_i + (type*Parameters_.ns);
 
-                            temp += F_rw[index][wi]*exp(iota*(-1.0*( (x_i)*kx +  (y_i)*ky ) ) );
+                            temp += F_rw[index][wi]*exp(iota*(-1.0*( (x_i)*(kx) +  (y_i)*ky ) ) );
 
                         }
                     }
@@ -1629,7 +1630,7 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
             file_out_Aq<<endl;
 
         }
-        file_out_Aq<<endl;
+        //file_out_Aq<<endl;
     }
 
 

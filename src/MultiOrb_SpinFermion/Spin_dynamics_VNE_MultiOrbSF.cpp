@@ -216,6 +216,14 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
     int n_states_occupied_zeroT;
     int px_,py_;
 
+    double sz, sx, sy;
+
+
+    string quantum_spins_r_t_out = "quantum_orb0_"+spins_r_t_out;
+    ofstream quantum_file_out(quantum_spins_r_t_out.c_str());
+    quantum_file_out<<"# sz------, sx-----,sy-----"<<endl;
+    quantum_file_out<<scientific<<setprecision(15);
+
 
     ofstream file_out(spins_r_t_out.c_str());
     file_out<<"# Sz------, Sx-----,Sy-----"<<endl;
@@ -239,23 +247,23 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
                 MFParams_.Read_classical_DOFs(conf_input);
 
                 if(!IgnoreFermions){
-                Hamiltonian_.InteractionsCreate();
-                //char flag='V';
-                Hamiltonian_.Diagonalize('V');
+                    Hamiltonian_.InteractionsCreate();
+                    //char flag='V';
+                    Hamiltonian_.Diagonalize('V');
 
-                n_states_occupied_zeroT = Coordinates_.nbasis_*(Parameters_.Fill/(Parameters_.n_orbs));
-                if(!Parameters_.fix_mu){
-                    initial_mu_guess = 0.5 * (Hamiltonian_.eigs_[n_states_occupied_zeroT - 1] + Hamiltonian_.eigs_[n_states_occupied_zeroT]);
-                }
-                else{
-                    initial_mu_guess=Parameters_.fixed_mu_value;
-                }
-                double mu_ = Hamiltonian_.chemicalpotential(initial_mu_guess,Parameters_.Fill/(Parameters_.n_orbs*2.0));
-                file_mu_out<<ts<<"     "<<mu_<<endl;
-                //Get_quantum_Spins(0);
-                Observables_.Get_red_den_mat(Red_Den_mat, mu_);
-                Red_Den_mat_time[0]=Red_Den_mat;
-                cout<<"Hamiltonian is diagonalized at t=0 "<<endl;
+                    n_states_occupied_zeroT = Coordinates_.nbasis_*(Parameters_.Fill/(Parameters_.n_orbs));
+                    if(!Parameters_.fix_mu){
+                        initial_mu_guess = 0.5 * (Hamiltonian_.eigs_[n_states_occupied_zeroT - 1] + Hamiltonian_.eigs_[n_states_occupied_zeroT]);
+                    }
+                    else{
+                        initial_mu_guess=Parameters_.fixed_mu_value;
+                    }
+                    double mu_ = Hamiltonian_.chemicalpotential(initial_mu_guess,Parameters_.Fill/(Parameters_.n_orbs*2.0));
+                    file_mu_out<<ts<<"     "<<mu_<<endl;
+                    //Get_quantum_Spins(0);
+                    Observables_.Get_red_den_mat(Red_Den_mat, mu_);
+                    Red_Den_mat_time[0]=Red_Den_mat;
+                    cout<<"Hamiltonian is diagonalized at t=0 "<<endl;
                 }
                 else{
                     cout<<"Fermions are ignored"<<endl;
@@ -264,7 +272,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
                         for(int s=0;s<Parameters_.n_orbs*2;s++){
                             for(int j=0;j<Parameters_.ns;j++){
                                 for(int k=0;k<Parameters_.n_orbs*2;k++){
-                                Red_Den_mat[i][s][j][k]=0.0;
+                                    Red_Den_mat[i][s][j][k]=0.0;
                                 }
                             }
                         }
@@ -308,6 +316,27 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
         }
 
         file_out<<endl;
+
+
+
+
+
+        quantum_file_out<<(ts*dt_) + Restart_Time<<"  ";
+
+        int alpha=0; //orbital
+        for(int pos=0;pos<Parameters_.ns;pos++){
+            sz =0.5*real( YVec0[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*0]] - YVec0[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*1]] );
+            quantum_file_out<< sz<<"  ";
+        }
+        for(int pos=0;pos<Parameters_.ns;pos++){
+            sx =0.5*real( YVec0[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*0]] + YVec0[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*1]] );
+            quantum_file_out<< sx<<"  ";
+        }
+        for(int pos=0;pos<Parameters_.ns;pos++){
+            sy =0.5*imag( YVec0[RedDen_to_index[pos][alpha+Parameters_.n_orbs*1][pos][alpha+Parameters_.n_orbs*0]] - YVec0[RedDen_to_index[pos][alpha+Parameters_.n_orbs*0][pos][alpha+Parameters_.n_orbs*1]] );
+            quantum_file_out<< sy<<"  ";
+        }
+        quantum_file_out<<endl;
 
 
         Evolve_classical_spins_Runge_Kutta(0);

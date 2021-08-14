@@ -586,6 +586,7 @@ void Hamiltonian_MultiOrbSF::HTBCreate()
         }
 
         // * +y direction Neighbor
+        if(Coordinates_.ly_>1){
         if (ly_pos == (Coordinates_.ly_ - 1))
         {
             phasex = one_complex;
@@ -618,7 +619,7 @@ void Hamiltonian_MultiOrbSF::HTBCreate()
             }
         }
 
-
+    }
 
     }
 
@@ -669,6 +670,7 @@ void Hamiltonian_MultiOrbSF::HTBClusterCreate()
             }
 
             // * +y direction Neighbor
+            if(CoordinatesCluster_.ly_>1){
             m = CoordinatesCluster_.neigh(l, 2);
             mx_pos = CoordinatesCluster_.indx_cellwise(m);
             my_pos = CoordinatesCluster_.indy_cellwise(m);
@@ -690,6 +692,7 @@ void Hamiltonian_MultiOrbSF::HTBClusterCreate()
                 }
             }
 
+        }
         }
 
     }
