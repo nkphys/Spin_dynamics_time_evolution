@@ -7,7 +7,7 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
     maxmoment = 10.0;
 
     cout << "____________________________________" << endl;
-    cout << "Reading the inputfile: " << inputfile_ << endl;
+    cout << "Reading the inputfile: '" << inputfile_ <<"'"<< endl;
     cout << "____________________________________" << endl;
 
 
@@ -16,6 +16,7 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
 
     TBC_mx = int(matchstring(inputfile_, "TwistedBoundaryCond_mx"));
     n_orbs = int(matchstring(inputfile_, "N_Orbs"));
+    n_Spins = int(matchstring(inputfile_, "No_of_classical_spins_per_site"));
     J_Hund.resize(n_orbs);
     OnSiteE.resize(n_orbs);
 
@@ -54,48 +55,88 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
         OnSiteE[n] = matchstring(inputfile_, OnSiteE_str_temp);
     }
 
+
     //Hopping matrices -------------------
+    hopping_0X_0Y.resize(n_orbs,n_orbs);
+    hopping_1X_0Y.resize(n_orbs,n_orbs);
+    hopping_0X_1Y.resize(n_orbs,n_orbs);
+    hopping_m1X_1Y.resize(n_orbs,n_orbs);
 
-
-    hopping_NN_X.resize(n_orbs,n_orbs);
-    hopping_NN_Y.resize(n_orbs,n_orbs);
-    string Nearest_Neigh_Hopping_basis_X;
-    string Nearest_Neigh_Hopping_basis_Y;
-
-    string NN_X_str, NN_Y_str;
+    string Hopping_0X_0Y, Hopping_1X_0Y, Hopping_0X_1Y, Hopping_m1X_1Y;
+    string Hop_0X_0Y_str, Hop_1X_0Y_str, Hop_0X_1Y_str, Hop_m1X_1Y_str;
     for (int m=0;m<n_orbs;m++){
 
-        NN_X_str = "Nearest_Neigh_Hopping_X_basis_row" + to_string(m);
-        NN_Y_str = "Nearest_Neigh_Hopping_Y_basis_row" + to_string(m);
-        Nearest_Neigh_Hopping_basis_X=matchstring2(inputfile_, NN_X_str);
-        Nearest_Neigh_Hopping_basis_Y=matchstring2(inputfile_, NN_Y_str);
+        Hop_0X_0Y_str = "Hopping_0X_0Y_row" + to_string(m);
+        Hop_1X_0Y_str = "Hopping_1X_0Y_row" + to_string(m);
+        Hop_0X_1Y_str = "Hopping_0X_1Y_row" + to_string(m);
+        Hop_m1X_1Y_str = "Hopping_m1X_1Y_row" + to_string(m);
 
-        stringstream stream_X(Nearest_Neigh_Hopping_basis_X);
-        stringstream stream_Y(Nearest_Neigh_Hopping_basis_Y);
+        Hopping_0X_0Y=matchstring2(inputfile_, Hop_0X_0Y_str);
+        Hopping_1X_0Y=matchstring2(inputfile_, Hop_1X_0Y_str);
+        Hopping_0X_1Y=matchstring2(inputfile_, Hop_0X_1Y_str);
+        Hopping_m1X_1Y=matchstring2(inputfile_, Hop_m1X_1Y_str);
+
+        stringstream stream_Hopping_0X_0Y(Hopping_0X_0Y);
+        stringstream stream_Hopping_1X_0Y(Hopping_1X_0Y);
+        stringstream stream_Hopping_0X_1Y(Hopping_0X_1Y);
+        stringstream stream_Hopping_m1X_1Y(Hopping_m1X_1Y);
 
         for(int n=0;n<n_orbs;n++){
-            stream_X >> hopping_NN_X(m,n);
-            stream_Y >> hopping_NN_Y(m,n);
-
+            stream_Hopping_0X_0Y >> hopping_0X_0Y(m,n);
+            stream_Hopping_1X_0Y >> hopping_1X_0Y(m,n);
+            stream_Hopping_0X_1Y >> hopping_0X_1Y(m,n);
+            stream_Hopping_m1X_1Y >> hopping_m1X_1Y(m,n);
         }
     }
-
-
-
-    //Next Nearest hopping------------
-    hopping_NNN_PXPY.resize(n_orbs,n_orbs);
-    hopping_NNN_PXMY.resize(n_orbs,n_orbs);
-    //If needed read from input file
 
     //Hopping matrices done---------------
 
 
 
+    //Superexchange matrices -------------------
+    K_0X_0Y.resize(n_Spins,n_Spins);
+    K_1X_0Y.resize(n_Spins,n_Spins);
+    K_0X_1Y.resize(n_Spins,n_Spins);
+    K_m1X_1Y.resize(n_Spins,n_Spins);
+
+    string K_0X_0Y_str, K_1X_0Y_str, K_0X_1Y_str, K_m1X_1Y_str;
+
+    string KExc_0X_0Y_str, KExc_1X_0Y_str, KExc_0X_1Y_str, KExc_m1X_1Y_str ;
+    for (int m=0;m<n_Spins;m++){
+
+        KExc_0X_0Y_str = "K_0X_0Y_row" + to_string(m);
+        KExc_1X_0Y_str = "K_1X_0Y_row" + to_string(m);
+        KExc_0X_1Y_str = "K_0X_1Y_row" + to_string(m);
+        KExc_m1X_1Y_str = "K_m1X_1Y_row" + to_string(m);
+
+        K_0X_0Y_str=matchstring2(inputfile_, KExc_0X_0Y_str);
+        K_1X_0Y_str=matchstring2(inputfile_, KExc_1X_0Y_str);
+        K_0X_1Y_str=matchstring2(inputfile_, KExc_0X_1Y_str);
+        K_m1X_1Y_str=matchstring2(inputfile_, KExc_m1X_1Y_str);
+
+        stringstream stream_K_0X_0Y(K_0X_0Y_str);
+        stringstream stream_K_1X_0Y(K_1X_0Y_str);
+        stringstream stream_K_0X_1Y(K_0X_1Y_str);
+        stringstream stream_K_m1X_1Y(K_m1X_1Y_str);
+
+        for(int n=0;n<n_Spins;n++){
+            stream_K_0X_0Y >> K_0X_0Y(m,n);
+            stream_K_1X_0Y >> K_1X_0Y(m,n);
+            stream_K_0X_1Y >> K_0X_1Y(m,n);
+            stream_K_m1X_1Y >> K_m1X_1Y(m,n);
+        }
+    }
+
+    //Superexchange matrices done---------------
+
+
+
+
 
     lambda_lattice = matchstring (inputfile_, "lambda_lattice");
-    K1x = matchstring(inputfile_, "K");
-    K1y = K1x;
-    cout << "K1x= " << K1x << endl;
+//    K1x = matchstring(inputfile_, "K");
+//    K1y = K1x;
+//    cout << "K1x= " << K1x << endl;
 
     Dflag = 'N';
 
@@ -118,6 +159,11 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
 
     WindowSize = double(0.01);
     mus = 0.25;
+
+    lx_cluster=lx;
+    ly_cluster=ly;
+
+    assert( (n_Spins==n_orbs) || (n_Spins==1));
     cout << "____________________________________" << endl;
 }
 

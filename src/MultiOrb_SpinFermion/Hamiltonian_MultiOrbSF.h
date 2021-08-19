@@ -53,14 +53,15 @@ public:
     Coordinates_MultiOrbSF &Coordinates_;
     Coordinates_MultiOrbSF &CoordinatesCluster_;
     MFParams_MultiOrbSF &MFParams_;
-    int lx_, ly_, ncells_, n_orbs_;
+    int lx_, ly_, ncells_, n_orbs_, n_Spins_;
     int lx_cluster_, ly_cluster_, ncells_cluster;
     Matrix<complex<double>> HTB_;
     Matrix<complex<double>> HTBCluster_;
     Matrix<complex<double>> Ham_;
     Matrix<complex<double>> HamCluster_;
     Matrix<double> Tx, Ty, Tpxpy, Tpxmy;
-    vector<double> eigs_, eigsCluster_, eigsCluster_saved_, eigs_saved_, sx_, sy_, sz_;
+    vector<double> eigs_, eigsCluster_, eigsCluster_saved_, eigs_saved_;
+    Mat_2_doub sx_, sy_, sz_;
     Matrix<double> IntraCell_Hopp, InterCell_px_Hopp, InterCell_py_Hopp, InterCell_pxmy_Hopp ;
 
 

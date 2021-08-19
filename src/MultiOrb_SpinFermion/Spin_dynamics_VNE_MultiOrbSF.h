@@ -58,12 +58,13 @@ public:
     int n_wpoints;
     int time_steps;
 
-    Mat_3_doub Theta;   //[time_step][lx][ly]
+    int n_Spins_;
+    Mat_3_doub Theta;   //[Spin_no][lx][ly]
     Mat_3_doub Phi;
-    Mat_3_doub Moment_Size;   //[time_step][lx][ly]
+    Mat_3_doub Moment_Size;   //[Spin_no][lx][ly]
 
-    Mat_2_doub Theta_eq;   //[time_step][lx][ly]
-    Mat_2_doub Phi_eq;
+    Mat_3_doub Theta_eq;   //[Spin_no][lx][ly]
+    Mat_3_doub Phi_eq;
 
     Mat_2_doub quant_s_x;  //[time_step][pos]
     Mat_2_doub quant_s_y;
@@ -105,12 +106,18 @@ public:
     Mat_2_Complex_doub T_kw;
 
 
-    Mat_1_int AuxSx_to_index, AuxSy_to_index, AuxSz_to_index;
+    Mat_2_int AuxSx_to_index, AuxSy_to_index, AuxSz_to_index;
     Mat_4_int RedDen_to_index;
-    Mat_1_int index_to_AuxSx, index_to_AuxSy, index_to_AuxSz;
+    Mat_1_intpair index_to_AuxSx, index_to_AuxSy, index_to_AuxSz;
     Mat_1_fourint index_to_RedDen;
 
     Mat_2_Complex_doub Pauli_x,Pauli_y,Pauli_z;
+
+
+    Mat_2_doub SE_connections_vals;
+    vector<Mat_1_intpair> SE_connections;
+    vector<Mat_1_intpair> Hopp_connections;
+    Mat_2_doub Hopp_connections_vals;
 
 
 
@@ -149,8 +156,8 @@ public:
     void Read_Restart_Data();
     void Evolve_classical_spins_Runge_Kutta(int ts);
     void Evolve_classical_spins_Predictor_Corrector();
-    void Map_Variables_to_Y(Mat_4_Complex_doub & Red_Den_mat_temp, Mat_1_doub & AuxSx, Mat_1_doub & AuxSy, Mat_1_doub & AuxSz, Mat_1_Complex_doub & Y_);
-    void Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Mat_4_Complex_doub & Red_Den_mat_temp, Mat_1_doub & AuxSx, Mat_1_doub & AuxSy, Mat_1_doub & AuxSz);
+    void Map_Variables_to_Y(Mat_4_Complex_doub & Red_Den_mat_temp, Mat_2_doub & AuxSx, Mat_2_doub & AuxSy, Mat_2_doub & AuxSz, Mat_1_Complex_doub & Y_);
+    void Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Mat_4_Complex_doub & Red_Den_mat_temp, Mat_2_doub & AuxSx, Mat_2_doub & AuxSy, Mat_2_doub & AuxSz);
     void RungeKuttaOne(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void RungeKuttaFour(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);

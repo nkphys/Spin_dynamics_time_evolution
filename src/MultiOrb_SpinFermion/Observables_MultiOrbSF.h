@@ -25,13 +25,10 @@ public:
     void Initialize();
     void Get_red_den_mat(Mat_4_Complex_doub &Red_Den_mat, double mu);
     void OccDensity();
-    void Calculate_Akw();
-    void Calculate_Nw();
     void Get_Non_Interacting_dispersion();
     double Lorentzian(double x, double brd);
     void TotalOccDensity();
     void DensityOfStates();
-    void Calculate_OrbResolved_Nw();
     void SiSjFULL();
     double fermi_function(int n);
 

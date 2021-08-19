@@ -29,8 +29,8 @@ class ST_Fourier_MultiOrbSF{
 
 public:
     ST_Fourier_MultiOrbSF(Parameters_MultiOrbSF& Parameters__, Coordinates_MultiOrbSF& Coordinates__,
-                         MFParams_MultiOrbSF& MFParams__, Hamiltonian_MultiOrbSF& Hamiltonian__,
-                         Observables_MultiOrbSF& Observables__, SC_SW_ENGINE_VNE_MultiOrbSF& SC_SW_ENGINE_VNE_MultiOrbSF__)
+                          MFParams_MultiOrbSF& MFParams__, Hamiltonian_MultiOrbSF& Hamiltonian__,
+                          Observables_MultiOrbSF& Observables__, SC_SW_ENGINE_VNE_MultiOrbSF& SC_SW_ENGINE_VNE_MultiOrbSF__)
         : Parameters_(Parameters__), Coordinates_(Coordinates__), MFParams_(MFParams__),
           Hamiltonian_(Hamiltonian__), Observables_(Observables__), SC_SW_ENGINE_VNE_MultiOrbSF_(SC_SW_ENGINE_VNE_MultiOrbSF__)
     {
@@ -1348,8 +1348,6 @@ void ST_Fourier_MultiOrbSF::Calculate_Skw_from_Crt_(string fileout){
 
 void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_Aq){
 
-
-
     if(!Use_FFT){
         cout<<"FFT is NOT used"<<endl;
     }
@@ -1635,6 +1633,116 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
 
 
     cout<<"Calculate_Fw_and_Aq completed"<<endl;
+
+
+
+
+    if(true) { //For triangular lattices (example Kagome)
+
+        assert(Parameters_.lx==Parameters_.ly);
+        //Create Path Gamma--> M---->K--->Gamma
+        int n1, n2;
+        Mat_1_intpair k_path;
+        pair_int temp_pair;
+
+
+        // ---k_path---------
+
+        //--------\Gamma to M----------------
+        n1=0;
+        n2=0;
+        while (n1<=int(Parameters_.lx/2))
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n2++;
+            n1++;
+        }
+        //----------------------------------
+
+        //--------\M to K----------------
+        n1=int(Parameters_.lx/2)+1;
+        n2=int(Parameters_.ly/2)-1;
+        while (n1<=int((2*Parameters_.lx)/3))
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n2--;
+            n1++;
+        }
+        //----------------------------------
+
+        //--------K to \Gamma----------------
+        n1=int((2*Parameters_.lx)/3)-2;
+        n2=int((Parameters_.ly)/3)-1;
+        while (n1>=0)
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n2--;
+            n1--;
+            n1--;
+        }
+        //----------------------------------
+
+        temp_pair.first = 0;
+        temp_pair.second = 0;
+        k_path.push_back(temp_pair);
+        temp_pair.first = 0;
+        temp_pair.second = 0;
+        k_path.push_back(temp_pair);
+
+        //----------------------------------
+        cout<<"PRINTING PATH"<<endl;
+        for (int k_point = 0; k_point < k_path.size(); k_point++)
+        {
+            cout<<k_path[k_point].first<< "   "<<k_path[k_point].second<<endl;
+        }
+
+
+        //----k_path done-------
+
+
+        string fileout_TL = "TL_" + fileout;
+        ofstream file_out_TL(fileout_TL.c_str());
+
+        file_out_TL<<"#w_details:  "<<"   "<<w_max<<"  "<<w_min<<"  "<<dw<<"  "<<n_wpoints<<endl;
+        file_out_TL<<"#nx   ny   k_ind   wi*dw   wi   F_qw[k_ind][wi].real()   F_qw[k_ind][wi].imag()"<<endl;
+        for (int k_point = 0; k_point < k_path.size(); k_point++)
+        {
+                int nx = k_path[k_point].first;
+                int ny = k_path[k_point].second;
+                k_index=Coordinates_.Ncell_(nx,ny);
+
+                for(int wi=0;wi<n_wpoints;wi++){
+
+                    //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                    file_out_TL<<nx<<"   "<<ny<<"   "<<k_point<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                    for(int type=0;type<3;type++){
+
+                        file_out_TL<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+                    }
+
+                    file_out_TL<<endl;
+
+                }
+
+                file_out_TL<<endl;
+
+
+        }
+
+
+
+    }
+
+
+
+
 
 }
 

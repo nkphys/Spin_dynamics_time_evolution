@@ -587,19 +587,25 @@ int main(int argc, char** argv){
 
         if(model_=="MultiOrbSF"){
 
+
             Parameters_MultiOrbSF Parameters_;
             Parameters_.Initialize(input);
 
             Coordinates_MultiOrbSF Coordinates_(Parameters_.lx, Parameters_.ly, Parameters_.n_orbs);
             Coordinates_MultiOrbSF Coordinatestemp_(Parameters_.lx, Parameters_.ly, Parameters_.n_orbs);
 
+
+
             mt19937_64 Generator_(Parameters_.RandomSeed);
             mt19937_64 Generator2_(Parameters_.RandomDisorderSeed);
 
             MFParams_MultiOrbSF MFParams_(Parameters_,Coordinates_,Generator_, Generator2_);
 
+cout<<"here 0"<<endl;
             Hamiltonian_MultiOrbSF Hamiltonian_(Parameters_,Coordinates_, Coordinatestemp_, MFParams_);
+cout<<"here 2"<<endl;
             Observables_MultiOrbSF Observables_(Parameters_,Coordinates_,MFParams_,Hamiltonian_);
+
 
 
             SC_SW_ENGINE_VNE_MultiOrbSF Skw_Engine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);

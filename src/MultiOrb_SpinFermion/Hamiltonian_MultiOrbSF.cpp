@@ -214,8 +214,9 @@ double Hamiltonian_MultiOrbSF::chemicalpotentialCluster(double muin, double fill
 } // ----------
 
 void Hamiltonian_MultiOrbSF::Initialize()
-{
+{    
 
+    cout<<"here 1"<<endl;
     ly_cluster_ = Parameters_.ly_cluster;
     lx_cluster_ = Parameters_.lx_cluster;
     ncells_cluster = lx_cluster_*ly_cluster_;
@@ -224,20 +225,35 @@ void Hamiltonian_MultiOrbSF::Initialize()
     lx_ = Parameters_.lx;
     ncells_ = lx_*ly_;
     n_orbs_ = Parameters_.n_orbs;
+    n_Spins_ = Parameters_.n_Spins;
     int space = 2 * ncells_ * n_orbs_;
     int spaceCluster = 2 * ncells_cluster* n_orbs_;
 
+    cout<<"space = "<<space<<endl;
+    cout<<"spaceCluster ="<<spaceCluster<<endl;
     HTB_.resize(space, space);
     Ham_.resize(space, space);
     HTBCluster_.resize(spaceCluster, spaceCluster);
     HamCluster_.resize(spaceCluster, spaceCluster);
     eigs_.resize(space);
-    sx_.resize(space);
-    sy_.resize(space);
-    sz_.resize(space);
+
+cout<<"here 1.5"<<endl;
+    sx_.resize(n_Spins_);
+    sy_.resize(n_Spins_);
+    sz_.resize(n_Spins_);
+    for(int Spin_no=0;Spin_no<n_Spins_;Spin_no++){
+        sx_[Spin_no].resize(ncells_);
+        sy_[Spin_no].resize(ncells_);
+        sz_[Spin_no].resize(ncells_);
+    }
+
+    cout<<"here 1.75"<<endl;
     eigs_saved_.resize(space);
     eigsCluster_.resize(spaceCluster);
     eigsCluster_saved_.resize(spaceCluster);
+
+
+
 
 } // ----------
 
@@ -292,12 +308,14 @@ double Hamiltonian_MultiOrbSF::GetCLEnergy()
     {
         for (int j = 0; j < ly_; j++)
         {
-            cell = Coordinates_.Ncell(i, j);
-            ei = MFParams_.etheta(i, j);
-            ai = MFParams_.ephi(i, j);
-            sx_[cell] = MFParams_.Moment_Size(i, j) * cos(ai) * sin(ei);
-            sy_[cell] = MFParams_.Moment_Size(i, j) * sin(ai) * sin(ei);
-            sz_[cell] = MFParams_.Moment_Size(i, j) * cos(ei);
+            for(int Spin_no=0;Spin_no<n_Spins_;Spin_no++){
+                cell = Coordinates_.Ncell(i, j);
+                ei = MFParams_.etheta[Spin_no](i, j);
+                ai = MFParams_.ephi[Spin_no](i, j);
+                sx_[Spin_no][cell] = MFParams_.Moment_Size[Spin_no](i, j) * cos(ai) * sin(ei);
+                sy_[Spin_no][cell] = MFParams_.Moment_Size[Spin_no](i, j) * sin(ai) * sin(ei);
+                sz_[Spin_no][cell] = MFParams_.Moment_Size[Spin_no](i, j) * cos(ei);
+            }
         }
     }
 
@@ -307,14 +325,32 @@ double Hamiltonian_MultiOrbSF::GetCLEnergy()
     int _ix, _iy;
     for (int i = 0; i < ncells_; i++)
     {
-        _ix = Coordinates_.indx_cellwise(i);
-        _iy = Coordinates_.indy_cellwise(i);
+        for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
 
-        cell = Coordinates_.neigh(i, 0); //+x
-        EClassical += 1.0 * Parameters_.K1x * ( (sx_[i] * sx_[cell]) + (sy_[i] * sy_[cell]) + (1.0 * sz_[i] * sz_[cell]));
-        cell = Coordinates_.neigh(i, 2); //+y
-        EClassical += Parameters_.K1y * ((sx_[i] * sx_[cell]) + (sy_[i] * sy_[cell]) + (1.0 * sz_[i] * sz_[cell]));
+            for(int Spin_j=0;Spin_j<n_Spins_;Spin_j++){
+                _ix = Coordinates_.indx_cellwise(i);
+                _iy = Coordinates_.indy_cellwise(i);
+
+                //On-site b/w classical spins,
+                cell = i;
+                EClassical += 1.0 * Parameters_.K_0X_0Y(Spin_i,Spin_j)*( (sx_[Spin_i][i] * sx_[Spin_j][cell]) + (sy_[Spin_i][i] * sy_[Spin_j][cell]) + (1.0 * sz_[Spin_i][i] * sz_[Spin_j][cell]));
+
+
+                cell = Coordinates_.neigh(i, 0); //+x
+                EClassical += 1.0 * Parameters_.K_1X_0Y(Spin_i,Spin_j)*( (sx_[Spin_i][i] * sx_[Spin_j][cell]) + (sy_[Spin_i][i] * sy_[Spin_j][cell]) + (1.0 * sz_[Spin_i][i] * sz_[Spin_j][cell]));
+
+
+                cell = Coordinates_.neigh(i, 2); //+y
+                EClassical += Parameters_.K_0X_1Y(Spin_i,Spin_j) * ((sx_[Spin_i][i] * sx_[Spin_j][cell]) + (sy_[Spin_i][i] * sy_[Spin_j][cell]) + (1.0 * sz_[Spin_i][i] * sz_[Spin_j][cell]));
+
+                cell = Coordinates_.neigh(i,5); //mxpy
+                EClassical += Parameters_.K_m1X_1Y(Spin_i,Spin_j) * ((sx_[Spin_i][i] * sx_[Spin_j][cell]) + (sy_[Spin_i][i] * sy_[Spin_j][cell]) + (1.0 * sz_[Spin_i][i] * sz_[Spin_j][cell]));
+
+            }
+        }
     }
+
+
 
     return EClassical;
 } // ----------
@@ -326,6 +362,7 @@ void Hamiltonian_MultiOrbSF::InteractionsCreate()
     double ei, ai;
     int index;
     int i_posx, i_posy;
+    int Spin_no;
 
     Ham_ = HTB_;
     // Ham_.print();
@@ -334,17 +371,25 @@ void Hamiltonian_MultiOrbSF::InteractionsCreate()
     { // For each cell
         i_posx = Coordinates_.indx_cellwise(i);
         i_posy = Coordinates_.indy_cellwise(i);
-        ei = MFParams_.etheta(i_posx, i_posy);
-        ai = MFParams_.ephi(i_posx, i_posy);
+
 
         for(int orb=0;orb<n_orbs_;orb++){
 
             index=Coordinates_.Nbasis(i_posx, i_posy, orb);
 
-            Ham_(index, index) += Parameters_.J_Hund[orb] * (cos(ei)) * 0.5 * MFParams_.Moment_Size(i_posx, i_posy);
-            Ham_(index + (ncells_*n_orbs_), index + (ncells_*n_orbs_)) += Parameters_.J_Hund[orb] * (-cos(ei)) * 0.5 * MFParams_.Moment_Size(i_posx, i_posy);
-            Ham_(index, index + (ncells_*n_orbs_)) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), -sin(ai)) * 0.5 * MFParams_.Moment_Size(i_posx, i_posy); //S-
-            Ham_(index + (ncells_*n_orbs_), index) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), sin(ai)) * 0.5 * MFParams_.Moment_Size(i_posx, i_posy);  //S+
+            if(n_Spins_==n_orbs_){
+            Spin_no=orb;
+            }
+            else{Spin_no=0;}
+
+            ei = MFParams_.etheta[Spin_no](i_posx, i_posy);
+            ai = MFParams_.ephi[Spin_no](i_posx, i_posy);
+
+
+            Ham_(index, index) += Parameters_.J_Hund[orb] * (cos(ei)) * 0.5 * MFParams_.Moment_Size[Spin_no](i_posx, i_posy);
+            Ham_(index + (ncells_*n_orbs_), index + (ncells_*n_orbs_)) += Parameters_.J_Hund[orb] * (-cos(ei)) * 0.5 * MFParams_.Moment_Size[Spin_no](i_posx, i_posy);
+            Ham_(index, index + (ncells_*n_orbs_)) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), -sin(ai)) * 0.5 * MFParams_.Moment_Size[Spin_no](i_posx, i_posy); //S-
+            Ham_(index + (ncells_*n_orbs_), index) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), sin(ai)) * 0.5 * MFParams_.Moment_Size[Spin_no](i_posx, i_posy);  //S+
 
             // On-Site potential
             for (int spin = 0; spin < 2; spin++)
@@ -357,7 +402,6 @@ void Hamiltonian_MultiOrbSF::InteractionsCreate()
             }
         }
     }
-
 } // ----------
 
 void Hamiltonian_MultiOrbSF::InteractionsClusterCreate(int Center_site)
@@ -368,7 +412,7 @@ void Hamiltonian_MultiOrbSF::InteractionsClusterCreate(int Center_site)
     int a;
     int i_original;
     int index;
-    int i_posx, i_posy;
+    int i_posx, i_posy, Spin_no;
 
     HamCluster_ = HTBCluster_;
 
@@ -384,17 +428,25 @@ void Hamiltonian_MultiOrbSF::InteractionsClusterCreate(int Center_site)
         y_pos = (y_pos + Coordinates_.ly_) % Coordinates_.ly_;
 
         i_original=Coordinates_.Ncell(x_pos, y_pos);
-        ei = MFParams_.etheta(x_pos, y_pos);
-        ai = MFParams_.ephi(x_pos, y_pos);
+
 
         for(int orb=0;orb<n_orbs_;orb++){
 
+
+            if(n_Spins_==n_orbs_){
+            Spin_no==orb;
+            }
+            else{Spin_no=0;}
+
+            ei = MFParams_.etheta[Spin_no](x_pos, y_pos);
+            ai = MFParams_.ephi[Spin_no](x_pos, y_pos);
+
             index=CoordinatesCluster_.Nbasis(i_posx, i_posy, orb);
 
-            HamCluster_(index, index) += Parameters_.J_Hund[orb] * (cos(ei)) * 0.5 * MFParams_.Moment_Size(x_pos, y_pos);
-            HamCluster_(index + ncells_cluster*n_orbs_, index + ncells_cluster*n_orbs_) += Parameters_.J_Hund[orb] * (-cos(ei)) * 0.5 * MFParams_.Moment_Size(x_pos, y_pos);
-            HamCluster_(index, index + ncells_cluster*n_orbs_) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), -sin(ai)) * 0.5 * MFParams_.Moment_Size(x_pos, y_pos); //S-
-            HamCluster_(index + ncells_cluster*n_orbs_, index) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), sin(ai)) * 0.5 * MFParams_.Moment_Size(x_pos, y_pos);  //S+
+            HamCluster_(index, index) += Parameters_.J_Hund[orb] * (cos(ei)) * 0.5 * MFParams_.Moment_Size[Spin_no](x_pos, y_pos);
+            HamCluster_(index + ncells_cluster*n_orbs_, index + ncells_cluster*n_orbs_) += Parameters_.J_Hund[orb] * (-cos(ei)) * 0.5 * MFParams_.Moment_Size[Spin_no](x_pos, y_pos);
+            HamCluster_(index, index + ncells_cluster*n_orbs_) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), -sin(ai)) * 0.5 * MFParams_.Moment_Size[Spin_no](x_pos, y_pos); //S-
+            HamCluster_(index + ncells_cluster*n_orbs_, index) += Parameters_.J_Hund[orb] * sin(ei) * complex<double>(cos(ai), sin(ai)) * 0.5 * MFParams_.Moment_Size[Spin_no](x_pos, y_pos);  //S+
 
 
             for (int spin = 0; spin < 2; spin++)
@@ -407,6 +459,7 @@ void Hamiltonian_MultiOrbSF::InteractionsClusterCreate(int Center_site)
             }
         }
     }
+
 
 
 } // ----------
@@ -532,6 +585,7 @@ void Hamiltonian_MultiOrbSF::DiagonalizeCluster(char option)
 void Hamiltonian_MultiOrbSF::HTBCreate()
 {
 
+
     //Convention used
     //orb=0=d
     //orb=1=px
@@ -553,6 +607,30 @@ void Hamiltonian_MultiOrbSF::HTBCreate()
         ly_pos = Coordinates_.indy_cellwise(l);
 
 
+
+        //On-site Hopping
+        m = l; //same cell
+        mx_pos = Coordinates_.indx_cellwise(m);
+        my_pos = Coordinates_.indy_cellwise(m);
+
+        for (int spin=0; spin<2; spin++){
+            for(int orb1=0;orb1<n_orbs_;orb1++){
+                for(int orb2=0;orb2<n_orbs_;orb2++){
+                    if(Parameters_.hopping_0X_0Y(orb1,orb2)!=0.0){
+                        a = Coordinates_.Nbasis(lx_pos,ly_pos,orb1) + ncells_*n_orbs_*spin;
+                        b = Coordinates_.Nbasis(mx_pos,my_pos,orb2) + ncells_*n_orbs_*spin;
+                        assert(a != b);
+                        if (a != b)
+                        {
+                            HTB_(b, a) = complex<double>(1.0 *Parameters_.hopping_0X_0Y(orb1,orb2), 0.0);
+                            HTB_(a, b) = conj(HTB_(b, a));
+                        }
+                    }
+                }
+            }
+        }
+
+
         // * +x direction Neighbor
         if (lx_pos == (Coordinates_.lx_ - 1))
         {
@@ -571,13 +649,13 @@ void Hamiltonian_MultiOrbSF::HTBCreate()
         for (int spin=0; spin<2; spin++){
             for(int orb1=0;orb1<n_orbs_;orb1++){
                 for(int orb2=0;orb2<n_orbs_;orb2++){
-                    if(Parameters_.hopping_NN_X(orb1,orb2)!=0.0){
+                    if(Parameters_.hopping_1X_0Y(orb1,orb2)!=0.0){
                         a = Coordinates_.Nbasis(lx_pos,ly_pos,orb1) + ncells_*n_orbs_*spin;
                         b = Coordinates_.Nbasis(mx_pos,my_pos,orb2) + ncells_*n_orbs_*spin;
                         assert(a != b);
                         if (a != b)
                         {
-                            HTB_(b, a) = complex<double>(1.0 *Parameters_.hopping_NN_X(orb1,orb2), 0.0) * phasex;
+                            HTB_(b, a) = complex<double>(1.0 *Parameters_.hopping_1X_0Y(orb1,orb2), 0.0) * phasex;
                             HTB_(a, b) = conj(HTB_(b, a));
                         }
                     }
@@ -585,41 +663,90 @@ void Hamiltonian_MultiOrbSF::HTBCreate()
             }
         }
 
-        // * +y direction Neighbor
+
         if(Coordinates_.ly_>1){
-        if (ly_pos == (Coordinates_.ly_ - 1))
-        {
-            phasex = one_complex;
-            phasey = Parameters_.BoundaryConnection*exp(iota_complex * 2.0 * (1.0 * my) * PI / (1.0 * Parameters_.TBC_cellsY));
-        }
-        else
-        {
-            phasex = one_complex;
-            phasey = one_complex;
-        }
-        m = Coordinates_.neigh(l, 2); //+y neighbour cell
-        mx_pos = Coordinates_.indx_cellwise(m);
-        my_pos = Coordinates_.indy_cellwise(m);
 
-        for (int spin = 0; spin < 2; spin++){
-            for(int orb1=0;orb1<n_orbs_;orb1++){
-                for(int orb2=0;orb2<n_orbs_;orb2++){
-                    if(Parameters_.hopping_NN_Y(orb1,orb2)!=0.0){
 
-                        a = Coordinates_.Nbasis(lx_pos,ly_pos,orb1) + ncells_*n_orbs_*spin;
-                        b = Coordinates_.Nbasis(mx_pos,my_pos,orb2) + ncells_*n_orbs_*spin;
-                        assert(a != b);
-                        if (a != b)
-                        {
-                            HTB_(b, a) = complex<double>(1.0*Parameters_.hopping_NN_Y(orb1,orb2), 0.0) * phasey;
-                            HTB_(a, b) = conj(HTB_(b, a));
+            // * +y direction Neighbor
+            if (ly_pos == (Coordinates_.ly_ - 1))
+            {
+                phasex = one_complex;
+                phasey = Parameters_.BoundaryConnection*exp(iota_complex * 2.0 * (1.0 * my) * PI / (1.0 * Parameters_.TBC_cellsY));
+            }
+            else
+            {
+                phasex = one_complex;
+                phasey = one_complex;
+            }
+            m = Coordinates_.neigh(l, 2); //+y neighbour cell
+            mx_pos = Coordinates_.indx_cellwise(m);
+            my_pos = Coordinates_.indy_cellwise(m);
+
+            for (int spin = 0; spin < 2; spin++){
+                for(int orb1=0;orb1<n_orbs_;orb1++){
+                    for(int orb2=0;orb2<n_orbs_;orb2++){
+                        if(Parameters_.hopping_0X_1Y(orb1,orb2)!=0.0){
+
+                            a = Coordinates_.Nbasis(lx_pos,ly_pos,orb1) + ncells_*n_orbs_*spin;
+                            b = Coordinates_.Nbasis(mx_pos,my_pos,orb2) + ncells_*n_orbs_*spin;
+                            assert(a != b);
+                            if (a != b)
+                            {
+                                HTB_(b, a) = complex<double>(1.0*Parameters_.hopping_0X_1Y(orb1,orb2), 0.0) * phasey;
+                                HTB_(a, b) = conj(HTB_(b, a));
+                            }
                         }
                     }
                 }
             }
+
+
+
+
+            // * -x+y direction Neighbor
+            if (ly_pos == (Coordinates_.ly_ - 1))
+            {
+                phasey = Parameters_.BoundaryConnection*exp(iota_complex * 2.0 * (1.0 * my) * PI / (1.0 * Parameters_.TBC_cellsY));
+            }
+            else
+            {
+                phasey = one_complex;
+            }
+
+            if(lx_pos==0){
+                phasex = Parameters_.BoundaryConnection*exp(iota_complex * 2.0 * (-1.0 * mx) * PI / (1.0 * Parameters_.TBC_cellsX));
+            }
+            else{
+                phasex=one_complex;
+            }
+
+            m = Coordinates_.neigh(l, 5); //-x+y neighbour cell
+            mx_pos = Coordinates_.indx_cellwise(m);
+            my_pos = Coordinates_.indy_cellwise(m);
+
+            for (int spin = 0; spin < 2; spin++){
+                for(int orb1=0;orb1<n_orbs_;orb1++){
+                    for(int orb2=0;orb2<n_orbs_;orb2++){
+                        if(Parameters_.hopping_m1X_1Y(orb1,orb2)!=0.0){
+
+                            a = Coordinates_.Nbasis(lx_pos,ly_pos,orb1) + ncells_*n_orbs_*spin;
+                            b = Coordinates_.Nbasis(mx_pos,my_pos,orb2) + ncells_*n_orbs_*spin;
+                            assert(a != b);
+                            if (a != b)
+                            {
+                                HTB_(b, a) = complex<double>(1.0*Parameters_.hopping_m1X_1Y(orb1,orb2), 0.0) * phasey;
+                                HTB_(a, b) = conj(HTB_(b, a));
+                            }
+                        }
+                    }
+                }
+            }
+
+
+
         }
 
-    }
+
 
     }
 
@@ -630,6 +757,7 @@ void Hamiltonian_MultiOrbSF::HTBCreate()
 
 void Hamiltonian_MultiOrbSF::HTBClusterCreate()
 {
+
 
     if(Parameters_.ED_==false){
 
@@ -646,6 +774,31 @@ void Hamiltonian_MultiOrbSF::HTBClusterCreate()
             ly_pos = CoordinatesCluster_.indy_cellwise(l);
 
 
+
+            // Onsite hopping
+            m = l;
+            mx_pos = CoordinatesCluster_.indx_cellwise(m);
+            my_pos = CoordinatesCluster_.indy_cellwise(m);
+
+            for (int spin = 0; spin < 2; spin++){
+                for(int orb1=0;orb1<n_orbs_;orb1++){
+                    for(int orb2=0;orb2<n_orbs_;orb2++){
+                        if(Parameters_.hopping_0X_0Y(orb1,orb2)!=0.0){
+                            a = CoordinatesCluster_.Nbasis(lx_pos,ly_pos,orb1) + ncells_cluster*n_orbs_*spin;
+                            b = CoordinatesCluster_.Nbasis(mx_pos,my_pos,orb2) + ncells_cluster*n_orbs_*spin;
+
+                            assert(a != b);
+                            if (a != b)
+                            {
+                                HTBCluster_(b, a) = complex<double>(1.0 *Parameters_.hopping_0X_0Y(orb1,orb2), 0.0);
+                                HTBCluster_(a, b) = conj(HTBCluster_(b, a));
+                            }
+                        }
+                    }
+                }
+            }
+
+
             // * +x direction Neighbor
             m = CoordinatesCluster_.neigh(l, 0);
             mx_pos = CoordinatesCluster_.indx_cellwise(m);
@@ -654,14 +807,14 @@ void Hamiltonian_MultiOrbSF::HTBClusterCreate()
             for (int spin = 0; spin < 2; spin++){
                 for(int orb1=0;orb1<n_orbs_;orb1++){
                     for(int orb2=0;orb2<n_orbs_;orb2++){
-                        if(Parameters_.hopping_NN_X(orb1,orb2)!=0.0){
+                        if(Parameters_.hopping_1X_0Y(orb1,orb2)!=0.0){
                             a = CoordinatesCluster_.Nbasis(lx_pos,ly_pos,orb1) + ncells_cluster*n_orbs_*spin;
                             b = CoordinatesCluster_.Nbasis(mx_pos,my_pos,orb2) + ncells_cluster*n_orbs_*spin;
 
                             assert(a != b);
                             if (a != b)
                             {
-                                HTBCluster_(b, a) = complex<double>(1.0 *Parameters_.hopping_NN_X(orb1,orb2), 0.0);
+                                HTBCluster_(b, a) = complex<double>(1.0 *Parameters_.hopping_1X_0Y(orb1,orb2), 0.0);
                                 HTBCluster_(a, b) = conj(HTBCluster_(b, a));
                             }
                         }
@@ -669,30 +822,57 @@ void Hamiltonian_MultiOrbSF::HTBClusterCreate()
                 }
             }
 
-            // * +y direction Neighbor
+
             if(CoordinatesCluster_.ly_>1){
-            m = CoordinatesCluster_.neigh(l, 2);
-            mx_pos = CoordinatesCluster_.indx_cellwise(m);
-            my_pos = CoordinatesCluster_.indy_cellwise(m);
 
-            for (int spin = 0; spin < 2; spin++){
-                for(int orb1=0;orb1<n_orbs_;orb1++){
-                    for(int orb2=0;orb2<n_orbs_;orb2++){
-                        if(Parameters_.hopping_NN_Y(orb1,orb2)!=0.0){
-                            a = CoordinatesCluster_.Nbasis(lx_pos,ly_pos,orb1) + ncells_cluster*n_orbs_*spin;
-                            b = CoordinatesCluster_.Nbasis(mx_pos,my_pos,orb2) + ncells_cluster*n_orbs_*spin;
-                            assert(a != b);
-                            if (a != b)
-                            {
-                                HTBCluster_(b, a) = complex<double>(1.0 *Parameters_.hopping_NN_Y(orb1,orb2), 0.0);
-                                HTBCluster_(a, b) = conj(HTBCluster_(b, a));
+                // * +y direction Neighbor
+                m = CoordinatesCluster_.neigh(l, 2);
+                mx_pos = CoordinatesCluster_.indx_cellwise(m);
+                my_pos = CoordinatesCluster_.indy_cellwise(m);
+
+                for (int spin = 0; spin < 2; spin++){
+                    for(int orb1=0;orb1<n_orbs_;orb1++){
+                        for(int orb2=0;orb2<n_orbs_;orb2++){
+                            if(Parameters_.hopping_0X_1Y(orb1,orb2)!=0.0){
+                                a = CoordinatesCluster_.Nbasis(lx_pos,ly_pos,orb1) + ncells_cluster*n_orbs_*spin;
+                                b = CoordinatesCluster_.Nbasis(mx_pos,my_pos,orb2) + ncells_cluster*n_orbs_*spin;
+                                assert(a != b);
+                                if (a != b)
+                                {
+                                    HTBCluster_(b, a) = complex<double>(1.0 *Parameters_.hopping_0X_1Y(orb1,orb2), 0.0);
+                                    HTBCluster_(a, b) = conj(HTBCluster_(b, a));
+                                }
                             }
                         }
                     }
                 }
+
+
+                //-x+y direction
+                m = CoordinatesCluster_.neigh(l, 5);
+                mx_pos = CoordinatesCluster_.indx_cellwise(m);
+                my_pos = CoordinatesCluster_.indy_cellwise(m);
+
+                for (int spin = 0; spin < 2; spin++){
+                    for(int orb1=0;orb1<n_orbs_;orb1++){
+                        for(int orb2=0;orb2<n_orbs_;orb2++){
+                            if(Parameters_.hopping_m1X_1Y(orb1,orb2)!=0.0){
+                                a = CoordinatesCluster_.Nbasis(lx_pos,ly_pos,orb1) + ncells_cluster*n_orbs_*spin;
+                                b = CoordinatesCluster_.Nbasis(mx_pos,my_pos,orb2) + ncells_cluster*n_orbs_*spin;
+                                assert(a != b);
+                                if (a != b)
+                                {
+                                    HTBCluster_(b, a) = complex<double>(1.0 *Parameters_.hopping_m1X_1Y(orb1,orb2), 0.0);
+                                    HTBCluster_(a, b) = conj(HTBCluster_(b, a));
+                                }
+                            }
+                        }
+                    }
+                }
+
+
             }
 
-        }
         }
 
     }
@@ -700,7 +880,6 @@ void Hamiltonian_MultiOrbSF::HTBClusterCreate()
         HTBCluster_=HTB_;
     }
 
-    // HTBCluster_.print();
 
 } // ----------
 

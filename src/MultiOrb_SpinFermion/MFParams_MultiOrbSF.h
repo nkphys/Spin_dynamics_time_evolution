@@ -14,10 +14,10 @@ class MFParams_MultiOrbSF
 {
 public:
     // Define Fields
-    Matrix<double> etheta, ephi;
-    Matrix<double> Sz, Sx, Sy;
-    Matrix<double> etheta_avg, ephi_avg;
-    Matrix<double> Moment_Size;
+    vector<Matrix<double>> etheta, ephi;
+    vector<Matrix<double>> Sz, Sx, Sy;
+    vector<Matrix<double>> etheta_avg, ephi_avg;
+    vector<Matrix<double>> Moment_Size;
     Matrix<double> Disorder;
 
     // Constructor
@@ -30,7 +30,7 @@ public:
 
     double random1();
     double random2();
-    void FieldThrow(int site, string mc_dof_type);
+    void FieldThrow(int site,  int Spin_no, string mc_dof_type);
     void initialize();
     void Adjust_MCWindow();
     void Calculate_Fields_Avg();
