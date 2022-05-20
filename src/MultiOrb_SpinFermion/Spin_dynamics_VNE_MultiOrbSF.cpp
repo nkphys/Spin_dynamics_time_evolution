@@ -125,81 +125,102 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
     center = int((Parameters_.ns)*0.5 + 0.5) - 1;
 
 
-    //Connections Superexchange---------------
-    SE_connections.resize(n_Spins_*Parameters_.ns);
-    SE_connections_vals.resize(n_Spins_*Parameters_.ns);
+    //Connections Superexchange  [index] index=(pos, spin_no, spin_comp), spin_comp \in x,y,z ---------------
+    SE_connections.resize(3*n_Spins_*Parameters_.ns);
+    SE_connections_vals.resize(3*n_Spins_*Parameters_.ns);
 
-    pair_int Spin_pos_pair;
+    trio_int Spin_pos_trio;
     //n=Spin_no + n_Spins*pos
     int _ix, _iy, cell;
     for (int i = 0; i < Parameters_.ns; i++)
     {
         for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
+	for(int Spin_comp_i=0;Spin_comp_i<3;Spin_comp_i++){
 
             for(int Spin_j=0;Spin_j<n_Spins_;Spin_j++){
+		for(int Spin_comp_j=0;Spin_comp_j<3;Spin_comp_j++){
                 _ix = Coordinates_.indx_cellwise(i);
                 _iy = Coordinates_.indy_cellwise(i);
 
                 //On-site b/w classical spins,
-                cell = i;
+		//For Kagome Lattice turn it on, after coding again.
+                /*cell = i;
                 if(abs(Parameters_.K_0X_0Y(Spin_i,Spin_j)) > 0.0000001){
                     Spin_pos_pair.first=Spin_j;
                     Spin_pos_pair.second=cell;
-                    SE_connections[Spin_i+n_Spins_*i].push_back(Spin_pos_pair);
-                    SE_connections_vals[Spin_i+n_Spins_*i].push_back(Parameters_.K_0X_0Y(Spin_i,Spin_j));
+                    SE_connections[Spin_i + n_Spins_*i ].push_back(Spin_pos_pair);
+   		    
+                    SE_connections_vals[ Spin_comp + 3*Spin_i + 3*n_Spins_*i].push_back(Parameters_.K_0X_0Y(Spin_i,Spin_j));
 
                     Spin_pos_pair.first=Spin_i;
                     Spin_pos_pair.second=i;
                     SE_connections[Spin_j+n_Spins_*cell].push_back(Spin_pos_pair);
                     SE_connections_vals[Spin_j+n_Spins_*cell].push_back(Parameters_.K_0X_0Y(Spin_i,Spin_j));
-                }
+                }*/
 
                 //+X
                 cell = Coordinates_.neigh(i, 0);
-                if(abs(Parameters_.K_1X_0Y(Spin_i,Spin_j)) > 0.0000001){
-                    Spin_pos_pair.first=Spin_j;
-                    Spin_pos_pair.second=cell;
-                    SE_connections[Spin_i+n_Spins_*i].push_back(Spin_pos_pair);
-                    SE_connections_vals[Spin_i+n_Spins_*i].push_back(Parameters_.K_1X_0Y(Spin_i,Spin_j));
+                if(abs(Parameters_.J_px(Spin_comp_i,Spin_comp_j)) > 0.0000001){
+                    Spin_pos_trio.first=Spin_j;
+                    Spin_pos_trio.second=cell;
+	            Spin_pos_trio.third=Spin_comp_j;
+			
+                    SE_connections[Spin_comp_i + 3*Spin_i+3*n_Spins_*i].push_back(Spin_pos_trio);
+                    SE_connections_vals[Spin_comp_i + 3*Spin_i+3*n_Spins_*i].push_back(Parameters_.J_px(Spin_comp_i,Spin_comp_j));
 
-                    Spin_pos_pair.first=Spin_i;
-                    Spin_pos_pair.second=i;
-                    SE_connections[Spin_j+n_Spins_*cell].push_back(Spin_pos_pair);
-                    SE_connections_vals[Spin_j+n_Spins_*cell].push_back(Parameters_.K_1X_0Y(Spin_i,Spin_j));
+                    Spin_pos_trio.first=Spin_i;
+                    Spin_pos_trio.second=i;
+		    Spin_pos_trio.third=Spin_comp_i;
+		
+                    SE_connections[Spin_comp_j+ 3*Spin_j+3*n_Spins_*cell].push_back(Spin_pos_trio);
+                    SE_connections_vals[Spin_comp_j + 3*Spin_j+3*n_Spins_*cell].push_back(Parameters_.J_px(Spin_comp_i,Spin_comp_j));
+                }
+		
+
+
+		//+Y
+		cell = Coordinates_.neigh(i, 2); //+y
+                if(abs(Parameters_.J_py(Spin_comp_i,Spin_comp_j)) > 0.0000001){
+                    Spin_pos_trio.first=Spin_j;
+                    Spin_pos_trio.second=cell;
+                    Spin_pos_trio.third=Spin_comp_j;
+
+                    SE_connections[Spin_comp_i + 3*Spin_i+3*n_Spins_*i].push_back(Spin_pos_trio);
+                    SE_connections_vals[Spin_comp_i + 3*Spin_i+3*n_Spins_*i].push_back(Parameters_.J_py(Spin_comp_i,Spin_comp_j));
+
+                    Spin_pos_trio.first=Spin_i;
+                    Spin_pos_trio.second=i;
+                    Spin_pos_trio.third=Spin_comp_i;
+
+                    SE_connections[Spin_comp_j+ 3*Spin_j+3*n_Spins_*cell].push_back(Spin_pos_trio);
+                    SE_connections_vals[Spin_comp_j + 3*Spin_j+3*n_Spins_*cell].push_back(Parameters_.J_py(Spin_comp_i,Spin_comp_j));
                 }
 
 
-                //+Y
-                cell = Coordinates_.neigh(i, 2); //+y
-                if(abs(Parameters_.K_0X_1Y(Spin_i,Spin_j)) > 0.0000001){
-                    Spin_pos_pair.first=Spin_j;
-                    Spin_pos_pair.second=cell;
-                    SE_connections[Spin_i+n_Spins_*i].push_back(Spin_pos_pair);
-                    SE_connections_vals[Spin_i+n_Spins_*i].push_back(Parameters_.K_0X_1Y(Spin_i,Spin_j));
+		
+		//MxPy
+                cell = Coordinates_.neigh(i, 5); //mxpy
+                if(abs(Parameters_.J_mxpy(Spin_comp_i,Spin_comp_j)) > 0.0000001){
+                    Spin_pos_trio.first=Spin_j;
+                    Spin_pos_trio.second=cell;
+                    Spin_pos_trio.third=Spin_comp_j;
 
-                    Spin_pos_pair.first=Spin_i;
-                    Spin_pos_pair.second=i;
-                    SE_connections[Spin_j+n_Spins_*cell].push_back(Spin_pos_pair);
-                    SE_connections_vals[Spin_j+n_Spins_*cell].push_back(Parameters_.K_0X_1Y(Spin_i,Spin_j));
+                    SE_connections[Spin_comp_i + 3*Spin_i+3*n_Spins_*i].push_back(Spin_pos_trio);
+                    SE_connections_vals[Spin_comp_i + 3*Spin_i+3*n_Spins_*i].push_back(Parameters_.J_mxpy(Spin_comp_i,Spin_comp_j));
+
+                    Spin_pos_trio.first=Spin_i;
+                    Spin_pos_trio.second=i;
+                    Spin_pos_trio.third=Spin_comp_i;
+
+                    SE_connections[Spin_comp_j+ 3*Spin_j+3*n_Spins_*cell].push_back(Spin_pos_trio);
+                    SE_connections_vals[Spin_comp_j + 3*Spin_j+3*n_Spins_*cell].push_back(Parameters_.J_mxpy(Spin_comp_i,Spin_comp_j));
                 }
 
-
-                //MxPy
-                cell = Coordinates_.neigh(i,5); //mxpy
-                if(abs(Parameters_.K_m1X_1Y(Spin_i,Spin_j)) > 0.0000001){
-                    Spin_pos_pair.first=Spin_j;
-                    Spin_pos_pair.second=cell;
-                    SE_connections[Spin_i+n_Spins_*i].push_back(Spin_pos_pair);
-                    SE_connections_vals[Spin_i+n_Spins_*i].push_back(Parameters_.K_m1X_1Y(Spin_i,Spin_j));
-
-                    Spin_pos_pair.first=Spin_i;
-                    Spin_pos_pair.second=i;
-                    SE_connections[Spin_j+n_Spins_*cell].push_back(Spin_pos_pair);
-                    SE_connections_vals[Spin_j+n_Spins_*cell].push_back(Parameters_.K_m1X_1Y(Spin_i,Spin_j));
-                }
 
             }
         }
+	}
+	}
     }
     //-------------------------------
 
@@ -1184,6 +1205,11 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::IndexMapping_bw_Y_and_Variables()
 void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt){
 
 
+    int X_COMP, Y_COMP, Z_COMP;
+	X_COMP=0;
+	Y_COMP=1;
+	Z_COMP=2;
+
 
     double sign_check=-1.0; // In Batista's paper sign_check=-1 [It is correct]
     dYbydt.resize(Y_.size());
@@ -1218,21 +1244,172 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
             }
         }
 
-        //coupling b/w classical spins with neighbours
+
+
+
+	//magnetic field along z dir. on classical spins
+	for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
+	dYbydt[AuxSx_to_index[Spin_i][pos]] += Parameters_.hz_mag*Y_[AuxSy_to_index[Spin_i][pos]];
+       dYbydt[AuxSy_to_index[Spin_i][pos]] += -1.0*Parameters_.hz_mag*Y_[AuxSx_to_index[Spin_i][pos]];
+	}
+
+
+        //coupling b/w classical spins with neighbours [See NOTES]
         for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
-            for(int neigh_no=0;neigh_no<SE_connections[Spin_i + n_Spins_*pos].size();neigh_no++){
                 int Spin_j;
-                Spin_j =SE_connections[Spin_i + n_Spins_*pos][neigh_no].first;
-                pos_neigh=SE_connections[Spin_i + n_Spins_*pos][neigh_no].second;
-
-                dYbydt[AuxSx_to_index[Spin_i][pos]] +=SE_connections_vals[Spin_i + n_Spins_*pos][neigh_no]*(Y_[AuxSy_to_index[Spin_j][pos_neigh]]*Y_[AuxSz_to_index[Spin_i][pos]] - Y_[AuxSz_to_index[Spin_j][pos_neigh]]*Y_[AuxSy_to_index[Spin_i][pos]]);
-                dYbydt[AuxSy_to_index[Spin_i][pos]] +=SE_connections_vals[Spin_i + n_Spins_*pos][neigh_no]*(Y_[AuxSz_to_index[Spin_j][pos_neigh]]*Y_[AuxSx_to_index[Spin_i][pos]] - Y_[AuxSx_to_index[Spin_j][pos_neigh]]*Y_[AuxSz_to_index[Spin_i][pos]]);
-                dYbydt[AuxSz_to_index[Spin_i][pos]] +=SE_connections_vals[Spin_i + n_Spins_*pos][neigh_no]*(Y_[AuxSx_to_index[Spin_j][pos_neigh]]*Y_[AuxSy_to_index[Spin_i][pos]] - Y_[AuxSy_to_index[Spin_j][pos_neigh]]*Y_[AuxSx_to_index[Spin_i][pos]]);
-            }
-        }
+	    	int Spin_j_comp;
+		int Spin_i_comp;
+		double factor_;
+		complex<double> Spin_j_val;
 
 
+		//Derivative Sx comp XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+		
+		//Term J^{y alpha} _{ij}
+		Spin_i_comp=Y_COMP;
+		factor_=1.0; 
+		for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+		Spin_j =SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+		if(Spin_j_comp==X_COMP){
+		Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+		}
+		if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+		if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+		
+		dYbydt[AuxSx_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSz_to_index[Spin_i][pos]];
+	
+		}
 
+		//Term J^{z alpha} _{ij}
+                Spin_i_comp=Z_COMP;
+                factor_=-1.0;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j=SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+                dYbydt[AuxSx_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]];
+
+		}
+
+		//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+		
+		 //Derivative Sy comp XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+                //Term J^{z alpha} _{ij}
+                Spin_i_comp=Z_COMP;
+                factor_=1.0;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j =SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+                dYbydt[AuxSy_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]];
+
+                }
+
+                //Term J^{x alpha} _{ij}
+                Spin_i_comp=X_COMP;
+                factor_=-1.0;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j=SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+                dYbydt[AuxSy_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSz_to_index[Spin_i][pos]];
+
+                }
+
+                //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+
+
+
+		  //Derivative Sz comp XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+                //Term J^{x alpha} _{ij}
+                Spin_i_comp=X_COMP;
+                factor_=1.0;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j =SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+                dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]];
+
+                }
+
+                //Term J^{x alpha} _{ij}
+                Spin_i_comp=Y_COMP;
+                factor_=-1.0;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j=SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+                dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]];
+
+                }
+
+                //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+  
     }
 
 
@@ -1337,7 +1514,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
 
     }
 
-
+}
 
 }
 

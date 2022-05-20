@@ -117,6 +117,13 @@ struct pair_int{
 typedef vector<pair_int> Mat_1_intpair;
 
 
+struct trio_int{
+    int first;
+    int second;
+    int third;
+};
+typedef vector<trio_int> Mat_1_inttrio;
+
 struct four_int{
     int first;
     int second;

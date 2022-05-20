@@ -1688,6 +1688,19 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
         }
         //----------------------------------
 
+
+	//--------\Gamma to K'----------
+	n1=1;
+	n2=2;
+	while(n1<=int((Parameters_.lx)/3)){
+	temp_pair.first = n1;
+        temp_pair.second = n2;
+        k_path.push_back(temp_pair);
+	n1=n1+1;
+        n2=n2+2;
+	}
+
+
         temp_pair.first = 0;
         temp_pair.second = 0;
         k_path.push_back(temp_pair);

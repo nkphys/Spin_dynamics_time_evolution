@@ -26,9 +26,11 @@ public:
     int lx_cluster, ly_cluster;
     double mus, mus_Cluster, Fill, pi;
     double Total_Particles;
+    double hz_mag;
     //double K1x, K1y;
     Matrix<double> hopping_0X_0Y, hopping_1X_0Y, hopping_0X_1Y, hopping_m1X_1Y;
     Matrix<double> K_0X_0Y, K_1X_0Y, K_0X_1Y, K_m1X_1Y;
+    Matrix<double> J_px, J_py, J_mxpy; //only b/w Spin_i=0 and Spin_j=0
     Mat_1_doub J_Hund, OnSiteE;
     double lambda_lattice;
     double k_const;

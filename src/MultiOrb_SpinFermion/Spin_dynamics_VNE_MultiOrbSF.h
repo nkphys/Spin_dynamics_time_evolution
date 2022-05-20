@@ -115,7 +115,7 @@ public:
 
 
     Mat_2_doub SE_connections_vals;
-    vector<Mat_1_intpair> SE_connections;
+    vector<Mat_1_inttrio> SE_connections;
     vector<Mat_1_intpair> Hopp_connections;
     Mat_2_doub Hopp_connections_vals;
 

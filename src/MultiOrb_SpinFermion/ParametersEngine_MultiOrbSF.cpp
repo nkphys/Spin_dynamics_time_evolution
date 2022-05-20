@@ -25,6 +25,7 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
     TBC_cellsY = int(matchstring(inputfile_, "TBC_cellsY"));
     fix_mu = matchstring(inputfile_, "Fix_mu");
     fixed_mu_value = double(matchstring(inputfile_, "fixed_mu_value")) * 1.0;
+    hz_mag=double(matchstring(inputfile_, "hz_mag")) * 1.0;
     BoundaryConnection = double(matchstring(inputfile_, "PBC"));
 
 
@@ -126,6 +127,35 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
             stream_K_m1X_1Y >> K_m1X_1Y(m,n);
         }
     }
+
+
+
+
+     //Right now only b/w Classical Spin_i=0 to Spin_j=0--------------------------------------
+      
+      assert(n_Spins==1);
+	
+      J_px.resize(3,3);J_py.resize(3,3);J_mxpy.resize(3,3);
+      string J_px_file_str = matchstring2(inputfile_, "Nearest_neighbour_Exc_px_Matrix_file_name");
+      string J_py_file_str = matchstring2(inputfile_, "Nearest_neighbour_Exc_py_Matrix_file_name");
+      string J_mxpy_file_str = matchstring2(inputfile_, "Nearest_neighbour_Exc_mxpy_Matrix_file_name");
+
+        ifstream J_px_stream(J_px_file_str.c_str());
+        ifstream J_py_stream(J_py_file_str.c_str());
+        ifstream J_mxpy_stream(J_mxpy_file_str.c_str());
+
+
+        for(int alpha=0;alpha<3;alpha++){
+        for(int beta=0;beta<3;beta++){
+        J_px_stream>>J_px(alpha,beta);
+        J_py_stream>>J_py(alpha,beta);
+        J_mxpy_stream>>J_mxpy(alpha,beta);
+        }
+        }
+
+
+
+
 
     //Superexchange matrices done---------------
 
