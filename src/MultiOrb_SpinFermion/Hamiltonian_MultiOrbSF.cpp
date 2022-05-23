@@ -231,11 +231,14 @@ void Hamiltonian_MultiOrbSF::Initialize()
 
     cout<<"space = "<<space<<endl;
     cout<<"spaceCluster ="<<spaceCluster<<endl;
+    
+    /*
     HTB_.resize(space, space);
     Ham_.resize(space, space);
     HTBCluster_.resize(spaceCluster, spaceCluster);
     HamCluster_.resize(spaceCluster, spaceCluster);
     eigs_.resize(space);
+    */
 
 cout<<"here 1.5"<<endl;
     sx_.resize(n_Spins_);
