@@ -97,6 +97,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
     }
 
 
+
+   if(!IgnoreFermions){
     for(int i=0;i<Parameters_.ns;i++){
         Red_Den_mat[i].resize(Parameters_.n_orbs*2);
         for(int s=0;s<Parameters_.n_orbs*2;s++){
@@ -108,6 +110,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
     }
 
 
+    
     for (int ts=0;ts<Red_Den_mat_time.size();ts++){
         Red_Den_mat_time[ts].resize(Parameters_.ns);
         for(int i=0;i<Parameters_.ns;i++){
@@ -120,7 +123,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
             }
         }
     }
-
+	}
 
     center = int((Parameters_.ns)*0.5 + 0.5) - 1;
 
@@ -445,7 +448,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
                 else{
                     cout<<"Fermions are ignored"<<endl;
 
-                    for(int i=0;i<Parameters_.ns;i++){
+                  /*  
+		for(int i=0;i<Parameters_.ns;i++){
                         for(int s=0;s<Parameters_.n_orbs*2;s++){
                             for(int j=0;j<Parameters_.ns;j++){
                                 for(int k=0;k<Parameters_.n_orbs*2;k++){
@@ -455,6 +459,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
                         }
                     }
                     Red_Den_mat_time[0]=Red_Den_mat;
+		*/
 
                 }
 
@@ -498,6 +503,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 
 
 
+
+
+	if(!IgnoreFermions){
         quantum_file_out<<(ts*dt_) + Restart_Time<<"  ";
 
         int alpha=0; //orbital
@@ -514,6 +522,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
             quantum_file_out<< sy<<"  ";
         }
         quantum_file_out<<endl;
+	}
 
 
         Evolve_classical_spins_Runge_Kutta(0);
@@ -1003,7 +1012,20 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Variables_to_Y(Mat_4_Complex_doub & Red_De
                                                      Mat_2_doub & AuxSy, Mat_2_doub & AuxSz,  Mat_1_Complex_doub & Y_)
 {
 
-    int Y_size = 3*n_Spins_*Parameters_.ns + Parameters_.n_orbs*2*Parameters_.n_orbs*2*Parameters_.ns*Parameters_.ns;
+
+
+
+
+    int Y_size;
+    
+   if(IgnoreFermions){
+	 Y_size = 3*n_Spins_*Parameters_.ns;
+	}
+	else{
+	 Y_size = 3*n_Spins_*Parameters_.ns + Parameters_.n_orbs*2*Parameters_.n_orbs*2*Parameters_.ns*Parameters_.ns;
+	}
+
+
     Y_.resize(Y_size);
     //Convention Aux_Sx--Aux_Sy---Aux_Sz-- Red_Den_mat[][][][]
 
@@ -1027,6 +1049,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Variables_to_Y(Mat_4_Complex_doub & Red_De
         }
     }
 
+
+  
+   if(!IgnoreFermions){ 
     for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
         for(int si=0;si<Parameters_.n_orbs*2;si++){
             for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
@@ -1037,6 +1062,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Variables_to_Y(Mat_4_Complex_doub & Red_De
             }
         }
     }
+	}
 
     assert(index==Y_size);
 
@@ -1049,7 +1075,16 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Ma
                                                      Mat_2_doub & AuxSy, Mat_2_doub & AuxSz)
 {
 
-    int Y_size = 3*n_Spins_*Parameters_.ns + Parameters_.n_orbs*2*Parameters_.n_orbs*2*Parameters_.ns*Parameters_.ns;
+    int Y_size;
+
+	if(IgnoreFermions){
+         Y_size = 3*n_Spins_*Parameters_.ns;
+        }
+        else{
+         Y_size = 3*n_Spins_*Parameters_.ns + Parameters_.n_orbs*2*Parameters_.n_orbs*2*Parameters_.ns*Parameters_.ns;
+        }
+
+
 
 
     AuxSx.resize(n_Spins_);
@@ -1061,6 +1096,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Ma
         AuxSz[spin_no].resize(Parameters_.ns);
     }
 
+
+
+if(!IgnoreFermions){
     Red_Den_mat_temp.resize(Parameters_.ns);
     for(int i=0;i<Parameters_.ns;i++){
         Red_Den_mat_temp[i].resize(Parameters_.n_orbs*2);
@@ -1071,7 +1109,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Ma
             }
         }
     }
-
+}
 
     //Convention Aux_Sx--Aux_Sy---Aux_Sz-- Red_Den_mat[][][][]
 
@@ -1096,6 +1134,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Ma
         }
     }
 
+
+if(!IgnoreFermions){
     for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
         for(int si=0;si<Parameters_.n_orbs*2;si++){
             for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
@@ -1106,7 +1146,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Ma
             }
         }
     }
-
+}
     assert(index==Y_size);
 
 
@@ -1116,7 +1156,16 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Y_to_Variables(Mat_1_Complex_doub & Y_, Ma
 void SC_SW_ENGINE_VNE_MultiOrbSF::IndexMapping_bw_Y_and_Variables()
 {
 
-    int Y_size = 3*n_Spins_*Parameters_.ns + 4*Parameters_.n_orbs*Parameters_.n_orbs*Parameters_.ns*Parameters_.ns;
+    int Y_size;
+// = 3*n_Spins_*Parameters_.ns + 4*Parameters_.n_orbs*Parameters_.n_orbs*Parameters_.ns*Parameters_.ns;
+
+	if(IgnoreFermions){
+         Y_size = 3*n_Spins_*Parameters_.ns;
+        }
+        else{
+         Y_size = 3*n_Spins_*Parameters_.ns + Parameters_.n_orbs*2*Parameters_.n_orbs*2*Parameters_.ns*Parameters_.ns;
+        }
+
 
     index_to_AuxSx.resize(Y_size);
     index_to_AuxSy.resize(Y_size);
@@ -1136,6 +1185,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::IndexMapping_bw_Y_and_Variables()
     }
 
 
+
+ if(!IgnoreFermions){
     RedDen_to_index.resize(Parameters_.ns);
     for(int i=0;i<Parameters_.ns;i++){
         RedDen_to_index[i].resize(Parameters_.n_orbs*2);
@@ -1147,7 +1198,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::IndexMapping_bw_Y_and_Variables()
             }
         }
     }
-
+}
 
 
 
@@ -1180,6 +1231,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::IndexMapping_bw_Y_and_Variables()
     }
 
 
+
+ if(!IgnoreFermions){
     for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
         for(int si=0;si<Parameters_.n_orbs*2;si++){
             for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
@@ -1194,7 +1247,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::IndexMapping_bw_Y_and_Variables()
             }
         }
     }
-
+}
     assert(index==Y_size);
 
 
@@ -2085,47 +2138,6 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
 
 
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
