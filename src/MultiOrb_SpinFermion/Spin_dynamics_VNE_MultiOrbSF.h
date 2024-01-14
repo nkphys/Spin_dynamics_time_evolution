@@ -8,6 +8,7 @@
 #include <limits>
 #include <iomanip>
 #include <stdio.h>
+#include <random>
 #include "Coordinates_MultiOrbSF.h"
 #include "MFParams_MultiOrbSF.h"
 #include "Hamiltonian_MultiOrbSF.h"
@@ -38,6 +39,11 @@ public:
     }
 
 
+
+
+    string Dynamic_Spin_Type;
+
+    double Rotor_mass;
     int RANDOM_NO_SEED;
     double w_min,w_max,dw;
     double time_max;
@@ -46,6 +52,8 @@ public:
     int no_of_processors;
 
     string conf_input;
+    string conf_initialize;
+    int conf_seed;
     string spins_r_t_out;
     string Skw_out;
     string Skw_out_full;
@@ -120,6 +128,21 @@ public:
     Mat_2_doub Hopp_connections_vals;
 
 
+    bool Use_Scheduler;
+    string Scheduler_File;
+
+
+
+    Mat_1_doub Gamma_bare;//Field along y component; Gamma_[]*Sy
+    Mat_1_doub Js_bare;//Exchange constant in x components Js_[]*Sx*Sx
+    Mat_1_doub Time_bare;
+
+    Mat_1_doub Gamma_;//Field along y component; Gamma_[]*Sy
+    Mat_1_doub Js_;//Exchange constant in x components Js_[]*Sx*Sx
+    Mat_1_doub Time_;
+
+    double AnnealingTime;
+
 
     bool RESTART;
     double Restart_Time;
@@ -141,6 +164,12 @@ public:
 
     bool SelfConsistentEvolution;
 
+    mt19937_64 Generator_;
+    normal_distribution<double> GaussianDistribution;
+
+    mt19937_64 Generator1_;
+    uniform_real_distribution<double> dis1_;
+
 
     Parameters_MultiOrbSF& Parameters_;
     Coordinates_MultiOrbSF& Coordinates_;
@@ -149,6 +178,8 @@ public:
     Observables_MultiOrbSF& Observables_;
 
 
+    double random1();
+    void Create_Scheduler();
     void Initialize_engine();
     void Read_parameters(string filename);
     void Read_equilibrium_configuration();
@@ -163,8 +194,12 @@ public:
     void RungeKuttaSix(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void RungeKuttaEight(Mat_1_Complex_doub & Yn, Mat_1_Complex_doub & Ynp1);
     void Derivative(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt);
+    void Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt);
+    void Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt);
     void Write_final_time_result();
     void IndexMapping_bw_Y_and_Variables();
+    double Get_Classical_Energy(Mat_1_Complex_doub & Y_);
+    void Set_Initial_configuration();
 
 
 };

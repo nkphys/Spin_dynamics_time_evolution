@@ -18,7 +18,8 @@ class Parameters_MultiOrbSF
 {
 
 public:
-    int lx, ly, ns, IterMax, MCNorm, RandomSeed;
+    int lx, ly, ns, IterMax, MCNorm, RandomSeed, RandomNoiseSeed;
+    double DampingConst;
     int n_orbs, n_Spins;
     string ModelType;
     int TBC_mx, TBC_my;
@@ -26,7 +27,7 @@ public:
     int lx_cluster, ly_cluster;
     double mus, mus_Cluster, Fill, pi;
     double Total_Particles;
-    double hz_mag;
+    double hz_mag, hy_mag;
     //double K1x, K1y;
     Matrix<double> hopping_0X_0Y, hopping_1X_0Y, hopping_0X_1Y, hopping_m1X_1Y;
     Matrix<double> K_0X_0Y, K_1X_0Y, K_0X_1Y, K_m1X_1Y;
@@ -40,6 +41,7 @@ public:
     Mat_1_doub Temp_values;
     bool Read_Seed_from_file_;
     string Seed_file_name_;
+
 
     /*Matrix<double> hopping_NN_X;
     Matrix<double> hopping_NN_Y;

@@ -5,6 +5,53 @@
 #endif
 using namespace std;
 
+
+void SC_SW_ENGINE_VNE_MultiOrbSF::Create_Scheduler(){
+
+assert(abs(Restart_Time)<0.0000000001);
+
+Time_.resize(time_steps+1);
+Gamma_.resize(time_steps+1);
+Js_.resize(time_steps+1);
+
+double time_normalized;
+double gamma_temp, js_temp;
+for(int time_ind=0;time_ind<=time_steps;time_ind++){
+
+time_normalized=(time_ind*dt_)/(time_max);
+
+//assert(time_normalized>=0 && time_normalized<=1.0);
+
+for(int time_ind2=0;time_ind2<Time_bare.size()-1;time_ind2++){
+    if(time_normalized>=Time_bare[time_ind2] && time_normalized<=Time_bare[time_ind2+1] ){
+    gamma_temp = ((Time_bare[time_ind2+1]-time_normalized)*Gamma_bare[time_ind2]
+                 +(Time_bare[time_ind2]-time_normalized)*Gamma_bare[time_ind2+1])*
+                 (1.0/(Time_bare[time_ind2+1]-Time_bare[time_ind2]));
+
+    js_temp = ((Time_bare[time_ind2+1]-time_normalized)*Js_bare[time_ind2]
+                 +(Time_bare[time_ind2]-time_normalized)*Js_bare[time_ind2+1])*
+                 (1.0/(Time_bare[time_ind2+1]-Time_bare[time_ind2]));
+
+    break;
+    }
+}
+
+Time_[time_ind]=time_ind*dt_;
+Gamma_[time_ind]=gamma_temp;
+Js_[time_ind]=js_temp;
+}
+
+
+string created_schd_str = "Created_Scheduler.txt";
+ofstream created_schd_stream(created_schd_str.c_str());
+
+created_schd_stream<<"# time   Gamma    Js"<<endl;
+for(int time_ind=0;time_ind<Time_.size();time_ind++){
+created_schd_stream<<Time_[time_ind]<<"  "<<Gamma_[time_ind]<<"  "<<Js_[time_ind]<<endl;
+}
+
+}
+
 void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
 
 
@@ -24,9 +71,14 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
     }
 
 
-    time_steps=(int) ((time_max - Restart_Time)/(fabs(dt_)) + 0.5);
+    time_steps=(int) ( (time_max - Restart_Time)/(fabs(dt_)) + 0.5 );
 
 
+    if(Use_Scheduler){
+    Create_Scheduler();
+    }
+
+    //assert(false);
 
     Theta.resize(n_Spins_);
     Phi.resize(n_Spins_);
@@ -67,14 +119,10 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
     S_kw.resize(Parameters_.ns);
     for(int i=0;i<Parameters_.ns;i++){
         S_kw[i].resize(n_wpoints);
-
     }
 
 
-
-
     Red_Den_mat.resize(Parameters_.ns);
-
 
     quant_s_x.resize(1);
     quant_s_y.resize(1);
@@ -326,9 +374,51 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
     Pauli_z[0][0]=1.0;Pauli_z[1][1]=-1.0;
 
 
+   Generator1_.seed(conf_seed);
+
+   Generator_.seed(Parameters_.RandomNoiseSeed);
+
+   double StdDev=sqrt(2.0*Parameters_.DampingConst*(1.0/Parameters_.beta));
+   normal_distribution<double> GaussianDistribution_temp(0.0,StdDev);
+   GaussianDistribution=GaussianDistribution_temp;
+
+
+}
+
+double SC_SW_ENGINE_VNE_MultiOrbSF::random1()
+{
+
+    return dis1_(Generator1_);
 }
 
 
+void SC_SW_ENGINE_VNE_MultiOrbSF::Set_Initial_configuration(){
+
+    for(int x=0;x<Parameters_.lx;x++){
+        for(int y=0;y<Parameters_.ly;y++){
+            for(int spin_no=0;spin_no<n_Spins_;spin_no++){
+
+                Theta[spin_no][x][y]=random1() * PI;
+                Phi[spin_no][x][y]=2.0 * random1() * PI;
+                Moment_Size[spin_no][x][y]=1.0;
+
+            }
+        }
+
+    }
+
+    if(Dynamic_Spin_Type=="Rotor"){
+        for(int x=0;x<Parameters_.lx;x++){
+            for(int y=0;y<Parameters_.ly;y++){
+                for(int spin_no=0;spin_no<n_Spins_;spin_no++){
+                  Moment_Size[spin_no][x][y]=1.0/(sin(Theta[spin_no][x][y]));
+                }}}
+
+    }
+
+    cout<<"t=0 is random configuration"<<endl;
+
+}
 
 void SC_SW_ENGINE_VNE_MultiOrbSF::Read_equilibrium_configuration(){
 
@@ -355,7 +445,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_equilibrium_configuration(){
                 Phi[temp_spin_no][temp_lx][temp_ly]=temp_phi;
                 Moment_Size[temp_spin_no][temp_lx][temp_ly]=temp_moment_size;
 
-                //cout<<temp_pos<<"  "<<temp_theta<<"   "<<temp_phi<<endl;
+                cout<<temp_lx<<"  "<<temp_theta<<"   "<<temp_phi<<"   "<<temp_moment_size<<endl;
 
                 //            Theta_eq[temp_spin_no][temp_lx][temp_ly]=temp_theta;
                 //            Phi_eq[temp_spin_no][temp_lx][temp_ly]=temp_phi;
@@ -366,9 +456,6 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_equilibrium_configuration(){
 
 
     cout<<"Inital classical spin configuration is read from given input file "<<conf_input<<endl;
-
-
-
 
 
 }
@@ -383,6 +470,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
     cout<<"No. of threads used parallely = "<<no_of_processors<<endl;
 #endif
 
+
     string mu_output = "mu.txt";
     double initial_mu_guess;
     int n_states_occupied_zeroT;
@@ -390,6 +478,10 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 
     double sz, sx, sy;
 
+
+    string Energy_out = "ClassicalEnergy_vs_t.txt";
+    ofstream Energy_file_out(Energy_out.c_str());
+    Energy_file_out<<"#time   ClassicalEnergy"<<endl;
 
     string quantum_spins_r_t_out = "quantum_orb0_"+spins_r_t_out;
     ofstream quantum_file_out(quantum_spins_r_t_out.c_str());
@@ -478,6 +570,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
                     Aux_S_x[spin_no][pos] = Moment_Size[spin_no][px_][py_]*sin(Theta[spin_no][px_][py_])*cos(Phi[spin_no][px_][py_]);
                     Aux_S_y[spin_no][pos] = Moment_Size[spin_no][px_][py_]*sin(Theta[spin_no][px_][py_])*sin(Phi[spin_no][px_][py_]);
                     Aux_S_z[spin_no][pos] = Moment_Size[spin_no][px_][py_]*cos(Theta[spin_no][px_][py_]);
+                   // cout<<px_<<"  "<<Aux_S_x[spin_no][pos]<<"  "<<Aux_S_y[spin_no][pos]<<"  "<<Aux_S_z[spin_no][pos]<<endl;
                 }
             }
 
@@ -485,6 +578,10 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
         }
 
 
+//        for(int pos=0;pos<Parameters_.ns;pos++){
+//         cout<<YVec0[AuxSx_to_index[0][pos]].real()<<"  "<<YVec0[AuxSy_to_index[0][pos]].real()<<"  "<<
+//              YVec0[AuxSz_to_index[0][pos]].real()<<endl;
+//            }
 
         for(int spin_no=0;spin_no<n_Spins_;spin_no++){
         file_out[spin_no]<<(ts*dt_) + Restart_Time<<"  ";
@@ -524,7 +621,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
         quantum_file_out<<endl;
 	}
 
-
+        Energy_file_out<<ts*dt_<<"   "<<Get_Classical_Energy(YVec0)<<endl;
         Evolve_classical_spins_Runge_Kutta(0);
         YVec0=YVec1;
     }
@@ -1033,18 +1130,21 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Map_Variables_to_Y(Mat_4_Complex_doub & Red_De
     for(int i=0;i<Parameters_.ns;i++){
         for(int spin_no=0;spin_no<n_Spins_;spin_no++){
             Y_[index]=complex<double>(AuxSx[spin_no][i],0.0);
+            //cout<<Y_[index]<<endl;
             index++;
         }
     }
     for(int i=0;i<Parameters_.ns;i++){
         for(int spin_no=0;spin_no<n_Spins_;spin_no++){
             Y_[index]=complex<double>(AuxSy[spin_no][i],0.0);
+            //cout<<Y_[index]<<endl;
             index++;
         }
     }
     for(int i=0;i<Parameters_.ns;i++){
         for(int spin_no=0;spin_no<n_Spins_;spin_no++){
             Y_[index]=complex<double>(AuxSz[spin_no][i],0.0);
+            //cout<<Y_[index]<<endl;
             index++;
         }
     }
@@ -1255,7 +1355,185 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::IndexMapping_bw_Y_and_Variables()
 
 
 
+
+double SC_SW_ENGINE_VNE_MultiOrbSF::Get_Classical_Energy(Mat_1_Complex_doub & Y_){
+
+    int X_COMP, Y_COMP, Z_COMP;
+    X_COMP=0;
+    Y_COMP=1;
+    Z_COMP=2;
+    int Spin_j, pos_neigh, Spin_j_comp;
+    double Spin_i_val, Spin_j_val;
+    double Class_Energy;
+    Class_Energy=0.0;
+
+    for(int pos=0;pos<Parameters_.ns;pos++){
+        for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
+            Class_Energy += -1.0*Parameters_.hz_mag*Y_[AuxSz_to_index[Spin_i][pos]].real();
+             Class_Energy += -1.0*Parameters_.hy_mag*Y_[AuxSy_to_index[Spin_i][pos]].real();
+
+            for(int Spin_i_comp=0;Spin_i_comp<3;Spin_i_comp++){
+                if(Spin_i_comp==X_COMP){
+                    Spin_i_val = Y_[AuxSx_to_index[Spin_i][pos]].real();
+                }
+                if(Spin_i_comp==Y_COMP){
+                    Spin_i_val = Y_[AuxSy_to_index[Spin_i][pos]].real();
+                }
+                if(Spin_i_comp==Z_COMP){
+                    Spin_i_val = Y_[AuxSz_to_index[Spin_i][pos]].real();
+                }
+
+
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                    Spin_j =SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                    pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                    Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                    if(Spin_j_comp==X_COMP){
+                        Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]].real();
+                    }
+                    if(Spin_j_comp==Y_COMP){
+                        Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]].real();
+                    }
+                    if(Spin_j_comp==Z_COMP){
+                        Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]].real();
+                    }
+
+
+                    Class_Energy += 0.5*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                                    Spin_i_val*Spin_j_val;
+
+                }
+            }
+
+        }
+    }
+
+    return Class_Energy;
+
+}
+
+
+
 void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt){
+
+    if(Dynamic_Spin_Type=="O3"){
+    Derivative_O3(Y_,dYbydt);
+    }
+    else if(Dynamic_Spin_Type=="Rotor"){
+    Derivative_Rotor(Y_, dYbydt);
+    }
+
+}
+
+
+void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt){
+
+    assert(IgnoreFermions);
+
+    int X_COMP, Y_COMP, Z_COMP;
+    X_COMP=0;
+    Y_COMP=1;
+    Z_COMP=2;
+
+    dYbydt.resize(Y_.size());
+    for(int i=0;i<Y_.size();i++){
+        dYbydt[i]=zero_complex;
+    }
+
+    int pos_neigh;
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(sx, sy, sz, pos_neigh, Spin_no)
+#endif
+    for(int pos=0;pos<Parameters_.ns;pos++){
+
+
+    //Noise
+    for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
+    //dYbydt[AuxSx_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
+    //dYbydt[AuxSy_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
+    //dYbydt[AuxSz_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
+    }
+
+
+
+    for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
+    dYbydt[AuxSx_to_index[Spin_i][pos]] += -1.0*(Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]])/(Rotor_mass);
+
+    dYbydt[AuxSy_to_index[Spin_i][pos]] += 1.0*(Y_[AuxSx_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]])/(Rotor_mass);
+
+    dYbydt[AuxSz_to_index[Spin_i][pos]] += 1.0*Parameters_.DampingConst*Y_[AuxSz_to_index[Spin_i][pos]]*(1.0/Rotor_mass)
+                                           +1.0*(Parameters_.hy_mag)*Y_[AuxSx_to_index[Spin_i][pos]];
+
+    }
+
+
+        //coupling b/w classical spins with neighbours [See NOTES]
+        for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
+                int Spin_j;
+            int Spin_j_comp;
+        int Spin_i_comp;
+        double factor_;
+        complex<double> Spin_j_val;
+
+
+        //Derivative Sz comp XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+        //Term J^{y alpha} _{ij}
+        Spin_i_comp=Y_COMP;
+        factor_=-1.0;
+        for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+        Spin_j =SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+        if(Spin_j_comp==X_COMP){
+        Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+        }
+        if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+        if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+        dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]];
+
+        }
+
+        //Term J^{x alpha} _{ij}
+                Spin_i_comp=X_COMP;
+                factor_=1.0;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j=SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+              dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]];
+
+        }
+
+        //XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+
+
+    }
+
+}
+
+}
+
+
+
+void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_Complex_doub & dYbydt){
 
 
     int X_COMP, Y_COMP, Z_COMP;
@@ -1300,10 +1578,34 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
 
 
 
-	//magnetic field along z dir. on classical spins
+    //Noise
+    //for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
+    //dYbydt[AuxSx_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
+    //dYbydt[AuxSy_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
+    //dYbydt[AuxSz_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
+    //}
+
+
+    //magnetic field along z dir. on classical spins + damping from hz term
 	for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
-	dYbydt[AuxSx_to_index[Spin_i][pos]] += Parameters_.hz_mag*Y_[AuxSy_to_index[Spin_i][pos]];
-       dYbydt[AuxSy_to_index[Spin_i][pos]] += -1.0*Parameters_.hz_mag*Y_[AuxSx_to_index[Spin_i][pos]];
+    dYbydt[AuxSx_to_index[Spin_i][pos]] += Parameters_.hz_mag*Y_[AuxSy_to_index[Spin_i][pos]]
+                                           +
+                                           Parameters_.DampingConst*(-1.0*Parameters_.hz_mag)*(
+                                            Y_[AuxSx_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]]);
+
+    dYbydt[AuxSy_to_index[Spin_i][pos]] += -1.0*Parameters_.hz_mag*Y_[AuxSx_to_index[Spin_i][pos]]
+                                            +
+                                            Parameters_.DampingConst*(-1.0*Parameters_.hz_mag)*(
+                                            Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]]);
+
+
+    //damping in Sz
+    dYbydt[AuxSz_to_index[Spin_i][pos]] += -1.0*Parameters_.DampingConst*(-1.0*Parameters_.hz_mag)*(
+                                            (Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSy_to_index[Spin_i][pos]])
+                                           +(Y_[AuxSx_to_index[Spin_i][pos]]*Y_[AuxSx_to_index[Spin_i][pos]])
+                                            );
+
+
 	}
 
 
@@ -1335,7 +1637,12 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 		
-		dYbydt[AuxSx_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSz_to_index[Spin_i][pos]];
+        dYbydt[AuxSx_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSz_to_index[Spin_i][pos]]
+                                                +
+                                                Parameters_.DampingConst*(
+                                                Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                                                Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSx_to_index[Spin_i][pos]]
+                                                );
 	
 		}
 
@@ -1356,9 +1663,38 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 
-                dYbydt[AuxSx_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]];
+                dYbydt[AuxSx_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]]
+                                                         +
+                                                        Parameters_.DampingConst*(
+                                                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                                                         Y_[AuxSz_to_index[Spin_i][pos]]*Y_[AuxSx_to_index[Spin_i][pos]]
+                                                        );
 
 		}
+
+
+        //Damping through J^{x alpha}_{ij}
+                Spin_i_comp=X_COMP;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j=SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+                dYbydt[AuxSx_to_index[Spin_i][pos]] +=  -1.0*Parameters_.DampingConst*
+                                                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                                                        (
+                                                         (Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSy_to_index[Spin_i][pos]]) +
+                                                         (Y_[AuxSz_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]])
+                                                        );
+        }
 
 		//XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
@@ -1384,7 +1720,13 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 
-                dYbydt[AuxSy_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]];
+                dYbydt[AuxSy_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]]
+                        +
+                        Parameters_.DampingConst*(
+                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                        Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]]
+                        );
+
 
                 }
 
@@ -1405,7 +1747,39 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 
-                dYbydt[AuxSy_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSz_to_index[Spin_i][pos]];
+                dYbydt[AuxSy_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSz_to_index[Spin_i][pos]]
+                        +
+                        Parameters_.DampingConst*(
+                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                        Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSx_to_index[Spin_i][pos]]
+                        );
+
+                }
+
+
+                //Damping through Term J^{y alpha} _{ij}
+                Spin_i_comp=Y_COMP;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j=SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+
+                dYbydt[AuxSy_to_index[Spin_i][pos]] +=  -1.0*Parameters_.DampingConst*
+                                                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                                                        (
+                                                         (Y_[AuxSx_to_index[Spin_i][pos]]*Y_[AuxSx_to_index[Spin_i][pos]]) +
+                                                         (Y_[AuxSz_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]])
+                                                        );
+                //dYbydt[AuxSy_to_index[Spin_i][pos]] += Parameters_.DampingConst*factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val;
 
                 }
 
@@ -1435,11 +1809,16 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 
-                dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]];
+                dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]]
+                        +
+                        Parameters_.DampingConst*(
+                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                        Y_[AuxSx_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]]
+                        );
 
                 }
 
-                //Term J^{x alpha} _{ij}
+                //Term J^{y alpha} _{ij}
                 Spin_i_comp=Y_COMP;
                 factor_=-1.0;
                 for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
@@ -1456,7 +1835,37 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative(Mat_1_Complex_doub & Y_, Mat_1_Comp
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 
-                dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]];
+                dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]]
+                        +
+                        Parameters_.DampingConst*(
+                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                        Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]]
+                        );
+
+                }
+
+                //Damping through term Term J^{z alpha} _{ij}
+                Spin_i_comp=Z_COMP;
+                for(int neigh_no=0;neigh_no<SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos].size();neigh_no++){
+                Spin_j=SE_connections[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no].first;
+                pos_neigh=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].second;
+                Spin_j_comp=SE_connections[Spin_i_comp +  3*Spin_i + 3*n_Spins_*pos][neigh_no].third;
+                if(Spin_j_comp==X_COMP){
+                Spin_j_val = Y_[AuxSx_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Y_COMP){
+                Spin_j_val = Y_[AuxSy_to_index[Spin_j][pos_neigh]];
+                }
+                if(Spin_j_comp==Z_COMP){
+                Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
+                }
+                dYbydt[AuxSz_to_index[Spin_i][pos]] +=  -1.0*Parameters_.DampingConst*
+                                                        Spin_j_val*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*
+                                                        (
+                                                         (Y_[AuxSx_to_index[Spin_i][pos]]*Y_[AuxSx_to_index[Spin_i][pos]]) +
+                                                         (Y_[AuxSy_to_index[Spin_i][pos]]*Y_[AuxSy_to_index[Spin_i][pos]])
+                                                        );
+                //dYbydt[AuxSz_to_index[Spin_i][pos]] += Parameters_.DampingConst*factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val;
 
                 }
 
@@ -1899,6 +2308,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_Restart_Data(){
 void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
 
 
+    string rotor_mass_, Rotor_Mass_ = "Rotor_mass = ";
     string w_min_, W_Min_ = "w_min = ";
     string w_max_, W_Max_ = "w_max = ";
     string dw_, dW_ = "dw = ";
@@ -1912,8 +2322,14 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
     string SKW_Out_Full_ = "Skw_out_Full = ";
 
     string no_of_processors_, No_Of_Processors_ = "no_of_threads = ";
+    string Conf_Initialize_ = "conf_initialize = ";
+    string conf_seed_, Conf_Seed_ = "conf_seed = ";
 
+    string Dynamic_Spin_Type_ = "Dynamic_Spin_type = ";
+    string Scheduler_File_ = "Scheduler_File = ";
     string ignore_fermions_, Ignore_Fermions_ = "IgnoreFermions = ";
+    string use_scheduler_, Use_Scheduler_ = "Use_Scheduler = ";
+    string annealingtime_, AnnealingTime_ = "AnnealingTime = ";
     string restart_, Restart_ = "Restart = ";
     string restart_time_, Restart_Time_ = "Restart_time = ";
     string restart_dm_file_, Restart_Dm_File_ = "Restart_DM_Configuration = ";
@@ -1956,6 +2372,10 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
             if ((offset = line.find(Ignore_Fermions_, 0)) != string::npos) {
                 ignore_fermions_ = line.substr (offset + Ignore_Fermions_.length());		}
 
+            if ((offset = line.find(Use_Scheduler_, 0)) != string::npos) {
+                use_scheduler_ = line.substr (offset + Use_Scheduler_.length());		}
+
+
             if ((offset = line.find(Insitu_SpaceTimeFourier_, 0)) != string::npos) {
                 insitu_spacetimefourier_ = line.substr (offset + Insitu_SpaceTimeFourier_.length());		}
 
@@ -1980,7 +2400,6 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
                 use_fft_= line.substr (offset + Use_FFT_.length());		}
 
 
-
             if ((offset = line.find(Save_Dm_File_, 0)) != string::npos) {
                 Save_DM_file = line.substr (offset + Save_Dm_File_.length());		}
 
@@ -1988,14 +2407,14 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
                 Save_Classical_file = line.substr (offset + Save_Classical_File_.length());		}
 
 
-
             if ((offset = line.find(W_conv_, 0)) != string::npos) {
                 w_conv_ = line.substr (offset + W_conv_.length());		}
 
-
-
             if ((offset = line.find(W_Min_, 0)) != string::npos) {
                 w_min_ = line.substr (offset + W_Min_.length());		}
+
+             if ((offset = line.find(Rotor_Mass_, 0)) != string::npos) {
+                rotor_mass_ = line.substr (offset + Rotor_Mass_.length());		}
 
             if ((offset = line.find(W_Max_, 0)) != string::npos) {
                 w_max_ = line.substr (offset + W_Max_.length());		}
@@ -2015,6 +2434,17 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
             if ((offset = line.find(Conf_Input_, 0)) != string::npos) {
                 conf_input = line.substr (offset + Conf_Input_.length());		}
 
+
+            if ((offset = line.find(Dynamic_Spin_Type_, 0)) != string::npos) {
+                  Dynamic_Spin_Type = line.substr (offset + Dynamic_Spin_Type_.length());		}
+
+             if ((offset = line.find(Scheduler_File_, 0)) != string::npos) {
+                 Scheduler_File = line.substr (offset + Scheduler_File_.length());		}
+
+            if ((offset = line.find(Conf_Initialize_, 0)) != string::npos) {
+            conf_initialize = line.substr (offset + Conf_Initialize_.length());		}
+
+
             if ((offset = line.find(Spins_R_T_Out_, 0)) != string::npos) {
                 spins_r_t_out = line.substr (offset + Spins_R_T_Out_.length());		}
 
@@ -2027,6 +2457,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
             if ((offset = line.find(No_Of_Processors_, 0)) != string::npos) {
                 no_of_processors_ = line.substr (offset + No_Of_Processors_.length());		}
 
+            if ((offset = line.find(Conf_Seed_, 0)) != string::npos) {
+                conf_seed_ = line.substr (offset + Conf_Seed_.length());		}
+
         }
         inputfile.close();
     }
@@ -2034,17 +2467,23 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
     {cout<<"Unable to open input file while in the model class."<<endl;}
 
 
+
+    assert(Dynamic_Spin_Type == "O3" || Dynamic_Spin_Type=="Rotor");
+
+    Rotor_mass=atof(rotor_mass_.c_str());
     w_min=atof(w_min_.c_str());
     w_max=atof(w_max_.c_str());
     Restart_Time=atof(restart_time_.c_str());
     dw=atof(dw_.c_str());
     w_conv=atof(w_conv_.c_str());
     time_max=atof(time_max_.c_str());
+    AnnealingTime=time_max;
     dt_ =atof(dt__.c_str());
     Runge_Kutta_order=atoi(runge_kutta_order_.c_str());
 
 
     no_of_processors=atoi(no_of_processors_.c_str());
+    conf_seed = atoi(conf_seed_.c_str());
 
 
 
@@ -2064,6 +2503,17 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
     else{
         IgnoreFermions=false;
     }
+
+
+    if(use_scheduler_ == "true"){
+        Use_Scheduler=true;
+        cout<<"Scheduler is used i.e. time dependent hamiltonian"<<endl;
+    }
+    else{
+        Use_Scheduler=false;
+    }
+
+
 
     if (insitu_spacetimefourier_ == "true" ){
         Insitu_SpaceTimeFourier=true;
@@ -2131,6 +2581,20 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
     }
 
 
+
+
+    string line2;
+    double temp_t, temp_h, temp_J;
+    if(Use_Scheduler){
+    ifstream scheduler_stream(Scheduler_File.c_str());
+    while(getline(scheduler_stream,line2)){
+    stringstream line_ss(line2);
+    line_ss>>temp_t>>temp_h>>temp_J;
+    Time_bare.push_back(temp_t);
+    Gamma_bare.push_back(temp_h);
+    Js_bare.push_back(temp_J);
+    }
+    }
 
 
 

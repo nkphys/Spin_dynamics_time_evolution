@@ -1,6 +1,6 @@
 OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o Spin_dynamics_VNE_MultiOrbSF.o Coordinates_MultiOrbSF.o ParametersEngine_MultiOrbSF.o Hamiltonian_MultiOrbSF.o Observables_MultiOrbSF.o MFParams_MultiOrbSF.o main.o
-DEBUG = #-g3
-OPTFLAG = -O3
+DEBUG = -g3
+OPTFLAG = #-O3
 CPPFLAGS = -std=c++11
 CC = g++ $(OPTFLAG) $(CPPFLAGS)
 CFLAGS = -c $(DEBUG) #-DWITH_COMPLEX
@@ -13,7 +13,7 @@ MKL_include = #-I/opt/intel/mkl/include
 #MKL_include = /opt/intel/mkl/lib/libmkl_core.a  /opt/intel/mkl/lib/libmkl_intel_lp64.a  /opt/intel/mkl/lib/libmkl_sequential.a
 OPENMP = #/opt/intel/compilers_and_libraries_2016.3.170/mac/compiler/lib/
 LIBS_1 =  #-L$(OPENMP)
-LIBS_1 += -fopenmp #-liomp5  #-lgomp #-liomp5
+LIBS_1 += #-fopenmp #-liomp5  #-lgomp #-liomp5
 #LIBS_1 += -qopenmp -liomp5  #-lgomp #-liomp5
 
 all :	$(OBJS) 

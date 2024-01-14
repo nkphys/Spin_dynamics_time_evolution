@@ -192,7 +192,16 @@ int main(int argc, char** argv){
                 Skw_Engine_.IndexMapping_bw_Y_and_Variables();
 
                 if(!Skw_Engine_.RESTART){
+                    if(Skw_Engine_.conf_initialize=="Read"){
                     Skw_Engine_.Read_equilibrium_configuration();
+                    }
+                    else if(Skw_Engine_.conf_initialize=="Random"){
+                    Skw_Engine_.Set_Initial_configuration();
+                    }
+                    else{
+                     cout<< "ERROR : conf_initialize should be Read, Random"<<endl;
+                     assert(false);
+                    }
                 }
 
                 Skw_Engine_.Start_Engine();

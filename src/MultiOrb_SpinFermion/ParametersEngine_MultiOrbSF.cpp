@@ -25,7 +25,10 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
     TBC_cellsY = int(matchstring(inputfile_, "TBC_cellsY"));
     fix_mu = matchstring(inputfile_, "Fix_mu");
     fixed_mu_value = double(matchstring(inputfile_, "fixed_mu_value")) * 1.0;
+    DampingConst = double(matchstring(inputfile_, "DampingConst"));
     hz_mag=double(matchstring(inputfile_, "hz_mag")) * 1.0;
+    hy_mag=double(matchstring(inputfile_, "hy_mag")) * 1.0;
+    Read_Seed_from_file_=false;
     BoundaryConnection = double(matchstring(inputfile_, "PBC"));
 
 
@@ -39,6 +42,7 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
 
     MCNorm = 0.0; //matchstring(inputfile,"MCNorm")
     RandomSeed = matchstring(inputfile_, "RandomSeed");
+    RandomNoiseSeed = matchstring(inputfile_, "RandomNoiseSeed");
     RandomDisorderSeed = matchstring(inputfile_, "RandomDisorderSeed");
     Disorder_Strength = matchstring(inputfile_, "Disorder_Strength");
     Boltzman_constant = matchstring(inputfile_, "Boltzman_constant");
