@@ -42,6 +42,7 @@ public:
     bool Read_Seed_from_file_;
     string Seed_file_name_;
 
+    int PrintingNoOfTimeSlices;
 
     /*Matrix<double> hopping_NN_X;
     Matrix<double> hopping_NN_Y;

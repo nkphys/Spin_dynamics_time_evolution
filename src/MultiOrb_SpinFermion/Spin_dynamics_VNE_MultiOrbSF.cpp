@@ -759,6 +759,11 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 //              YVec0[AuxSz_to_index[0][pos]].real()<<endl;
 //            }
 
+
+        int ts_gap = (time_steps-1)/Parameters_.PrintingNoOfTimeSlices;
+        if((ts==0) || (ts==time_steps) ||
+            ((ts%ts_gap)==0)
+                ){
         for(int spin_no=0;spin_no<n_Spins_;spin_no++){
         file_out[spin_no]<<(ts*dt_) + Restart_Time<<"  ";
         for(int pos=0;pos<Parameters_.ns;pos++){
@@ -773,7 +778,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 
         file_out[spin_no]<<endl;
          }
-
+        }
 
 
 
@@ -827,6 +832,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 
     cout<<"kink density : "<<Get_Kink_Density_1d()<<endl;
     cout<<"kink density type 2: "<<Get_Kink_Density_1d_type2()<<endl;
+
 
 }
 

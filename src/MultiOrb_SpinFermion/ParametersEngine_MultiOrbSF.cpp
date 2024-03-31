@@ -14,11 +14,14 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
     lx = int(matchstring(inputfile_, "Xsite"));
     ly = int(matchstring(inputfile_, "Ysite"));
 
+
     TBC_mx = int(matchstring(inputfile_, "TwistedBoundaryCond_mx"));
     n_orbs = int(matchstring(inputfile_, "N_Orbs"));
     n_Spins = int(matchstring(inputfile_, "No_of_classical_spins_per_site"));
     J_Hund.resize(n_orbs);
     OnSiteE.resize(n_orbs);
+
+    PrintingNoOfTimeSlices=int(matchstring(inputfile_,"PrintingNoOfTimeSlices"));
 
     TBC_my = int(matchstring(inputfile_, "TwistedBoundaryCond_my"));
     TBC_cellsX = int(matchstring(inputfile_, "TBC_cellsX"));
