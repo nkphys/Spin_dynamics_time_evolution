@@ -150,10 +150,10 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
 
 
         for(int alpha=0;alpha<3;alpha++){
-        for(int beta=0;beta<3;beta++){
-        J_px_stream>>J_px(alpha,beta);
-        J_py_stream>>J_py(alpha,beta);
-        J_mxpy_stream>>J_mxpy(alpha,beta);
+        for(int beta_=0;beta_<3;beta_++){
+        J_px_stream>>J_px(alpha,beta_);
+        J_py_stream>>J_py(alpha,beta_);
+        J_mxpy_stream>>J_mxpy(alpha,beta_);
         }
         }
 

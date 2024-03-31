@@ -43,6 +43,7 @@ public:
 
     string Dynamic_Spin_Type;
 
+    Matrix<complex<double>> Mat_B;
     double Rotor_mass;
     int RANDOM_NO_SEED;
     double w_min,w_max,dw;
@@ -62,9 +63,12 @@ public:
     double w_conv;
     bool IgnoreFermions;
 
+    bool CalculateFermionSpinDynamics;
 
     int n_wpoints;
     int time_steps;
+
+    int TIME_STEP_GLOBAL;
 
     int n_Spins_;
     Mat_3_doub Theta;   //[Spin_no][lx][ly]
@@ -89,6 +93,11 @@ public:
     Mat_1_doub Aux_S_z_eq;
 
     Mat_4_Complex_doub Red_Den_mat; //c^dagger[i][orb + n_orb*spin]c[j][orb + n_orb*spin2]
+    Mat_4_Complex_doub UnequalTime_Red_Den_mat_type0t; //c^dagger[i][orb + n_orb*spin]c[j][orb + n_orb*spin2]
+    Mat_4_Complex_doub UnequalTime_Red_Den_mat_typett;
+    Mat_4_Complex_doub UnequalTime_Red_Den_mat_typet0;
+
+    Matrix<complex<double>> Sp0_Smt;
 
     Mat_1_Complex_doub YVec0, YVec1;
 
@@ -200,7 +209,12 @@ public:
     void IndexMapping_bw_Y_and_Variables();
     double Get_Classical_Energy(Mat_1_Complex_doub & Y_);
     void Set_Initial_configuration();
-
+    void Update_Hamiltonian_Classical_dof();
+    void Update_matrix_B(int ts);
+    void Update_UnequalTimeRedDenMatrix();
+    void Get_UnequalTimeSpinSpinCorr();
+    double Get_Kink_Density_1d();
+    double Get_Kink_Density_1d_type2();
 
 };
 

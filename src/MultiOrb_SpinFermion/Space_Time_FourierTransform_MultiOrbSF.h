@@ -70,6 +70,8 @@ Mat_3_doub TT_rt;
 Mat_2_doub T_rt;
 */
 
+    Mat_3_Complex_doub S_tr_2point;
+    Mat_2_Complex_doub S_tr_1point;
     Mat_2_doub S_tr;
     Mat_2_doub C_tr_; //Space-time dispaced correlation, avg over Ensemble
     Mat_2_doub C_Quantum_tr_;
@@ -78,6 +80,7 @@ Mat_2_doub T_rt;
     Mat_3_doub C_Quantum_tr;
     Mat_3_doub C_Classical_tr;
 
+    Mat_3_Complex_doub F_rw_2point;
     Mat_2_Complex_doub F_rw, F_qw, S_qw, D_qw, S_qw_conv;
     Mat_3_Complex_doub F_qw_;
     Mat_1_Complex_doub Aq, delAq, Aq_avg, Aq2_avg;
@@ -121,6 +124,7 @@ Mat_2_doub T_rt;
     void Calculate_SpaceTimeDisplacedCorrelations_Smarter(string STdisplaced_Crt_fileout);
 
     void Calculate_Fw_and_Aq(string fileout, string fileout_Aq);
+    void Calculate_2point_Fw(string fileout);
 
     void Calculate_Sqw_using_Aq_Fwq(string Sqw_file, string Dqw_file);
 
@@ -1759,6 +1763,292 @@ void ST_Fourier_MultiOrbSF::Calculate_Fw_and_Aq(string fileout, string fileout_A
 
 }
 
+
+
+
+
+void ST_Fourier_MultiOrbSF::Calculate_2point_Fw(string fileout){
+
+    if(!Use_FFT){
+        cout<<"FFT is NOT used"<<endl;
+    }
+    else{
+        cout<<"FFT is used"<<endl;
+    }
+
+    int GaussianCenteredAtTmaxby2=1;
+    int GCATm2=GaussianCenteredAtTmaxby2;
+    double begin_time, end_time;
+    clock_t oprt_SB_time;
+    double expnt;
+
+#ifdef _OPENMP
+    begin_time = omp_get_wtime();
+#endif
+
+    oprt_SB_time = clock();
+
+
+    int N_p;
+    int no_threads_used;
+    no_threads_used = min(no_of_processors, No_Of_Inputs);
+
+    Fft DO_Fft;
+    complex<double> iota(0,1);
+
+
+    S_tr_2point.resize(time_steps);
+    for(int i=0;i<time_steps;i++){
+        S_tr_2point[i].resize(Parameters_.ns);
+        for(int site=0;site<Parameters_.ns;site++){
+            S_tr_2point[i][site].resize(Parameters_.ns);
+        }
+    }
+
+
+    S_tr_1point.resize(time_steps);
+    for(int i=0;i<time_steps;i++){
+        S_tr_1point[i].resize(Parameters_.ns);
+    }
+
+    F_rw.resize(Parameters_.ns);
+    F_qw.resize(Parameters_.ns);
+    for(int j=0;j<Parameters_.ns;j++){
+       F_rw[j].resize(n_wpoints);
+       F_qw[j].resize(n_wpoints);
+    }
+
+    string line_temp2;
+
+    ifstream Specific_conf_in;
+    Specific_conf_in.open(conf_inputs[0].c_str());
+    getline(Specific_conf_in, line_temp2);
+
+    for(int ts=0;ts<time_steps;ts++)
+    {
+        string line_temp;
+        double row_time, double_temp;
+        int row_ts;
+        getline(Specific_conf_in, line_temp);
+        stringstream line_temp_ss(line_temp, stringstream::in);
+
+        line_temp_ss>>row_time;
+        row_ts = (int) ((row_time)/dt_ + 0.5);
+        if(row_ts != ts){
+            cout<<endl;
+            cout<<"Error;"<<endl;
+            cout<< row_time<<"   "<<row_ts <<"  "<<ts<<endl;
+            cout<< "Problem while reading from "<<conf_inputs[0]<<endl<<endl;
+            assert(false);
+        }
+
+        for(int r1=0;r1<Parameters_.ns;r1++){
+            for(int r2=0;r2<Parameters_.ns;r2++){
+            line_temp_ss>>double_temp;
+            S_tr_2point[ts][r1][r2].real(double_temp);
+            line_temp_ss>>double_temp;
+            S_tr_2point[ts][r1][r2].imag(double_temp);
+
+        }}
+
+        if(ts%100==0){
+            cout<<"Reading Str upto time slice i.e. t/dt="<<ts<<endl;
+        }
+
+    }
+
+
+    cout<<"Reading SS[0][r1][t][r2] is completed"<<endl;
+
+
+    int rp_x, rp_y, r_x, r_y;
+    int rp_plus_r_x, rp_plus_r_y;
+    int rp_plus_r;
+    for(int ti=0;ti<time_steps;ti++){
+        for(int r=0;r<Parameters_.ns;r++){
+            r_x = Coordinates_.indx_cellwise(r);
+            r_y = Coordinates_.indy_cellwise(r);
+            S_tr_1point[ti][r]=0.0;
+            for(int rp=0;rp<Parameters_.ns;rp++){
+
+             //cout<<ti<<" "<<r<<"  "<<rp<<endl;
+             rp_x = Coordinates_.indx_cellwise(rp);
+             rp_y = Coordinates_.indy_cellwise(rp);
+
+             rp_plus_r_x = (rp_x + r_x)%Parameters_.lx;
+             rp_plus_r_y = (rp_y + r_y)%Parameters_.ly;
+
+             rp_plus_r = Coordinates_.Ncell(rp_plus_r_x,rp_plus_r_y);
+
+            S_tr_1point[ti][r] += S_tr_2point[ti][rp][rp_plus_r];
+            }
+
+        }
+    }
+
+
+
+    int pos_i, index;
+
+#ifdef _OPENMP
+    no_threads_used = min(no_of_processors, Parameters_.ns);
+    omp_set_num_threads(no_threads_used);
+    N_p = omp_get_max_threads();
+    cout<<"threads being used parallely = "<<N_p<<endl;
+    cout<<"No. of threads you asked for = "<<no_of_processors<<endl;
+#pragma omp parallel for default(shared) private(pos_i, index)
+#endif
+    for(int pos_ix=0;pos_ix<Parameters_.lx;pos_ix++){
+
+        Mat_1_Complex_doub Vec_1;
+        Vec_1.resize(time_steps);
+
+        for(int pos_iy=0;pos_iy<Parameters_.ly;pos_iy++){
+
+            for(int type=0;type<1;type++){
+
+                pos_i = Coordinates_.Ncell_(pos_ix,pos_iy);
+                index  = pos_i + (type*Parameters_.ns);
+
+
+                if(!Use_FFT){
+
+                    for(int wi=0;wi<n_wpoints;wi++){
+
+                        for(int ts=0;ts<time_steps;ts++){
+
+                            expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
+                            expnt = expnt*expnt;
+                            F_rw[index][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*expnt)*dt_*(
+                                        ((  S_tr_1point[ts][index] ))
+                                        );
+                        }
+
+                    }
+                }
+
+                else{
+
+                    for(int ts=0;ts<time_steps;ts++){
+
+                        expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
+                        expnt = expnt*expnt;
+                        Vec_1[ts] = exp(-0.5*expnt)*fabs(dt_)*(( ( S_tr_1point[ts][index] )  ));
+                    }
+
+                    DO_Fft.PI_EFF=PI*(dt_/fabs(dt_));
+                    DO_Fft.transform(Vec_1);
+
+                    for(int wi=0;wi<n_wpoints;wi++){
+                        F_rw[index][wi] = Vec_1[wi].real();
+                        //F_rw[index][wi] = Vec_1[wi];
+
+                    }
+                }
+
+            }
+
+        }
+
+        vector< complex<double> >().swap( Vec_1 );
+
+        cout<<"FFT for S[t][rx="   << pos_ix <<  ", ry] is completed for all ry, and all 6 types of S"<<endl;
+
+    }
+
+
+
+    double kx, ky;
+    int k_index;
+    complex<double> temp;
+
+
+    for(int type=0;type<1;type++){
+        for(int nx=0;nx<Parameters_.lx;nx++){
+            for(int ny=0;ny<Parameters_.ly;ny++){
+
+                kx = (2*nx*PI)/(1.0*Parameters_.lx);
+                ky = (2*ny*PI)/(1.0*Parameters_.ly);
+                k_index = Coordinates_.Ncell_(nx,ny) + (type*Parameters_.ns);
+
+#ifdef _OPENMP
+#pragma omp parallel for default(shared) private(pos_i, index, temp)
+#endif
+
+                for(int wi=0;wi<n_wpoints;wi++){
+
+                    temp = complex<double> (0,0);
+                    for(int x_i=0;x_i<Parameters_.lx;x_i++){
+                        for(int y_i=0;y_i<Parameters_.ly;y_i++){
+
+                            pos_i = Coordinates_.Ncell_(x_i,y_i);
+                            index  = pos_i + (type*Parameters_.ns);
+
+                            temp += F_rw[index][wi]*exp(iota*(-1.0*( (x_i)*(kx) +  (y_i)*ky ) ) );
+
+                        }
+                    }
+                    //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                    //file_out_full<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<wi<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<"none"<<"   "<<"none"<<"    "<<"none"<<"   "<<"none"<<endl;
+                    F_qw[k_index][wi]=temp*(1.0/(Parameters_.lx*Parameters_.ly));
+                }
+            }
+        }
+
+    }
+
+
+
+
+#ifdef _OPENMP
+    end_time = omp_get_wtime();
+    cout<<"Time to Calculate F(kx,ky,w) [actual time, using OMP]: "<<double(end_time - begin_time)<<endl;//cout<<"here"<<endl;
+
+#endif
+
+    cout<<"Time to Calculate F(kx,ky,w) : "<<double( clock() - oprt_SB_time ) / (double)CLOCKS_PER_SEC<<endl;//cout<<"here"<<endl;
+
+
+
+
+
+    cout<< "Printing results in files"<<endl;
+
+    ofstream file_out_full(fileout.c_str());
+
+    file_out_full<<"#w_details:  "<<"   "<<w_max<<"  "<<w_min<<"  "<<dw<<"  "<<n_wpoints<<endl;
+    file_out_full<<"#nx   ny   k_ind   wi*dw   wi   F_qw[k_ind][wi].real()   F_qw[k_ind][wi].imag()"<<endl;
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+            k_index=Coordinates_.Ncell_(nx,ny);
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                for(int type=0;type<1;type++){
+
+                    file_out_full<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+                }
+
+                file_out_full<<endl;
+
+            }
+
+            file_out_full<<endl;
+
+        }
+    }
+
+
+
+
+    cout<<"Calculate_Fw  completed"<<endl;
+
+
+
+}
 
 void ST_Fourier_MultiOrbSF::Calculate_Sqw_using_Fwq_with_negativeandpositive_Time(string fileout, string Dqw_file){
 

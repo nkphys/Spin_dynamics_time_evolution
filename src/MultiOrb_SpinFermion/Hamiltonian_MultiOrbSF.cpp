@@ -240,14 +240,16 @@ void Hamiltonian_MultiOrbSF::Initialize()
     eigs_.resize(space);
 
 
+
+
 cout<<"here 1.5"<<endl;
-    sx_.resize(n_Spins_);
-    sy_.resize(n_Spins_);
-    sz_.resize(n_Spins_);
+    sx_.resize(n_Spins_);Classical_Sx_.resize(n_Spins_);
+    sy_.resize(n_Spins_);Classical_Sy_.resize(n_Spins_);
+    sz_.resize(n_Spins_);Classical_Sz_.resize(n_Spins_);
     for(int Spin_no=0;Spin_no<n_Spins_;Spin_no++){
-        sx_[Spin_no].resize(ncells_);
-        sy_[Spin_no].resize(ncells_);
-        sz_[Spin_no].resize(ncells_);
+        sx_[Spin_no].resize(ncells_);Classical_Sx_[Spin_no].resize(ncells_);
+        sy_[Spin_no].resize(ncells_);Classical_Sy_[Spin_no].resize(ncells_);
+        sz_[Spin_no].resize(ncells_);Classical_Sz_[Spin_no].resize(ncells_);
     }
 
     cout<<"here 1.75"<<endl;
@@ -357,6 +359,58 @@ double Hamiltonian_MultiOrbSF::GetCLEnergy()
 
     return EClassical;
 } // ----------
+
+
+void Hamiltonian_MultiOrbSF::InteractionsCreateType2(){
+
+    int a;
+    double ei, ai;
+    int index;
+    int i_posx, i_posy;
+    int Spin_no;
+
+    Ham_ = HTB_;
+    // Ham_.print();
+
+    for (int i = 0; i < ncells_; i++)
+    { // For each cell
+        i_posx = Coordinates_.indx_cellwise(i);
+        i_posy = Coordinates_.indy_cellwise(i);
+
+
+        for(int orb=0;orb<n_orbs_;orb++){
+
+            index=Coordinates_.Nbasis(i_posx, i_posy, orb);
+
+            if(n_Spins_==n_orbs_){
+            Spin_no=orb;
+            }
+            else{Spin_no=0;}
+
+            //ei = MFParams_.etheta[Spin_no](i_posx, i_posy);
+            //ai = MFParams_.ephi[Spin_no](i_posx, i_posy);
+
+
+            Ham_(index, index) += Parameters_.J_Hund[orb] * (Classical_Sz_[Spin_no][i]) * 0.5;
+            Ham_(index + (ncells_*n_orbs_), index + (ncells_*n_orbs_)) += Parameters_.J_Hund[orb] * (-1.0*Classical_Sz_[Spin_no][i]) * 0.5;
+            Ham_(index, index + (ncells_*n_orbs_)) += Parameters_.J_Hund[orb] * (Classical_Sx_[Spin_no][i]-Classical_Sy_[Spin_no][i]) * 0.5; //S-
+            Ham_(index + (ncells_*n_orbs_), index) += Parameters_.J_Hund[orb] * (Classical_Sx_[Spin_no][i]+Classical_Sy_[Spin_no][i]) * 0.5;  //S+
+
+            // On-Site potential
+            for (int spin = 0; spin < 2; spin++)
+            {
+                a = Coordinates_.Nbasis(i_posx,i_posy,orb) + ncells_*n_orbs_*spin;
+                Ham_(a, a) += complex<double>(1.0, 0.0) * (
+                            Parameters_.OnSiteE[orb] +
+                            MFParams_.Disorder(i_posx, i_posy)
+                            );
+            }
+        }
+    }
+
+
+}
+
 
 void Hamiltonian_MultiOrbSF::InteractionsCreate()
 {
@@ -506,6 +560,22 @@ void Hamiltonian_MultiOrbSF::Check_Hermiticity()
     }
 
     // cout<<"Hermiticity: "<<temp<<endl;
+}
+
+void Hamiltonian_MultiOrbSF::Get_matrix_A(){
+
+Mat_A.resize(Ham_.n_row(),Ham_.n_col());
+
+for(int i=0;i<Ham_.n_row();i++){
+    for(int j=0;j<Ham_.n_col();j++){
+        Mat_A(i,j)=0.0;
+        for(int n=0;n<eigs_.size();n++){
+            Mat_A(i,j) += Ham_(i,n)*exp(-1.0*iota_complex*eigs_[n]*dt_)*conj(Ham_(j,n));
+        }
+    }
+
+}
+
 }
 
 void Hamiltonian_MultiOrbSF::Diagonalize(char option)

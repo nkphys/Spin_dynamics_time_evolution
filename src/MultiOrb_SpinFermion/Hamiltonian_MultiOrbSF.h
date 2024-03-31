@@ -30,6 +30,7 @@ public:
     void Hoppings();                                       //::DONE
     double GetCLEnergy();                                  //::DONE
     void InteractionsCreate();                             //::DONE
+    void InteractionsCreateType2();
     void InteractionsClusterCreate(int Center_site);       //::DONE
     void Check_Hermiticity();                              //::DONE
     void Check_up_down_symmetry();                         //::DONE
@@ -49,6 +50,8 @@ public:
     void copy_eigs(int i);                //::DONE
     void copy_eigs_Cluster(int i);        //::DONE
 
+    void Get_matrix_A();
+
     Parameters_MultiOrbSF &Parameters_;
     Coordinates_MultiOrbSF &Coordinates_;
     Coordinates_MultiOrbSF &CoordinatesCluster_;
@@ -62,9 +65,12 @@ public:
     Matrix<double> Tx, Ty, Tpxpy, Tpxmy;
     vector<double> eigs_, eigsCluster_, eigsCluster_saved_, eigs_saved_;
     Mat_2_doub sx_, sy_, sz_;
+    Mat_2_doub Classical_Sx_, Classical_Sy_, Classical_Sz_;
     Matrix<double> IntraCell_Hopp, InterCell_px_Hopp, InterCell_py_Hopp, InterCell_pxmy_Hopp ;
 
+    Matrix<complex<double>> Mat_A;
 
+    double dt_;
     double HS_factor;
 };
 

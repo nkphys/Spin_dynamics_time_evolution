@@ -677,6 +677,96 @@ cout<<"here 2"<<endl;
 
 
 
+
+
+    if(ex_string == "2pFqw"){
+
+
+        if(model_=="MultiOrbSF"){
+
+
+            Parameters_MultiOrbSF Parameters_;
+            Parameters_.Initialize(input);
+
+            Coordinates_MultiOrbSF Coordinates_(Parameters_.lx, Parameters_.ly, Parameters_.n_orbs);
+            Coordinates_MultiOrbSF Coordinatestemp_(Parameters_.lx, Parameters_.ly, Parameters_.n_orbs);
+
+
+
+            mt19937_64 Generator_(Parameters_.RandomSeed);
+            mt19937_64 Generator2_(Parameters_.RandomDisorderSeed);
+
+            MFParams_MultiOrbSF MFParams_(Parameters_,Coordinates_,Generator_, Generator2_);
+
+cout<<"here 0"<<endl;
+            Hamiltonian_MultiOrbSF Hamiltonian_(Parameters_,Coordinates_, Coordinatestemp_, MFParams_);
+cout<<"here 2"<<endl;
+            Observables_MultiOrbSF Observables_(Parameters_,Coordinates_,MFParams_,Hamiltonian_);
+
+
+
+            SC_SW_ENGINE_VNE_MultiOrbSF Skw_Engine_(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_);
+            Skw_Engine_.Read_parameters(input);
+            Skw_Engine_.Initialize_engine();
+
+
+
+            ST_Fourier_MultiOrbSF SpaceTime_Fourier(Parameters_,Coordinates_,MFParams_,Hamiltonian_,Observables_, Skw_Engine_);
+
+            string No_of_inputs= argv[3];
+            string MS_tag= argv[4];
+
+            stringstream No_of_inputs_ss(No_of_inputs, stringstream::in);
+            No_of_inputs_ss>>SpaceTime_Fourier.No_Of_Inputs;
+
+
+            if(SpaceTime_Fourier.No_Of_Inputs!=1){
+                cout << "Only 1 Microstate allowed for this run"<<endl;
+            }
+            assert(SpaceTime_Fourier.No_Of_Inputs==1);
+
+            SpaceTime_Fourier.conf_inputs.resize(SpaceTime_Fourier.No_Of_Inputs);
+
+            for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
+                SpaceTime_Fourier.conf_inputs[i]=argv[i+5];
+            }
+
+
+#ifdef _OPENMP
+            cout<<"Parallel threads are used"<<endl;
+#endif
+#ifndef _OPENMP
+            cout<<"single thread is used"<<endl;
+#endif
+
+            SpaceTime_Fourier.Read_parameters();
+            SpaceTime_Fourier.time_max=Skw_Engine_.time_max;
+            SpaceTime_Fourier.dt_ = Skw_Engine_.dt_;
+            SpaceTime_Fourier.Initialize_engine();
+
+            //SpaceTime_Fourier.Perform_Smarter_Averaging_on_one_point();
+
+
+            ostringstream ostr_w_conv;
+            ostr_w_conv << SpaceTime_Fourier.w_conv;
+            string string_w_conv = ostr_w_conv.str();
+
+            string Fw_file = "2point_Fw_w_conv" + string_w_conv + "_state_" + MS_tag +".txt";
+            SpaceTime_Fourier.Calculate_2point_Fw(Fw_file);
+
+            cout<<"JOB DONE"<<endl;
+
+        }
+
+
+    }
+
+
+
+
+
+
+
     if(ex_string == "e_Sqw"){
 
         if(model_=="1orb_MCMF"){

@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <bits/stdc++.h>
 #include "Spin_dynamics_VNE_MultiOrbSF.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -25,11 +26,11 @@ time_normalized=(time_ind*dt_)/(time_max);
 for(int time_ind2=0;time_ind2<Time_bare.size()-1;time_ind2++){
     if(time_normalized>=Time_bare[time_ind2] && time_normalized<=Time_bare[time_ind2+1] ){
     gamma_temp = ((Time_bare[time_ind2+1]-time_normalized)*Gamma_bare[time_ind2]
-                 +(Time_bare[time_ind2]-time_normalized)*Gamma_bare[time_ind2+1])*
+                 -(Time_bare[time_ind2]-time_normalized)*Gamma_bare[time_ind2+1])*
                  (1.0/(Time_bare[time_ind2+1]-Time_bare[time_ind2]));
 
     js_temp = ((Time_bare[time_ind2+1]-time_normalized)*Js_bare[time_ind2]
-                 +(Time_bare[time_ind2]-time_normalized)*Js_bare[time_ind2+1])*
+                 -(Time_bare[time_ind2]-time_normalized)*Js_bare[time_ind2+1])*
                  (1.0/(Time_bare[time_ind2+1]-Time_bare[time_ind2]));
 
     break;
@@ -54,6 +55,8 @@ created_schd_stream<<Time_[time_ind]<<"  "<<Gamma_[time_ind]<<"  "<<Js_[time_ind
 
 void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
 
+
+    TIME_STEP_GLOBAL=0;
 
     n_Spins_=Parameters_.n_Spins;
 
@@ -93,6 +96,14 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
 
 
 
+   Mat_B.resize( 2 * Parameters_.lx*Parameters_.ly * Parameters_.n_orbs, 2 * Parameters_.lx*Parameters_.ly * Parameters_.n_orbs);
+   for(int i=0;i<Mat_B.n_row();i++){
+       for(int j=0;j<Mat_B.n_col();j++){
+        Mat_B(i,j)=0.0;
+       }
+   }
+
+
     //    Theta_eq.resize(Parameters_.lx);
     //    Phi_eq.resize(Parameters_.lx);
     //    for(int i=0;i<Parameters_.lx;i++){
@@ -123,6 +134,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
 
 
     Red_Den_mat.resize(Parameters_.ns);
+    UnequalTime_Red_Den_mat_type0t.resize(Parameters_.ns);
+    UnequalTime_Red_Den_mat_typet0.resize(Parameters_.ns);
+    UnequalTime_Red_Den_mat_typett.resize(Parameters_.ns);
 
     quant_s_x.resize(1);
     quant_s_y.resize(1);
@@ -145,13 +159,24 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
     }
 
 
+    Sp0_Smt.resize(Parameters_.ns*Parameters_.n_orbs, Parameters_.ns*Parameters_.n_orbs);
+
 
    if(!IgnoreFermions){
     for(int i=0;i<Parameters_.ns;i++){
+        UnequalTime_Red_Den_mat_type0t[i].resize(Parameters_.n_orbs*2);
+        UnequalTime_Red_Den_mat_typet0[i].resize(Parameters_.n_orbs*2);
+        UnequalTime_Red_Den_mat_typett[i].resize(Parameters_.n_orbs*2);
         Red_Den_mat[i].resize(Parameters_.n_orbs*2);
         for(int s=0;s<Parameters_.n_orbs*2;s++){
+            UnequalTime_Red_Den_mat_type0t[i][s].resize(Parameters_.ns);
+            UnequalTime_Red_Den_mat_typet0[i][s].resize(Parameters_.ns);
+            UnequalTime_Red_Den_mat_typett[i][s].resize(Parameters_.ns);
             Red_Den_mat[i][s].resize(Parameters_.ns);
             for(int j=0;j<Parameters_.ns;j++){
+                UnequalTime_Red_Den_mat_type0t[i][s][j].resize(Parameters_.n_orbs*2);
+                UnequalTime_Red_Den_mat_typet0[i][s][j].resize(Parameters_.n_orbs*2);
+                UnequalTime_Red_Den_mat_typett[i][s][j].resize(Parameters_.n_orbs*2);
                 Red_Den_mat[i][s][j].resize(Parameters_.n_orbs*2);
             }
         }
@@ -383,6 +408,11 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Initialize_engine(){
    GaussianDistribution=GaussianDistribution_temp;
 
 
+
+   double temp_val;
+   temp_val=  GaussianDistribution(Generator_);
+
+   cout<<"temp_val : "<<temp_val<<endl;
 }
 
 double SC_SW_ENGINE_VNE_MultiOrbSF::random1()
@@ -394,12 +424,14 @@ double SC_SW_ENGINE_VNE_MultiOrbSF::random1()
 
 void SC_SW_ENGINE_VNE_MultiOrbSF::Set_Initial_configuration(){
 
+
+//NOT USED
     for(int x=0;x<Parameters_.lx;x++){
         for(int y=0;y<Parameters_.ly;y++){
             for(int spin_no=0;spin_no<n_Spins_;spin_no++){
 
-                Theta[spin_no][x][y]=random1() * PI;
-                Phi[spin_no][x][y]=2.0 * random1() * PI;
+                Theta[spin_no][x][y]=0;
+                Phi[spin_no][x][y]=PI*0.5;
                 Moment_Size[spin_no][x][y]=1.0;
 
             }
@@ -461,6 +493,113 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_equilibrium_configuration(){
 }
 
 
+void SC_SW_ENGINE_VNE_MultiOrbSF::Update_Hamiltonian_Classical_dof(){
+
+    int pos;
+
+    for(int x=0;x<Parameters_.lx;x++){
+        for(int y=0;y<Parameters_.ly;y++){
+            pos=Coordinates_.Ncell(x,y);
+            for(int spin_no=0;spin_no<n_Spins_;spin_no++){
+                Hamiltonian_.Classical_Sx_[spin_no][pos]=YVec0[AuxSx_to_index[spin_no][pos]].real();
+                Hamiltonian_.Classical_Sy_[spin_no][pos]=YVec0[AuxSy_to_index[spin_no][pos]].real();
+                Hamiltonian_.Classical_Sz_[spin_no][pos]=YVec0[AuxSz_to_index[spin_no][pos]].real();
+            }
+    }}
+}
+
+
+void SC_SW_ENGINE_VNE_MultiOrbSF::Update_matrix_B(int ts){
+
+    Matrix<complex<double>> Mat_temp;
+    Mat_temp.resize(Mat_B.n_row(), Mat_B.n_col());
+    if(ts==0){
+        for(int i=0;i<Mat_B.n_row();i++){
+        Mat_B(i,i)=1.0;
+        }
+    }
+    else{
+        for(int i=0;i<Mat_B.n_row();i++){
+            for(int j=0;j<Mat_B.n_row();j++){
+                Mat_temp(i,j)=0.0;
+                for(int k=0;k<Mat_B.n_col();k++){
+                //Mat_temp(i,j) += Mat_B(i,k)*Hamiltonian_.Mat_A(k,j);
+                Mat_temp(i,j) += Mat_B(k,j)*Hamiltonian_.Mat_A(i,k);
+                }
+            }
+        }
+      Mat_B=Mat_temp;
+    }
+
+}
+
+void SC_SW_ENGINE_VNE_MultiOrbSF::Get_UnequalTimeSpinSpinCorr(){
+
+    int SPIN_UP=0;
+    int SPIN_DN=1;
+    int i_up, i_dn, j_up, j_dn;
+    int i_pos,j_pos;
+    for(int ix=0;ix<Parameters_.lx;ix++){
+    for(int iy=0;iy<Parameters_.ly;iy++){
+        i_pos=Coordinates_.Ncell(ix,iy);
+    for(int orbi=0;orbi<Parameters_.n_orbs;orbi++){
+        i_up = Coordinates_.Nbasis_[ix][iy][orbi] + SPIN_UP*(Coordinates_.nbasis_);
+        i_dn = Coordinates_.Nbasis_[ix][iy][orbi] + SPIN_DN*(Coordinates_.nbasis_);
+        for(int jx=0;jx<Parameters_.lx;jx++){
+        for(int jy=0;jy<Parameters_.ly;jy++){
+        j_pos=Coordinates_.Ncell(jx,jy);
+        for(int orbj=0;orbj<Parameters_.n_orbs;orbj++){
+         j_up = Coordinates_.Nbasis_[jx][jy][orbj] + SPIN_UP*(Coordinates_.nbasis_);
+         j_dn = Coordinates_.Nbasis_[jx][jy][orbj] + SPIN_DN*(Coordinates_.nbasis_);
+
+        Sp0_Smt(Coordinates_.Nbasis_[ix][iy][orbi],Coordinates_.Nbasis_[jx][jy][orbj]) =
+                -1.0*(UnequalTime_Red_Den_mat_type0t[i_pos][orbi+Parameters_.n_orbs*SPIN_UP][j_pos][orbj+Parameters_.n_orbs*SPIN_DN]*
+                     conj(UnequalTime_Red_Den_mat_type0t[i_pos][orbi+Parameters_.n_orbs*SPIN_DN][j_pos][orbj+Parameters_.n_orbs*SPIN_UP])
+                )
+                +1.0*(Red_Den_mat_time[0][i_pos][orbi+Parameters_.n_orbs*SPIN_UP][i_pos][orbi+Parameters_.n_orbs*SPIN_DN]*
+                      YVec0[RedDen_to_index[j_pos][orbj+Parameters_.n_orbs*SPIN_DN][j_pos][orbj+Parameters_.n_orbs*SPIN_UP]]
+                    )
+                +1.0*conj(Mat_B(j_dn,i_dn))*UnequalTime_Red_Den_mat_type0t[i_pos][orbi+Parameters_.n_orbs*SPIN_UP][j_pos][orbj+Parameters_.n_orbs*SPIN_UP];
+
+                ;
+
+    }}}
+    }}}
+
+}
+
+void SC_SW_ENGINE_VNE_MultiOrbSF::Update_UnequalTimeRedDenMatrix(){
+
+    int c1,c2;
+    int jx,jy, jpx, jpy;
+    for(int i=0;i<Parameters_.ns;i++){
+    for(int orb=0;orb<Parameters_.n_orbs;orb++){
+    for(int s=0;s<2;s++){
+
+    for(int j=0;j<Parameters_.ns;j++){
+        jx = Coordinates_.indx_cellwise(j);
+        jy = Coordinates_.indy_cellwise(j);
+
+    for(int orbp=0;orbp<Parameters_.n_orbs;orbp++){
+    for(int sp=0;sp<2;sp++){
+
+    UnequalTime_Red_Den_mat_type0t[i][orb+Parameters_.n_orbs*s][j][orbp+Parameters_.n_orbs*sp] = 0.0;
+
+    for(int jp=0;jp<Parameters_.ns;jp++){
+        jpx = Coordinates_.indx_cellwise(jp);
+        jpy = Coordinates_.indy_cellwise(jp);
+
+    for(int orbpp=0;orbpp<Parameters_.n_orbs;orbpp++){
+    for(int spp=0;spp<2;spp++){
+        c1 = Coordinates_.Nbasis_[jx][jy][orbp] + sp*(Coordinates_.nbasis_);
+        c2 = Coordinates_.Nbasis_[jpx][jpy][orbpp] + spp*(Coordinates_.nbasis_);
+    UnequalTime_Red_Den_mat_type0t[i][orb+Parameters_.n_orbs*s][j][orbp+Parameters_.n_orbs*sp] +=
+            Mat_B(c1,c2)*
+            Red_Den_mat_time[0][i][orb+Parameters_.n_orbs*s][jp][orbpp+Parameters_.n_orbs*spp];
+    }}}
+    }}}
+    }}}
+}
 
 void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 #ifdef _OPENMP
@@ -490,6 +629,14 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 
 
 
+
+    string quantum_spins_2point_r_t_out = "quantum_orb0_2point_"+spins_r_t_out;
+    ofstream quantum_2point_file_out(quantum_spins_2point_r_t_out.c_str());
+    quantum_2point_file_out<<"# s+s-(i,0,j,t).real()   s+s-(i,0,j,t).imag()  ------"<<endl;
+    quantum_2point_file_out<<scientific<<setprecision(15);
+
+
+
     ofstream file_out[Parameters_.n_Spins];
     string list_outfiles[Parameters_.n_Spins];
     for(int spin_no=0;spin_no<Parameters_.n_Spins;spin_no++){
@@ -505,6 +652,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 
     for(int ts=0;ts<=time_steps;ts++){
 
+        TIME_STEP_GLOBAL=ts;
 
         if(SAVE && (ts==time_steps)){
             Write_final_time_result();
@@ -518,10 +666,12 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
 
                 MFParams_.Read_classical_DOFs(conf_input);
 
+
                 if(!IgnoreFermions){
                     Hamiltonian_.InteractionsCreate();
                     //char flag='V';
                     Hamiltonian_.Diagonalize('V');
+
 
                     n_states_occupied_zeroT = Coordinates_.nbasis_*(Parameters_.Fill/(Parameters_.n_orbs));
                     if(!Parameters_.fix_mu){
@@ -567,15 +717,41 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
                 py_ = Coordinates_.indy_cellwise(pos);
 
                 for(int spin_no=0;spin_no<n_Spins_;spin_no++){
+
+                    if(Dynamic_Spin_Type=="Rotor"){
+                        Aux_S_x[spin_no][pos] = cos(Phi[spin_no][px_][py_]);
+                        Aux_S_y[spin_no][pos] = sin(Phi[spin_no][px_][py_]);
+                        Aux_S_z[spin_no][pos] = 0.0;
+
+                    }
+                    else{
                     Aux_S_x[spin_no][pos] = Moment_Size[spin_no][px_][py_]*sin(Theta[spin_no][px_][py_])*cos(Phi[spin_no][px_][py_]);
                     Aux_S_y[spin_no][pos] = Moment_Size[spin_no][px_][py_]*sin(Theta[spin_no][px_][py_])*sin(Phi[spin_no][px_][py_]);
                     Aux_S_z[spin_no][pos] = Moment_Size[spin_no][px_][py_]*cos(Theta[spin_no][px_][py_]);
-                   // cout<<px_<<"  "<<Aux_S_x[spin_no][pos]<<"  "<<Aux_S_y[spin_no][pos]<<"  "<<Aux_S_z[spin_no][pos]<<endl;
+                    }
+                    // cout<<px_<<"  "<<Aux_S_x[spin_no][pos]<<"  "<<Aux_S_y[spin_no][pos]<<"  "<<Aux_S_z[spin_no][pos]<<endl;
                 }
             }
 
             Map_Variables_to_Y(Red_Den_mat, Aux_S_x, Aux_S_y, Aux_S_z, YVec0);
         }
+
+
+        if(CalculateFermionSpinDynamics){
+            assert(!IgnoreFermions);
+            if(ts>0){
+                Hamiltonian_.InteractionsCreateType2();
+                //char flag='V';
+                Hamiltonian_.Diagonalize('V');
+            }
+            Update_matrix_B(ts);
+            Update_UnequalTimeRedDenMatrix();
+            Get_UnequalTimeSpinSpinCorr();
+            Hamiltonian_.Get_matrix_A();
+        }
+
+
+
 
 
 //        for(int pos=0;pos<Parameters_.ns;pos++){
@@ -619,17 +795,87 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
             quantum_file_out<< sy<<"  ";
         }
         quantum_file_out<<endl;
+
+
+        //------------------------------------------------
+        if(CalculateFermionSpinDynamics){
+        quantum_2point_file_out<<(ts*dt_) + Restart_Time<<"  ";
+
+        for(int ix=0;ix<Parameters_.lx;ix++){
+        for(int iy=0;iy<Parameters_.ly;iy++){
+        int orbi=0;
+
+            for(int jx=0;jx<Parameters_.lx;jx++){
+            for(int jy=0;jy<Parameters_.ly;jy++){
+         int orbj=0;
+
+            quantum_2point_file_out<<Sp0_Smt(Coordinates_.Nbasis_[ix][iy][orbi],Coordinates_.Nbasis_[jx][jy][orbj]).real()<<"  "<<
+                                     Sp0_Smt(Coordinates_.Nbasis_[ix][iy][orbi],Coordinates_.Nbasis_[jx][jy][orbj]).imag()<<"   ";
+
+        }}}}
+        quantum_2point_file_out<<endl;
+        }
+
 	}
 
         Energy_file_out<<ts*dt_<<"   "<<Get_Classical_Energy(YVec0)<<endl;
         Evolve_classical_spins_Runge_Kutta(0);
         YVec0=YVec1;
+        Update_Hamiltonian_Classical_dof();
     }
 
+
+    cout<<"kink density : "<<Get_Kink_Density_1d()<<endl;
+    cout<<"kink density type 2: "<<Get_Kink_Density_1d_type2()<<endl;
 
 }
 
 
+
+
+
+double SC_SW_ENGINE_VNE_MultiOrbSF::Get_Kink_Density_1d_type2(){
+double kink_den=0.0;
+int pos_neigh;
+
+int X_COMP, Y_COMP, Z_COMP;
+X_COMP=0;
+Y_COMP=1;
+Z_COMP=2;
+
+for(int pos=0;pos<Parameters_.lx;pos++){
+
+pos_neigh=(pos+1)%(Parameters_.lx);
+kink_den += (0.5/Parameters_.lx)*(1.0 -
+              ( (YVec0[AuxSx_to_index[0][pos]].real()*YVec0[AuxSx_to_index[0][pos_neigh]].real()))
+        );
+
+}
+
+return kink_den;
+}
+
+double SC_SW_ENGINE_VNE_MultiOrbSF::Get_Kink_Density_1d(){
+double kink_den=0.0;
+int pos_neigh;
+
+int X_COMP, Y_COMP, Z_COMP;
+X_COMP=0;
+Y_COMP=1;
+Z_COMP=2;
+
+for(int pos=0;pos<Parameters_.lx;pos++){
+
+pos_neigh=(pos+1)%(Parameters_.lx);
+kink_den += (0.5/Parameters_.lx)*(1.0 -
+              ( (YVec0[AuxSx_to_index[0][pos]].real()*YVec0[AuxSx_to_index[0][pos_neigh]].real())/
+              (abs(YVec0[AuxSx_to_index[0][pos]].real()*YVec0[AuxSx_to_index[0][pos_neigh]].real())))
+        );
+
+}
+
+return kink_den;
+}
 
 void SC_SW_ENGINE_VNE_MultiOrbSF::Evolve_classical_spins_Predictor_Corrector(){
 
@@ -1430,6 +1676,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_
 
     assert(IgnoreFermions);
 
+    assert(Use_Scheduler);
+
     int X_COMP, Y_COMP, Z_COMP;
     X_COMP=0;
     Y_COMP=1;
@@ -1442,9 +1690,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_
 
     int pos_neigh;
 
-#ifdef _OPENMP
-#pragma omp parallel for default(shared) private(sx, sy, sz, pos_neigh, Spin_no)
-#endif
+//#ifdef _OPENMP
+//#pragma omp parallel for default(shared) private(sx, sy, sz, pos_neigh, Spin_no)
+//#endif
     for(int pos=0;pos<Parameters_.ns;pos++){
 
 
@@ -1452,7 +1700,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_
     for(int Spin_i=0;Spin_i<n_Spins_;Spin_i++){
     //dYbydt[AuxSx_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
     //dYbydt[AuxSy_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
-    //dYbydt[AuxSz_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
+    dYbydt[AuxSz_to_index[Spin_i][pos]] += GaussianDistribution(Generator_);
     }
 
 
@@ -1462,8 +1710,8 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_
 
     dYbydt[AuxSy_to_index[Spin_i][pos]] += 1.0*(Y_[AuxSx_to_index[Spin_i][pos]]*Y_[AuxSz_to_index[Spin_i][pos]])/(Rotor_mass);
 
-    dYbydt[AuxSz_to_index[Spin_i][pos]] += 1.0*Parameters_.DampingConst*Y_[AuxSz_to_index[Spin_i][pos]]*(1.0/Rotor_mass)
-                                           +1.0*(Parameters_.hy_mag)*Y_[AuxSx_to_index[Spin_i][pos]];
+    dYbydt[AuxSz_to_index[Spin_i][pos]] += -1.0*Parameters_.DampingConst*Y_[AuxSz_to_index[Spin_i][pos]]*(1.0/Rotor_mass)
+                                           +1.0*(Parameters_.hy_mag*Gamma_[TIME_STEP_GLOBAL])*Y_[AuxSx_to_index[Spin_i][pos]];
 
     }
 
@@ -1496,7 +1744,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 
-        dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]];
+        dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*Js_[TIME_STEP_GLOBAL]*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSx_to_index[Spin_i][pos]];
 
         }
 
@@ -1517,7 +1765,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_Rotor(Mat_1_Complex_doub & Y_, Mat_
                 Spin_j_val = Y_[AuxSz_to_index[Spin_j][pos_neigh]];
                 }
 
-              dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]];
+              dYbydt[AuxSz_to_index[Spin_i][pos]] += factor_*Js_[TIME_STEP_GLOBAL]*SE_connections_vals[Spin_i_comp + 3*Spin_i + 3*n_Spins_*pos][neigh_no]*Spin_j_val*Y_[AuxSy_to_index[Spin_i][pos]];
 
         }
 
@@ -1873,9 +2121,9 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_C
 
   
     }
+}
 
-
-    if(!IgnoreFermions){
+    if((!IgnoreFermions)){
         int k;
         double hopping_val;
 
@@ -1900,7 +2148,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_C
                                     hopping_val=Hopp_connections_vals[alpha+Parameters_.n_orbs*pos_i][ng];
 
                                     dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                            iota_complex*sign_check*complex<double>(1.0*hopping_val, 0.0)*
+                                            1.0*iota_complex*sign_check*complex<double>(1.0*hopping_val, 0.0)*
                                             Y_[RedDen_to_index[k][eta+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]];
 
                                 }
@@ -1917,7 +2165,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_C
                                     hopping_val=Hopp_connections_vals[beta+Parameters_.n_orbs*pos_j][ng];
 
                                     dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                            iota_complex*sign_check*complex<double>(-1.0*hopping_val, 0.0)*
+                                            1.0*iota_complex*sign_check*complex<double>(-1.0*hopping_val, 0.0)*
                                             Y_[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][k][eta+Parameters_.n_orbs*sj]];
 
                                 }
@@ -1938,7 +2186,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_C
                                     else{Spin_no=0;}
 
                                     dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                            iota_complex*sign_check*(0.5*Parameters_.J_Hund[Spin_no])*(
+                                            1.0*iota_complex*sign_check*(0.5*Parameters_.J_Hund[Spin_no])*(
                                                 (Y_[AuxSx_to_index[Spin_no][pos_i]])*Pauli_x[si][tau]
                                             +
                                             (Y_[AuxSy_to_index[Spin_no][pos_i]])*Pauli_y[si][tau]
@@ -1953,7 +2201,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_C
                                     }
                                     else{Spin_no=0;}
                                     dYbydt[RedDen_to_index[pos_i][alpha+Parameters_.n_orbs*si][pos_j][beta+Parameters_.n_orbs*sj]] +=
-                                            iota_complex*sign_check*(-0.5*Parameters_.J_Hund[Spin_no])*(
+                                            1.0*iota_complex*sign_check*(-0.5*Parameters_.J_Hund[Spin_no])*(
                                                 (Y_[AuxSx_to_index[Spin_no][pos_j]])*Pauli_x[tau][sj]
                                             +
                                             (Y_[AuxSy_to_index[Spin_no][pos_j]])*Pauli_y[tau][sj]
@@ -1976,7 +2224,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Derivative_O3(Mat_1_Complex_doub & Y_, Mat_1_C
 
     }
 
-}
+
 
 }
 
@@ -2328,6 +2576,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
     string Dynamic_Spin_Type_ = "Dynamic_Spin_type = ";
     string Scheduler_File_ = "Scheduler_File = ";
     string ignore_fermions_, Ignore_Fermions_ = "IgnoreFermions = ";
+    string calculatefermionspindynamics_, CalculateFermionSpinDynamics_ = "CalculateFermionSpinDynamics = ";
     string use_scheduler_, Use_Scheduler_ = "Use_Scheduler = ";
     string annealingtime_, AnnealingTime_ = "AnnealingTime = ";
     string restart_, Restart_ = "Restart = ";
@@ -2371,6 +2620,10 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
 
             if ((offset = line.find(Ignore_Fermions_, 0)) != string::npos) {
                 ignore_fermions_ = line.substr (offset + Ignore_Fermions_.length());		}
+
+            if ((offset = line.find(CalculateFermionSpinDynamics_, 0)) != string::npos) {
+                calculatefermionspindynamics_ = line.substr (offset + CalculateFermionSpinDynamics_.length());		}
+
 
             if ((offset = line.find(Use_Scheduler_, 0)) != string::npos) {
                 use_scheduler_ = line.substr (offset + Use_Scheduler_.length());		}
@@ -2479,6 +2732,7 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
     time_max=atof(time_max_.c_str());
     AnnealingTime=time_max;
     dt_ =atof(dt__.c_str());
+    Hamiltonian_.dt_=dt_;
     Runge_Kutta_order=atoi(runge_kutta_order_.c_str());
 
 
@@ -2504,6 +2758,12 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Read_parameters(string filename){
         IgnoreFermions=false;
     }
 
+    if(calculatefermionspindynamics_=="true"){
+      CalculateFermionSpinDynamics=true;
+    }
+    else{
+       CalculateFermionSpinDynamics=false;
+    }
 
     if(use_scheduler_ == "true"){
         Use_Scheduler=true;
