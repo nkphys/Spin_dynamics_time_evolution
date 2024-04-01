@@ -628,13 +628,10 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
     quantum_file_out<<scientific<<setprecision(15);
 
 
-
-
     string quantum_spins_2point_r_t_out = "quantum_orb0_2point_"+spins_r_t_out;
     ofstream quantum_2point_file_out(quantum_spins_2point_r_t_out.c_str());
     quantum_2point_file_out<<"# s+s-(i,0,j,t).real()   s+s-(i,0,j,t).imag()  ------"<<endl;
     quantum_2point_file_out<<scientific<<setprecision(15);
-
 
 
     ofstream file_out[Parameters_.n_Spins];
@@ -830,8 +827,10 @@ void SC_SW_ENGINE_VNE_MultiOrbSF::Start_Engine(){
     }
 
 
-    cout<<"kink density : "<<Get_Kink_Density_1d()<<endl;
-    cout<<"kink density type 2: "<<Get_Kink_Density_1d_type2()<<endl;
+    Rotor_KinkDen_type1=Get_Kink_Density_1d();
+    Rotor_KinkDen_type2= Get_Kink_Density_1d_type2();
+    cout<<"kink density : "<<Rotor_KinkDen_type1<<endl;
+    cout<<"kink density type 2: "<<Rotor_KinkDen_type2<<endl;
 
 
 }

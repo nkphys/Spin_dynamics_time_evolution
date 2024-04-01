@@ -173,6 +173,9 @@ public:
 
     bool SelfConsistentEvolution;
 
+
+    double Rotor_KinkDen_type1, Rotor_KinkDen_type2;
+
     mt19937_64 Generator_;
     normal_distribution<double> GaussianDistribution;
 

@@ -45,10 +45,26 @@ void Parameters_MultiOrbSF::Initialize(string inputfile_)
 
     MCNorm = 0.0; //matchstring(inputfile,"MCNorm")
     RandomSeed = matchstring(inputfile_, "RandomSeed");
-    RandomNoiseSeed = matchstring(inputfile_, "RandomNoiseSeed");
-    RandomDisorderSeed = matchstring(inputfile_, "RandomDisorderSeed");
+    //RandomNoiseSeed = matchstring(inputfile_, "RandomNoiseSeed");
+   RandomDisorderSeed = matchstring(inputfile_, "RandomDisorderSeed");
     Disorder_Strength = matchstring(inputfile_, "Disorder_Strength");
     Boltzman_constant = matchstring(inputfile_, "Boltzman_constant");
+
+
+    string RandomNoiseSeed_str = matchstring2(inputfile_, "RandomNoiseSeed");
+
+    stringstream RandomNoiseSeed_stream(RandomNoiseSeed_str);
+
+    int No_NoiseSeeds;
+    RandomNoiseSeed_stream>>No_NoiseSeeds;
+    RandomNoiseSeed_array.clear();
+    int temp_int_min, temp_int_max;
+    RandomNoiseSeed_stream>>temp_int_min;
+    RandomNoiseSeed_stream>>temp_int_max;
+    for(int i=temp_int_min;i<=temp_int_max;i++){
+    RandomNoiseSeed_array.push_back(i);
+    }
+
 
 
     string J_Hund_str = "J_Hund";

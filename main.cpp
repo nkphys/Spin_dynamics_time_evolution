@@ -173,6 +173,18 @@ int main(int argc, char** argv){
                 Parameters_MultiOrbSF Parameters_;
                 Parameters_.Initialize(input);
 
+
+                double Avg_KinkDen_type1, Avg_KinkDen_type2;
+                Avg_KinkDen_type1=0;Avg_KinkDen_type2=0;
+                for(int noiseseed_no=0;noiseseed_no<Parameters_.RandomNoiseSeed_array.size();noiseseed_no++){
+                 Parameters_.RandomNoiseSeed = Parameters_.RandomNoiseSeed_array[noiseseed_no];
+
+                 cout<<"================================================="<<endl;
+                 cout<<"FOR NOISE SEED = "<<Parameters_.RandomNoiseSeed<<endl;
+                 cout<<"================================================="<<endl;
+
+
+
                 Coordinates_MultiOrbSF Coordinates_(Parameters_.lx, Parameters_.ly, Parameters_.n_orbs);
                 Coordinates_MultiOrbSF Coordinatestemp_(Parameters_.lx, Parameters_.ly, Parameters_.n_orbs);
 
@@ -206,6 +218,12 @@ int main(int argc, char** argv){
 
                 Skw_Engine_.Start_Engine();
 
+            Avg_KinkDen_type1 += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*Skw_Engine_.Rotor_KinkDen_type1;
+            Avg_KinkDen_type2 += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*Skw_Engine_.Rotor_KinkDen_type2;
+            }//Random Noise Seeds
+
+            cout<<"Avg_KinkDen_type1 : "<<Avg_KinkDen_type1<<endl;
+            cout<<"Avg_KinkDen_type2 : "<<Avg_KinkDen_type2<<endl;
             }
 
 

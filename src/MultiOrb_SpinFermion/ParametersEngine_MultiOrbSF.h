@@ -19,6 +19,8 @@ class Parameters_MultiOrbSF
 
 public:
     int lx, ly, ns, IterMax, MCNorm, RandomSeed, RandomNoiseSeed;
+    Mat_1_int RandomNoiseSeed_array;
+
     double DampingConst;
     int n_orbs, n_Spins;
     string ModelType;
