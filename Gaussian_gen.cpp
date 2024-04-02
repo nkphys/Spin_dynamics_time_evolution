@@ -28,7 +28,7 @@ int main(){
 
 mt19937_64 Generator_;
 Generator_.seed(11);
-normal_distribution<double> GaussianDistribution2(2.0,1.0);
+normal_distribution<double> GaussianDistribution2(00,2.0);
 normal_distribution<double> GaussianDistribution;
 
 GaussianDistribution=GaussianDistribution2;

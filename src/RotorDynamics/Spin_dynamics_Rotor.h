@@ -45,7 +45,7 @@ public:
 
 
     int time_steps;
-
+    double StdDev;
     int TIME_STEP_GLOBAL;
 
     Mat_1_doub Theta;   //[site]
@@ -107,6 +107,7 @@ public:
     void Start_Engine();
     double Get_Kink_Density_1d();
     double Get_Kink_Density_1d_type2();
+    double sign(double x);
 
 };
 

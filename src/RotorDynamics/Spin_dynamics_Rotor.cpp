@@ -95,8 +95,8 @@ void SC_SW_ENGINE_Rotor::Initialize_engine(){
 
    GeneratorNoise_.seed(Parameters_.RandomNoiseSeed);
 
-   double StdDev=sqrt(2.0*Parameters_.DampingConst*(1.0/Parameters_.beta));
-   normal_distribution<double> GaussianDistribution_temp(0.0,StdDev);
+   StdDev=sqrt(2.0*Parameters_.DampingConst*(1.0/Parameters_.beta));
+   normal_distribution<double> GaussianDistribution_temp(0.0,1.0);
    GaussianDistribution=GaussianDistribution_temp;
 
 
@@ -200,7 +200,7 @@ int pos_neigh;
 double Sz_pos, Sz_pos_neigh;
 for(int pos=0;pos<Parameters_.ns;pos++){
 
-pos_neigh=(pos+1)%(Parameters_.ns);
+pos_neigh=(pos+1+ns)%(Parameters_.ns);
 
 Sz_pos = sin(YVec0[theta_to_index[pos]]);
 Sz_pos_neigh = sin(YVec0[theta_to_index[pos_neigh]]);
@@ -218,22 +218,33 @@ double kink_den=0.0;
 int pos_neigh;
 
 double Sz_pos, Sz_pos_neigh;
+double sign_temp;
 for(int pos=0;pos<ns;pos++){
 
-pos_neigh=(pos+1)%(Parameters_.ns);
+pos_neigh=(pos+1+ns)%(Parameters_.ns);
 
 Sz_pos = sin(YVec0[theta_to_index[pos]]);
 Sz_pos_neigh = sin(YVec0[theta_to_index[pos_neigh]]);
-kink_den += (0.5/Parameters_.ns)*(1.0 -
-              ( (Sz_pos*Sz_pos_neigh)/
-              (abs( Sz_pos*Sz_pos_neigh )) )
-        );
+
+sign_temp = (sign(Sz_pos)*sign(Sz_pos_neigh));
+//sign_temp = -1;
+kink_den += (0.5/(1.0*Parameters_.ns))*(1.0 - sign_temp);
 
 }
 
 return kink_den;
 }
 
+double SC_SW_ENGINE_Rotor::sign(double x){
+    double sign_temp;
+    if(x<0){
+        sign_temp=-1.0;
+    }
+    else{
+        sign_temp=1.0;
+    }
+    return sign_temp;
+}
 
 void SC_SW_ENGINE_Rotor::Evolve_classical_spins_Runge_Kutta(int ts){
 
@@ -403,14 +414,14 @@ void SC_SW_ENGINE_Rotor::Derivative(Mat_1_doub & Y_, Mat_1_doub & dYbydt){
     dYbydt[theta_to_index[pos]] += 1.0*Y_[momentum_to_index[pos]]/(Rotor_mass);
 
     //Noise
-    dYbydt[momentum_to_index[pos]] += GaussianDistribution(GeneratorNoise_) +
+    dYbydt[momentum_to_index[pos]] += GaussianDistribution(GeneratorNoise_)*(StdDev/sqrt(dt_)) +
                                       -1.0*((Parameters_.DampingConst/Rotor_mass)*Y_[momentum_to_index[pos]])
-                                      -1.0*(Parameters_.hx_mag*sin(Y_[theta_to_index[pos]]));
+                                      -1.0*(Gamma_[TIME_STEP_GLOBAL]*Parameters_.hx_mag*sin(Y_[theta_to_index[pos]]));
 
 
     for(int pos_neigh=0;pos_neigh<ns;pos_neigh++){
         if(abs(Parameters_.Jzz_longrange(pos,pos_neigh))>EPSILON){
-    dYbydt[momentum_to_index[pos]] += -1.0*Parameters_.Jzz_longrange(pos,pos_neigh)*
+    dYbydt[momentum_to_index[pos]] += -1.0*Js_[TIME_STEP_GLOBAL]*Parameters_.Jzz_longrange(pos,pos_neigh)*
                             sin(Y_[theta_to_index[pos_neigh]])*cos(Y_[theta_to_index[pos]]);
         }
     }
