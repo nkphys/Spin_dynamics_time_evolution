@@ -1,4 +1,4 @@
-OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o Spin_dynamics_VNE_MultiOrbSF.o Coordinates_MultiOrbSF.o ParametersEngine_MultiOrbSF.o Hamiltonian_MultiOrbSF.o Observables_MultiOrbSF.o MFParams_MultiOrbSF.o main.o
+OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o Spin_dynamics_VNE_MultiOrbSF.o Coordinates_MultiOrbSF.o ParametersEngine_MultiOrbSF.o Hamiltonian_MultiOrbSF.o Observables_MultiOrbSF.o MFParams_MultiOrbSF.o Spin_dynamics_Rotor.o ParametersEngine_Rotor.o main.o
 #DEBUG = -g3
 OPTFLAG = -O3
 CPPFLAGS = -std=c++11
@@ -101,6 +101,11 @@ Observables_MultiOrbSF.o : src/MultiOrb_SpinFermion/Observables_MultiOrbSF.cpp
 MFParams_MultiOrbSF.o : src/MultiOrb_SpinFermion/MFParams_MultiOrbSF.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) src/MultiOrb_SpinFermion/MFParams_MultiOrbSF.cpp $(MKL_include) $(MKL_LIB)
 
+Spin_dynamics_Rotor.o : src/RotorDynamics/Spin_dynamics_Rotor.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/RotorDynamics/Spin_dynamics_Rotor.cpp $(MKL_include) $(MKL_LIB)
+
+ParametersEngine_Rotor.o : src/RotorDynamics/ParametersEngine_Rotor.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/RotorDynamics/ParametersEngine_Rotor.cpp $(MKL_include) $(MKL_LIB)
 
 
 main.o : main.cpp

@@ -36,6 +36,10 @@
 #include "src/MultiOrb_SpinFermion/Spin_dynamics_VNE_MultiOrbSF.h"
 
 
+#include "src/RotorDynamics/ParametersEngine_Rotor.h"
+#include "src/RotorDynamics/Spin_dynamics_Rotor.h"
+
+
 int main(int argc, char** argv){
 
 
@@ -52,6 +56,8 @@ int main(int argc, char** argv){
             (model_!="1orb_MCMF")
              &&
              (model_!="MultiOrbSF")
+            &&
+            (model_!="Rotor")
             ){
         cout<<"You are using "<<argv[1]<<" , this model is not present"<<endl;
         cout<<"Please something from following :"<<endl;
@@ -225,6 +231,40 @@ int main(int argc, char** argv){
             cout<<"Avg_KinkDen_type1 : "<<Avg_KinkDen_type1<<endl;
             cout<<"Avg_KinkDen_type2 : "<<Avg_KinkDen_type2<<endl;
             }
+
+
+            if(model_=="Rotor"){
+
+                Parameters_Rotor Parameters_;
+                Parameters_.Initialize(input);
+
+                double Avg_KinkDen_type1, Avg_KinkDen_type2;
+                Avg_KinkDen_type1=0;Avg_KinkDen_type2=0;
+                for(int noiseseed_no=0;noiseseed_no<Parameters_.RandomNoiseSeed_array.size();noiseseed_no++){
+                 Parameters_.RandomNoiseSeed = Parameters_.RandomNoiseSeed_array[noiseseed_no];
+
+                 cout<<"================================================="<<endl;
+                 cout<<"FOR NOISE SEED = "<<Parameters_.RandomNoiseSeed<<endl;
+                 cout<<"================================================="<<endl;
+
+
+                SC_SW_ENGINE_Rotor Skw_Engine_(Parameters_);
+
+                Skw_Engine_.Read_parameters(input);
+                Skw_Engine_.Initialize_engine();
+                Skw_Engine_.IndexMapping_bw_Y_and_Variables();
+
+                Skw_Engine_.Start_Engine();
+
+            Avg_KinkDen_type1 += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*Skw_Engine_.Rotor_KinkDen_type1;
+            Avg_KinkDen_type2 += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*Skw_Engine_.Rotor_KinkDen_type2;
+            }//Random Noise Seeds
+
+            cout<<"Avg_KinkDen_type1 : "<<Avg_KinkDen_type1<<endl;
+            cout<<"Avg_KinkDen_type2 : "<<Avg_KinkDen_type2<<endl;
+            }
+
+
 
 
         }

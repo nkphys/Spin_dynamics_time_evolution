@@ -55,4 +55,11 @@ src/MultiOrb_SpinFermion/ParametersEngine_MultiOrbSF.h
 src/MultiOrb_SpinFermion/Space_Time_FourierTransform_MultiOrbSF.h
 src/MultiOrb_SpinFermion/Spin_dynamics_VNE_MultiOrbSF.cpp
 src/MultiOrb_SpinFermion/Spin_dynamics_VNE_MultiOrbSF.h
+
+src/RotorDynamics/ParametersEngine_Rotor.cpp
+src/RotorDynamics/ParametersEngine_Rotor.h
+src/RotorDynamics/Spin_dynamics_Rotor.cpp
+src/RotorDynamics/Spin_dynamics_Rotor.h
+
+
 tensor_type.h
