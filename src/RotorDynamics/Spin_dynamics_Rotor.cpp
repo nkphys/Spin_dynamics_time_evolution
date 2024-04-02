@@ -106,6 +106,23 @@ void SC_SW_ENGINE_Rotor::Initialize_engine(){
    temp_val=  GaussianDistribution(GeneratorNoise_);
    cout<<"temp_val : "<<temp_val<<endl;
 
+
+    Jzz_connections_neigh.resize(ns);
+    Jzz_connections_vals.resize(ns);
+
+    for(int pos=0;pos<ns;pos++){
+        Jzz_connections_neigh[pos].clear();
+        Jzz_connections_vals[pos].clear();
+
+    for(int pos_neigh=0;pos_neigh<ns;pos_neigh++){
+        if(abs(Parameters_.Jzz_longrange(pos,pos_neigh))>EPSILON){
+        Jzz_connections_neigh[pos].push_back(pos_neigh);
+        Jzz_connections_vals[pos].push_back(Parameters_.Jzz_longrange(pos,pos_neigh));
+        }}
+    }
+
+
+
 }
 
 double SC_SW_ENGINE_Rotor::random1()
@@ -172,10 +189,11 @@ void SC_SW_ENGINE_Rotor::Start_Engine(){
                 file_out<< YVec0[momentum_to_index[pos]]<<"  ";
         }
         file_out<<endl;
-        }
 
 
         Energy_file_out<<ts*dt_<<"   "<<Get_Classical_Energy(YVec0)<<endl;
+        }
+
         Evolve_classical_spins_Runge_Kutta(0);
         YVec0=YVec1;
     }
@@ -378,11 +396,9 @@ double SC_SW_ENGINE_Rotor::Get_Classical_Energy(Mat_1_doub & Y_){
             Class_Energy += -1.0*Gamma_[TIME_STEP_GLOBAL]*Parameters_.hx_mag*cos(Y_[theta_to_index[pos]]);
 
 
-    for(int pos_neigh=0;pos_neigh<ns;pos_neigh++){
-        if(abs(Parameters_.Jzz_longrange(pos,pos_neigh))>EPSILON){
-        Class_Energy += 0.5*Js_[TIME_STEP_GLOBAL]*Parameters_.Jzz_longrange(pos,pos_neigh)*
-                        sin(Y_[theta_to_index[pos]])*sin(Y_[theta_to_index[pos_neigh]]);
-        }
+    for(int neigh_ind=0;neigh_ind<Jzz_connections_neigh[pos].size();neigh_ind++){
+        Class_Energy += 0.5*Js_[TIME_STEP_GLOBAL]*Jzz_connections_vals[pos][neigh_ind]*
+                        sin(Y_[theta_to_index[pos]])*sin(Y_[theta_to_index[Jzz_connections_neigh[pos][neigh_ind]]]);
     }
 
     }
@@ -419,11 +435,13 @@ void SC_SW_ENGINE_Rotor::Derivative(Mat_1_doub & Y_, Mat_1_doub & dYbydt){
                                       -1.0*(Gamma_[TIME_STEP_GLOBAL]*Parameters_.hx_mag*sin(Y_[theta_to_index[pos]]));
 
 
-    for(int pos_neigh=0;pos_neigh<ns;pos_neigh++){
-        if(abs(Parameters_.Jzz_longrange(pos,pos_neigh))>EPSILON){
-    dYbydt[momentum_to_index[pos]] += -1.0*Js_[TIME_STEP_GLOBAL]*Parameters_.Jzz_longrange(pos,pos_neigh)*
-                            sin(Y_[theta_to_index[pos_neigh]])*cos(Y_[theta_to_index[pos]]);
-        }
+   // for(int pos_neigh=0;pos_neigh<ns;pos_neigh++){
+
+    for(int neigh_ind=0;neigh_ind<Jzz_connections_neigh[pos].size();neigh_ind++){
+
+    dYbydt[momentum_to_index[pos]] += -1.0*Js_[TIME_STEP_GLOBAL]*Jzz_connections_vals[pos][neigh_ind]*
+                            sin(Y_[theta_to_index[Jzz_connections_neigh[pos][neigh_ind]]])*cos(Y_[theta_to_index[pos]]);
+
     }
 
 

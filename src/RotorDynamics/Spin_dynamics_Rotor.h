@@ -58,6 +58,8 @@ public:
 
     Mat_2_Complex_doub Pauli_x,Pauli_y,Pauli_z;
 
+    Mat_2_int Jzz_connections_neigh;
+    Mat_2_doub Jzz_connections_vals;
 
     bool Use_Scheduler;
     string Scheduler_File;
