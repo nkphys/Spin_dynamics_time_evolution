@@ -107,6 +107,24 @@ void SC_SW_ENGINE_Rotor::Initialize_engine(){
    cout<<"temp_val : "<<temp_val<<endl;
 
 
+
+
+
+
+
+   //Adding disorder with mean=0
+   for(int pos=0;pos<ns;pos++){
+    for(int pos_neigh=0;pos_neigh<ns;pos_neigh++){
+        if(abs(Parameters_.Jzz_longrange(pos,pos_neigh))>EPSILON){
+        if(pos_neigh>pos){
+            Parameters_.Jzz_longrange(pos,pos_neigh)=(random1()-0.5)*Parameters_.Disorder_Strength;
+            Parameters_.Jzz_longrange(pos_neigh,pos)=Parameters_.Jzz_longrange(pos,pos_neigh);
+        }
+        }
+    }
+   }
+
+
     Jzz_connections_neigh.resize(ns);
     Jzz_connections_vals.resize(ns);
 
@@ -121,6 +139,14 @@ void SC_SW_ENGINE_Rotor::Initialize_engine(){
         }}
     }
 
+
+    string Connections_file_string = "Jzz_connections_used.txt";
+    ofstream Connections_file(Connections_file_string.c_str());
+    for(int pos=0;pos<ns;pos++){
+        for(int pos_neigh_ind=0;pos_neigh_ind<Jzz_connections_vals[pos].size();pos_neigh_ind++){
+            Connections_file<<pos<<"  "<<Jzz_connections_neigh[pos][pos_neigh_ind]<<"   "<<Jzz_connections_vals[pos][pos_neigh_ind]<<endl;
+        }
+    }
 
 
 }
@@ -199,17 +225,46 @@ void SC_SW_ENGINE_Rotor::Start_Engine(){
     }
 
 
-    Rotor_KinkDen_type1=Get_Kink_Density_1d();
-    Rotor_KinkDen_type2= Get_Kink_Density_1d_type2();
-    cout<<"kink density : "<<Rotor_KinkDen_type1<<endl;
-    cout<<"kink density type 2: "<<Rotor_KinkDen_type2<<endl;
+    //Rotor_KinkDen_type1=Get_Kink_Density_1d();
+    //Rotor_KinkDen_type2= Get_Kink_Density_1d_type2();
+    //cout<<"kink density : "<<Rotor_KinkDen_type1<<endl;
+    //cout<<"kink density type 2: "<<Rotor_KinkDen_type2<<endl;
 
+    Calculate_TwoPointCorrs();
 
 }
 
 
 
 
+void SC_SW_ENGINE_Rotor::Calculate_TwoPointCorrs(){
+
+    C_ij_type1.clear();
+    C_ij_type1.resize(ns);
+    C_ij_type2.clear();
+    C_ij_type2.resize(ns);
+
+    for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+        C_ij_type1[pos_i].resize(ns);
+        C_ij_type2[pos_i].resize(ns);
+        for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+        C_ij_type1[pos_i][pos_j] =  sign(sin(YVec0[theta_to_index[pos_i]]))*
+                              sign(sin(YVec0[theta_to_index[pos_j]]));
+
+        if(pos_i!=pos_j){
+        C_ij_type2[pos_i][pos_j] =  sin(YVec0[theta_to_index[pos_i]])*
+                                    sin(YVec0[theta_to_index[pos_j]]);
+        }
+        else{
+         assert(pos_i==pos_j);
+         //in spin-coherent state as well it is 1(see notes)
+         C_ij_type2[pos_i][pos_j] = 1.0 ;
+        }
+
+        }
+    }
+
+}
 
 double SC_SW_ENGINE_Rotor::Get_Kink_Density_1d_type2(){
 double kink_den=0.0;

@@ -235,11 +235,24 @@ int main(int argc, char** argv){
 
             if(model_=="Rotor"){
 
+
+                bool Print_Cij_for_every_noise=true;
+                bool Print_Cij_Noise_Avgd=true;
+
                 Parameters_Rotor Parameters_;
                 Parameters_.Initialize(input);
 
                 double Avg_KinkDen_type1, Avg_KinkDen_type2;
                 Avg_KinkDen_type1=0;Avg_KinkDen_type2=0;
+
+
+                Matrix<double> C_ij_type1_Noise_Avgd, C_ij_type2_Noise_Avgd;
+                C_ij_type1_Noise_Avgd.resize(Parameters_.ns,Parameters_.ns);
+                C_ij_type2_Noise_Avgd.resize(Parameters_.ns,Parameters_.ns);
+
+                double q2_type1, q2_type2;
+                double q4_type1, q4_type2;
+                int ns = Parameters_.ns;
                 for(int noiseseed_no=0;noiseseed_no<Parameters_.RandomNoiseSeed_array.size();noiseseed_no++){
                  Parameters_.RandomNoiseSeed = Parameters_.RandomNoiseSeed_array[noiseseed_no];
 
@@ -253,18 +266,74 @@ int main(int argc, char** argv){
                 Skw_Engine_.Read_parameters(input);
                 Skw_Engine_.Initialize_engine();
                 Skw_Engine_.IndexMapping_bw_Y_and_Variables();
-
                 Skw_Engine_.Start_Engine();
 
             Avg_KinkDen_type1 += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*Skw_Engine_.Rotor_KinkDen_type1;
             Avg_KinkDen_type2 += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*Skw_Engine_.Rotor_KinkDen_type2;
-            }//Random Noise Seeds
 
-            cout<<"Avg_KinkDen_type1 : "<<Avg_KinkDen_type1<<endl;
-            cout<<"Avg_KinkDen_type2 : "<<Avg_KinkDen_type2<<endl;
+            for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+                for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+               C_ij_type1_Noise_Avgd(pos_i, pos_j) += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*
+                                                        Skw_Engine_.C_ij_type1[pos_i][pos_j];
+               C_ij_type2_Noise_Avgd(pos_i, pos_j) += (1.0/(Parameters_.RandomNoiseSeed_array.size()))*
+                                                        Skw_Engine_.C_ij_type2[pos_i][pos_j];
+                }
             }
 
 
+            if(Print_Cij_for_every_noise){
+            string Cij_1_file_String= "Cij_type_1_NoiseSeed_"+to_string(Parameters_.RandomNoiseSeed)+".txt";
+            ofstream Cij_1_file(Cij_1_file_String.c_str());
+
+            string Cij_2_file_String= "Cij_type_2_NoiseSeed_"+to_string(Parameters_.RandomNoiseSeed)+".txt";
+            ofstream Cij_2_file(Cij_2_file_String.c_str());
+
+            for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+                for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+              Cij_1_file<<pos_i<<"  "<<pos_j<<"  "<<  Skw_Engine_.C_ij_type1[pos_i][pos_j]<<endl;
+              Cij_2_file<<pos_i<<"  "<<pos_j<<"  "<<  Skw_Engine_.C_ij_type2[pos_i][pos_j]<<endl;
+              }
+            }
+            }
+
+
+
+                }//Random Noise Seeds
+
+                if(Print_Cij_Noise_Avgd){
+                string Cij_1_avg_file_String= "Cij_type_1_NoiseAvgd.txt";
+                ofstream Cij_1_avg_file(Cij_1_avg_file_String.c_str());
+
+                string Cij_2_avg_file_String= "Cij_type_2_NoiseAvgd.txt";
+                ofstream Cij_2_avg_file(Cij_2_avg_file_String.c_str());
+
+                for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+                    for(int pos_j=0;pos_j<Parameters_.ns;pos_j++){
+                  Cij_1_avg_file<<pos_i<<"  "<<pos_j<<"  "<<  C_ij_type1_Noise_Avgd(pos_i, pos_j)<<endl;
+                  Cij_2_avg_file<<pos_i<<"  "<<pos_j<<"  "<<  C_ij_type2_Noise_Avgd(pos_i, pos_j)<<endl;
+                  }
+                }
+                }
+
+            //q2 calculation using noise Avgd Cij
+            q2_type1=0.0;
+            q2_type2=0.0;
+            for(int pos_i=0;pos_i<Parameters_.ns;pos_i++){
+                for(int pos_j=pos_i+1;pos_j<Parameters_.ns;pos_j++){
+                q2_type1 += (2.0/(ns*(ns-1)))*C_ij_type1_Noise_Avgd(pos_i, pos_j)*
+                            C_ij_type1_Noise_Avgd(pos_i, pos_j);
+                q2_type2 += (2.0/(ns*(ns-1)))*C_ij_type2_Noise_Avgd(pos_i, pos_j)*
+                            C_ij_type2_Noise_Avgd(pos_i, pos_j);
+            }}
+
+            //cout<<"Avg_KinkDen_type1 : "<<Avg_KinkDen_type1<<endl;
+            //cout<<"Avg_KinkDen_type2 : "<<Avg_KinkDen_type2<<endl;
+
+            cout<<"q2_type1 : "<<q2_type1<<endl;
+            cout<<"q2_type2 : "<<q2_type2<<endl;
+            cout<<"q4_type1 : "<<q2_type1*q2_type1<<endl;
+            cout<<"q4_type2 : "<<q2_type2*q2_type2<<endl;
+            }
 
 
         }

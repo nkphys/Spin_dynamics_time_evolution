@@ -61,6 +61,21 @@ public:
     Mat_2_int Jzz_connections_neigh;
     Mat_2_doub Jzz_connections_vals;
 
+
+    //Mat_2_doub C_ij_type1_Noise_Avgd;
+    Mat_2_doub C_ij_type1;
+    double q_2_type1;//, q_2_Noise_Avgd;
+    double q_4_type1;//, q_4_Noise_Avgd;
+
+    Mat_2_doub C_ij_type2;
+    double q_2_type2;//, q_2_Noise_Avgd;
+    double q_4_type2;//, q_4_Noise_Avgd;
+
+    Mat_2_doub C_ij_type3;
+    double q_2_type3;//, q_2_Noise_Avgd;
+    double q_4_type3;//, q_4_Noise_Avgd;
+
+
     bool Use_Scheduler;
     string Scheduler_File;
 
@@ -109,6 +124,7 @@ public:
     void Start_Engine();
     double Get_Kink_Density_1d();
     double Get_Kink_Density_1d_type2();
+    void Calculate_TwoPointCorrs();
     double sign(double x);
 
 };
