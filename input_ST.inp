@@ -1,0 +1,37 @@
+Moddel=1orb_MCMF
+Xsite=6
+Ysite=6
+Orbitals=1
+Fill=0.5
+RandomSeed=9
+U_COUL=-2.0
+J_Classical=0.05
+Temperature=1000000.00
+
+
+Restart = false
+Restart_time = 300
+Restart_DM_Configuration = Density_matrix_300.txt
+Restart_Classical_angles = Classical_DOF_300.txt
+
+Save_Final_Time_Results = true
+Save_DM_Configuration = Density_matrix_300.txt
+Save_Classical_angles = Classical_DOF_300.txt
+
+Insitu_SpaceTimeFourier = false
+w_convolution = 0.02
+w_min = 0.0
+w_max = 2.0
+dw = 0.005
+
+
+time_max = 250.0
+dt = 0.01
+Runge_Kutta_order = 4
+Use_FFT = true
+
+conf_input = NOT_USED0
+spins_r_t_out = NOT_USED1
+Skw_out = NOT_USED2
+Skw_out_Full = NOT_USED3
+no_of_threads = 4

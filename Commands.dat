@@ -11,3 +11,11 @@
 
 ./Calculate_Sqw MODELNAME INPUTFILE NO_OF_CONFS  AqFILES  Fw_w_FILES  Sqw_OUTPUTFILENAME   Sqw_OUTPUTFILENAME
 ./Calculate_Sqw MultiOrbSF input_dynamics.inp 5 Aq_state_0.txt Aq_state_1.txt Aq_state_2.txt Aq_state_3.txt Aq_state_4.txt Fw_w_conv0.02_state_0.txt Fw_w_conv0.02_state_1.txt Fw_w_conv0.02_state_2.txt Fw_w_conv0.02_state_3.txt Fw_w_conv0.02_state_4.txt Sqw_out_5MS.txt Dqw_out_5MS.txt
+
+
+
+
+
+#date Jul 11, 2025
+#
+./Calculate_Fqw GenericHamilSpinsO3 input_GenericHamilSpinO3.inp 1 C0_spin Spin_S_vs_t_run_Microstate0.txt

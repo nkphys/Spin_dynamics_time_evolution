@@ -1,0 +1,49 @@
+Model=GenericHamilSpinsO3
+
+Nsites=20000
+
+Temperature=0.00001
+
+GenericConnectionsFiles=8 H_SS_TT.dat H_SS_TxTx.dat H_SS_TyTy.dat H_SS.dat H_TT.dat H_TxTx.dat H_TyTy.dat H_SS_T.dat
+
+Restart = false
+Restart_time = 300
+Restart_Classical_angles = Classical_DOF_300.txt
+
+Save_Final_Time_Results = true
+Save_Classical_angles = Classical_DOF_300.txt
+
+Insitu_SpaceTimeFourier = false
+w_convolution = 0.0
+w_min = 0.0
+w_max = 0.3
+dw = 0.001
+
+time_max = 2000.0
+dt = 5.0
+Runge_Kutta_order = 4
+Use_FFT = false
+Predictor_Corrector = false
+
+
+PrintingNoOfTimeSlices=2000
+
+conf_initialize = Ansatz
+#Random or Read or Ansatz
+
+
+AnsatzType = S1_AFM_Tau1by2_AFO
+conf_seed = 10
+conf_input = MS_thetaPhi_8x8_SSTT_AFMAFO.txt
+spins_r_t_out = S_vs_t_run_Microstate0.txt
+Skw_out = Skw_kpath_BG.txt
+Skw_out_Full = Skw_BG.txt
+no_of_threads = 8
+
+
+
+#used only for Fwq
+lx=100
+ly=100
+SitesOffset=0
+

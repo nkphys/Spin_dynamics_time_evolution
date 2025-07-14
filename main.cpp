@@ -36,6 +36,11 @@
 #include "src/MultiOrb_SpinFermion/Spin_dynamics_VNE_MultiOrbSF.h"
 
 
+#include "src/GenericHamilSpinsO3/ParametersEngine_GenericHamilSpinsO3.h"
+#include "src/GenericHamilSpinsO3/Spin_dynamics_VNE_GenericHamilSpinsO3.h"
+#include "src/GenericHamilSpinsO3/Space_Time_FourierTransform_GenericHamilSpinsO3.h"
+
+
 #include "src/RotorDynamics/ParametersEngine_Rotor.h"
 #include "src/RotorDynamics/Spin_dynamics_Rotor.h"
 
@@ -58,11 +63,13 @@ int main(int argc, char** argv){
              (model_!="MultiOrbSF")
             &&
             (model_!="Rotor")
+        &&
+        (model_!="GenericHamilSpinsO3")
             ){
         cout<<"You are using "<<argv[1]<<" , this model is not present"<<endl;
         cout<<"Please something from following :"<<endl;
         cout<<"1orbHubard, 3orbPnictides"<<endl;
-        assert(model_=="1orbHubard" || model_=="3orbPnictides" || model_=="1orb_MCMF" || model_=="MultiOrbSF");
+        assert(model_=="1orbHubard" || model_=="3orbPnictides" || model_=="1orb_MCMF" || model_=="MultiOrbSF" || model_=="GenericHamilSpinsO3");
     }
     cout<<ex_string_original<<endl;
 
@@ -231,6 +238,29 @@ int main(int argc, char** argv){
             cout<<"Avg_KinkDen_type1 : "<<Avg_KinkDen_type1<<endl;
             cout<<"Avg_KinkDen_type2 : "<<Avg_KinkDen_type2<<endl;
             }
+
+
+            if(model_=="GenericHamilSpinsO3"){
+
+                Parameters_GenericHamilSpinsO3  Parameters_;
+                Parameters_.Initialize(input);
+
+                SC_SW_ENGINE_VNE_GenericHamilSpinsO3 Skw_Engine_(Parameters_);
+                Skw_Engine_.Read_parameters(input);
+
+                Skw_Engine_.Initialize_engine();
+                Skw_Engine_.IndexMapping_bw_Y_and_Variables();
+
+
+                if(Skw_Engine_.conf_initialize=="Read"){
+                Skw_Engine_.Read_equilibrium_configuration();
+                }
+                if(Skw_Engine_.conf_initialize=="Ansatz"){
+                 Skw_Engine_.Set_Initial_configuration_using_Ansatz();
+                }
+                Skw_Engine_.Start_Engine();
+            }
+
 
 
             if(model_=="Rotor"){
@@ -799,6 +829,66 @@ cout<<"here 2"<<endl;
 
         }
 
+
+        if(model_=="GenericHamilSpinsO3"){
+
+
+            Parameters_GenericHamilSpinsO3 Parameters_;
+            Parameters_.Initialize(input);
+
+            SC_SW_ENGINE_VNE_GenericHamilSpinsO3 Skw_Engine_(Parameters_);
+            Skw_Engine_.Read_parameters(input);
+            Skw_Engine_.Initialize_engine();
+
+            ST_Fourier_GenericHamilSpinsO3 SpaceTime_Fourier(Parameters_, Skw_Engine_);
+
+            string No_of_inputs= argv[3];
+            string MS_tag= argv[4];
+
+            stringstream No_of_inputs_ss(No_of_inputs, stringstream::in);
+            No_of_inputs_ss>>SpaceTime_Fourier.No_Of_Inputs;
+
+
+            if(SpaceTime_Fourier.No_Of_Inputs!=1){
+                cout << "Only 1 Microstate allowed for this run"<<endl;
+            }
+            assert(SpaceTime_Fourier.No_Of_Inputs==1);
+
+            SpaceTime_Fourier.conf_inputs.resize(SpaceTime_Fourier.No_Of_Inputs);
+
+            for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
+                SpaceTime_Fourier.conf_inputs[i]=argv[i+5];
+            }
+
+
+#ifdef _OPENMP
+            cout<<"Parallel threads are used"<<endl;
+#endif
+#ifndef _OPENMP
+            cout<<"single thread is used"<<endl;
+#endif
+
+            SpaceTime_Fourier.Read_parameters();
+            SpaceTime_Fourier.time_max=Skw_Engine_.time_max;
+            SpaceTime_Fourier.dt_ = Skw_Engine_.dt_;
+            SpaceTime_Fourier.Initialize_engine(input);
+
+
+            //SpaceTime_Fourier.Perform_Smarter_Averaging_on_one_point();
+
+
+            ostringstream ostr_w_conv;
+            ostr_w_conv << SpaceTime_Fourier.w_conv;
+            string string_w_conv = ostr_w_conv.str();
+
+            string Fw_file = "Fw_w_conv" + string_w_conv + "_state_" + MS_tag +".txt";
+            string Aq_file = "Aq_state_" + MS_tag +".txt" ;
+            SpaceTime_Fourier.Calculate_Fw_and_Aq(Fw_file, Aq_file);
+
+
+            cout<<"JOB DONE"<<endl;
+
+        }
 
     }
 

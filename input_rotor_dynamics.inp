@@ -1,0 +1,32 @@
+Total_Sites=64
+
+RandomDisorderSeed=413
+Disorder_Strength=1.0
+
+hz_mag=0.0
+hx_mag=1.0
+
+Jzz_longrange_file_name=Jzz_2d.txt
+
+DampingConst=0.01
+
+Boltzman_constant=1.0
+
+RandomNoiseSeed=10 1 10
+
+Temperature=0.00000001
+
+PrintingNoOfTimeSlices=20
+###########################################
+
+time_max = 200.0
+dt = 0.001
+Runge_Kutta_order = 4
+
+spins_r_t_out = S_vs_t_run_Microstate0.txt
+no_of_threads = 1
+
+Rotor_mass = 1.0
+
+Use_Scheduler = true
+Scheduler_File = qa_schedule_230429.csv

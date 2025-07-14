@@ -1,5 +1,5 @@
-OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o Spin_dynamics_VNE_MultiOrbSF.o Coordinates_MultiOrbSF.o ParametersEngine_MultiOrbSF.o Hamiltonian_MultiOrbSF.o Observables_MultiOrbSF.o MFParams_MultiOrbSF.o Spin_dynamics_Rotor.o ParametersEngine_Rotor.o main.o
-#DEBUG = -g3
+OBJS = functions.o Basis_1orb_SF.o Model_1orb_SF.o Spin_dynamics_VNE_1orbHubbard_engine.o Coordinates.o ParametersEngine.o MFParams.o Hamiltonian.o Observables.o Spin_dynamics_VNE_3orbPnictides_engine.o Space_Time_FourierTransform.o Spin_dynamics_VNE_1orb_engine_MCMF.o Coordinates_MCMF.o ParametersEngine_MCMF.o Hamiltonian_MCMF.o Observables_MCMF.o MFParams_MCMF.o Spin_dynamics_VNE_MultiOrbSF.o Coordinates_MultiOrbSF.o ParametersEngine_MultiOrbSF.o Hamiltonian_MultiOrbSF.o Observables_MultiOrbSF.o MFParams_MultiOrbSF.o Spin_dynamics_Rotor.o ParametersEngine_Rotor.o ParametersEngine_GenericHamilSpinsO3.o Spin_dynamics_VNE_GenericHamilSpinsO3.o main.o
+DEBUG = #-g3
 OPTFLAG = -O3
 CPPFLAGS = -std=c++11
 CC = g++ $(OPTFLAG) $(CPPFLAGS)
@@ -106,6 +106,12 @@ Spin_dynamics_Rotor.o : src/RotorDynamics/Spin_dynamics_Rotor.cpp
 
 ParametersEngine_Rotor.o : src/RotorDynamics/ParametersEngine_Rotor.cpp
 	$(CC) $(LIBS_1) $(CFLAGS) src/RotorDynamics/ParametersEngine_Rotor.cpp $(MKL_include) $(MKL_LIB)
+
+ParametersEngine_GenericHamilSpinsO3.o : src/GenericHamilSpinsO3/ParametersEngine_GenericHamilSpinsO3.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/GenericHamilSpinsO3/ParametersEngine_GenericHamilSpinsO3.cpp $(MKL_INCLUDE) $(MKL_LIB)
+
+Spin_dynamics_VNE_GenericHamilSpinsO3.o : src/GenericHamilSpinsO3/Spin_dynamics_VNE_GenericHamilSpinsO3.cpp
+	$(CC) $(LIBS_1) $(CFLAGS) src/GenericHamilSpinsO3/Spin_dynamics_VNE_GenericHamilSpinsO3.cpp $(MKL_INCLUDE) $(MKL_LIB)
 
 
 main.o : main.cpp
