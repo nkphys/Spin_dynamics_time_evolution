@@ -1130,6 +1130,73 @@ cout<<"here 2"<<endl;
 
 
         }
+        if(model_=="GenericHamilSpinsO3"){
+
+            //----------------
+
+
+            //Here
+            Parameters_GenericHamilSpinsO3 Parameters_;
+            Parameters_.Initialize(input);
+
+
+            SC_SW_ENGINE_VNE_GenericHamilSpinsO3 Skw_Engine_(Parameters_);
+            Skw_Engine_.Read_parameters(input);
+            Skw_Engine_.Initialize_engine();
+
+
+            ST_Fourier_GenericHamilSpinsO3 SpaceTime_Fourier(Parameters_, Skw_Engine_);
+            SpaceTime_Fourier.Space_Fourier_using_single_S=false;
+
+            string No_of_inputs= argv[3];
+
+            stringstream No_of_inputs_ss(No_of_inputs, stringstream::in);
+            No_of_inputs_ss>>SpaceTime_Fourier.No_Of_Inputs;
+
+
+            if( (SpaceTime_Fourier.No_Of_Inputs==1) && (!SpaceTime_Fourier.Space_Fourier_using_single_S) ){
+                cout << "Use SpaceTime_Fourier.Space_Fourier_using_single_S=true"<<endl;
+                assert(SpaceTime_Fourier.Space_Fourier_using_single_S);
+            }
+
+
+            SpaceTime_Fourier.Aq_inputs.resize(SpaceTime_Fourier.No_Of_Inputs);
+            SpaceTime_Fourier.F_wq_inputs.resize(SpaceTime_Fourier.No_Of_Inputs);
+
+            for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
+                SpaceTime_Fourier.Aq_inputs[i]=argv[i+4];
+            }
+            for(int i=0;i<SpaceTime_Fourier.No_Of_Inputs;i++){
+                SpaceTime_Fourier.F_wq_inputs[i]=argv[i+4+SpaceTime_Fourier.No_Of_Inputs];
+            }
+
+
+
+
+
+#ifdef _OPENMP
+            cout<<"Parallel threads are used"<<endl;
+#endif
+#ifndef _OPENMP
+            cout<<"single thread is used"<<endl;
+#endif
+
+            SpaceTime_Fourier.Read_parameters();
+            SpaceTime_Fourier.time_max=Skw_Engine_.time_max;
+            SpaceTime_Fourier.dt_ = Skw_Engine_.dt_;
+
+
+            //  SpaceTime_Fourier.Initialize_engine();
+
+            string Sqw_file = argv[4+(2*SpaceTime_Fourier.No_Of_Inputs)] ;
+            string Dqw_file = argv[5+(2*SpaceTime_Fourier.No_Of_Inputs)] ;
+            //SpaceTime_Fourier.Calculate_Sqw_using_Fwq_with_negativeandpositive_Time(Sqw_file, Dqw_file);
+            SpaceTime_Fourier.Calculate_Sqw_using_Fwq(Sqw_file, Dqw_file);
+            //SpaceTime_Fourier.Calculate_Sqw_using_Aq_Fwq(Sqw_file, Dqw_file);
+
+
+
+        }
     }
 
     if(ex_string == "_rule"){

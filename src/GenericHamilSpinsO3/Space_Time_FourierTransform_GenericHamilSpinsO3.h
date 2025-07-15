@@ -107,8 +107,335 @@ Mat_2_doub T_rt;
     double matchstring(string file, string match);
     string matchstring2(string file, string match);
 
+    void Calculate_Sqw_using_Fwq(string fileout, string Dqw_file);
+
 };
 
+
+
+
+void ST_Fourier_GenericHamilSpinsO3::Calculate_Sqw_using_Fwq(string fileout, string Dqw_file){
+
+
+    F_qw_.resize(No_Of_Inputs);
+
+    string line_temp2;
+    ifstream file_Fwq(F_wq_inputs[0].c_str());
+    getline(file_Fwq, line_temp2);
+    stringstream line_temp2_ss(line_temp2, stringstream::in);
+
+    //"#w_details:  "<<"   "<<w_max<<"  "<<w_min<<"  "<<dw<<"  "<<n_wpoints<<endl;
+
+    line_temp2_ss>>line_temp2;
+    line_temp2_ss>>w_max;
+    line_temp2_ss>>w_min;
+    line_temp2_ss>>dw;
+    line_temp2_ss>>n_wpoints;
+
+
+    S_qw.resize(3*Parameters_.ns);
+    D_qw.resize(3*Parameters_.ns);
+    for(int i=0;i<3*Parameters_.ns;i++){
+        S_qw[i].resize(n_wpoints);
+        D_qw[i].resize(n_wpoints);
+        for(int n=0;n<n_wpoints;n++){
+            S_qw[i][n]=complex<double>(0,0);
+            D_qw[i][n]=complex<double>(0,0);
+        }
+    }
+
+
+
+    for(int j=0;j<F_qw_.size();j++){
+        F_qw_[j].resize(3*Parameters_.ns);
+        for(int i=0;i<3*Parameters_.ns;i++){
+            F_qw_[j][i].resize(n_wpoints);
+        }
+    }
+
+
+    lx = Parameters_.lx;
+    ly = Parameters_.ly;
+
+    string line_temp;
+    int nx_temp, ny_temp, k_index_temp, k_index, wi_temp;
+    double double_temp, temp1, temp2;
+
+
+    for(int ms=0;ms<(No_Of_Inputs);ms++){
+
+
+        ifstream file_Fwq_in(F_wq_inputs[ms].c_str());
+        getline(file_Fwq_in, line_temp);
+        getline(file_Fwq_in, line_temp);
+        //stringstream line_temp_ss(line_temp, stringstream::in);
+
+        // file_out_full<<"#nx   ny   k_ind   wi*dw   wi   F_qw[k_ind][wi].real()   F_qw[k_ind][wi].imag()"<<endl;
+        for(int nx=0;nx<Parameters_.lx;nx++){
+            for(int ny=0;ny<Parameters_.ly;ny++){
+                k_index=nx + Parameters_.lx*ny;
+
+                for(int wi=0;wi<n_wpoints;wi++){
+
+                    // file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+                    getline(file_Fwq_in, line_temp);
+                    stringstream line_temp_ss(line_temp, stringstream::in);
+                    line_temp_ss>>nx_temp>>ny_temp>>k_index_temp;
+                    line_temp_ss>>double_temp>>wi_temp;
+                    assert((nx_temp==nx) && (ny_temp==ny) && (k_index_temp==k_index) && (wi==wi_temp) );
+
+                    for(int type=0;type<3;type++){
+
+                        //file_out_full<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "
+                        //<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+
+                        line_temp_ss>>temp1>>temp2;
+                        F_qw_[ms][k_index + (type*Parameters_.ns)][wi]=complex<double>(temp1, temp2);
+
+
+                        S_qw[k_index + (type*Parameters_.ns)][wi] += (F_qw_[ms][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[ms][k_index + (type*Parameters_.ns)][wi]) )*(1.0/(1.0*No_Of_Inputs));
+                        D_qw[k_index + (type*Parameters_.ns)][wi] += (F_qw_[ms][k_index + (type*Parameters_.ns)][wi]*conj(F_qw_[ms][k_index + (type*Parameters_.ns)][wi]))*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs));
+
+                    }
+
+                    //file_out_full<<endl;
+
+                }
+
+                //file_out_full<<endl;
+                getline(file_Fwq_in, line_temp);
+
+            }
+        }
+
+
+    }
+
+
+
+    cout<<"Now Sqw is being calculated :"<<endl;
+
+
+    for(int i=0;i<3*Parameters_.ns;i++){
+        for(int wi=0;wi<n_wpoints;wi++){
+
+            for(int ms=0;ms<No_Of_Inputs;ms++){
+                for(int ns=0;ns<No_Of_Inputs;ns++){
+
+                    S_qw[i][wi] = S_qw[i][wi] -
+                                  ((F_qw_[ms][i][wi]*conj(F_qw_[ns][i][wi]) )*(1.0/(1.0*No_Of_Inputs*No_Of_Inputs))   );
+
+                }
+            }
+        }
+    }
+
+
+
+    ofstream file_out_full(fileout.c_str());
+
+    file_out_full<<"#nx   ny   k_ind   wi*dw   wi   S_qw[k_ind][wi].real()   S_qw[k_ind][wi].imag()"<<endl;
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+            k_index=nx + Parameters_.lx*ny;
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out_full<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                for(int type=0;type<3;type++){
+
+                    file_out_full<<S_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<S_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+                }
+
+                file_out_full<<endl;
+
+            }
+
+            file_out_full<<endl;
+
+        }
+    }
+
+
+
+
+
+    ofstream file_out(Dqw_file.c_str());
+
+    file_out<<"#nx   ny   k_ind   wi*dw   wi   |D_qw[k_ind][wi]|   (D_qw[k_ind][wi].real())  (D_qw[k_ind][wi].imag()) "<<endl;
+    for(int nx=0;nx<Parameters_.lx;nx++){
+        for(int ny=0;ny<Parameters_.ly;ny++){
+            k_index=nx + Parameters_.lx*ny;
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out<<nx<<"   "<<ny<<"   "<<k_index<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                for(int type=0;type<3;type++){
+                    file_out<< abs(D_qw[k_index + (type*Parameters_.ns)][wi])<<"    ";
+                    file_out<< D_qw[k_index + (type*Parameters_.ns)][wi].real()<<"    ";
+                    file_out<< D_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"    ";
+                }
+
+                file_out<<endl;
+            }
+
+            file_out<<endl;
+        }
+    }
+
+
+
+
+
+
+    if(true) { //For square lattices (example Kagome)
+
+        assert(lx==ly);
+        //Create Path Gamma--> M---->X--->G-->Y-->M-->G
+        int n1, n2;
+        Mat_1_intpair k_path;
+        pair_int temp_pair;
+
+
+        // ---k_path---------
+
+        //--------[\Gamma to M]----------------
+        n1=0;
+        n2=0;
+        while (n1<=int(lx/2))
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n2++;
+            n1++;
+        }
+        //----------------------------------
+
+        //--------(M to X]----------------
+        n1=int(lx/2);
+        n2=int(ly/2)-1;
+        while (n2>=0)
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n2--;
+        }
+        //----------------------------------
+
+        //--------(X to \Gamma]----------------
+        n1=(lx/2)-1;
+        n2=0;
+        while (n1>=0)
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n1--;
+        }
+        //----------------------------------
+
+        //--------(G to Y]----------------
+        n1=0;
+        n2=1;
+        while (n2<=ly/2)
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n2++;
+        }
+        //----------------------------------
+
+
+        //--------(Y to M]----------------
+        n1=1;
+        n2=ly/2;
+        while (n1<=lx/2)
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n1++;
+        }
+        //----------------------------------
+
+        //--------(M to G]----------------
+        n1=lx/2-1;
+        n2=ly/2-1;
+        while (n1>=0)
+        {
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n1--;
+            n2--;
+        }
+        //----------------------------------
+
+        temp_pair.first = 0;
+        temp_pair.second = 0;
+        k_path.push_back(temp_pair);
+        temp_pair.first = 0;
+        temp_pair.second = 0;
+        k_path.push_back(temp_pair);
+
+        //----------------------------------
+        cout<<"PRINTING PATH"<<endl;
+        for (int k_point = 0; k_point < k_path.size(); k_point++)
+        {
+            cout<<k_path[k_point].first<< "   "<<k_path[k_point].second<<endl;
+        }
+
+
+        //----k_path done-------
+
+
+        string fileout_TL = "SQL_" + fileout;
+        ofstream file_out_TL(fileout_TL.c_str());
+
+        file_out_TL<<"#w_details:  "<<"   "<<w_max<<"  "<<w_min<<"  "<<dw<<"  "<<n_wpoints<<endl;
+        file_out_TL<<"#nx   ny   k_ind   wi*dw   wi   F_qw[k_ind][wi].real()   F_qw[k_ind][wi].imag()"<<endl;
+        for (int k_point = 0; k_point < k_path.size(); k_point++)
+        {
+            int nx = k_path[k_point].first;
+            int ny = k_path[k_point].second;
+            k_index=nx + lx*ny;
+
+            for(int wi=0;wi<n_wpoints;wi++){
+
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out_TL<<nx<<"   "<<ny<<"   "<<k_point<<"   "<<wi*dw<<"   "<<wi<<"   ";
+
+                for(int type=0;type<3;type++){
+
+                    file_out_TL<<S_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<S_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+                }
+
+                file_out_TL<<endl;
+
+            }
+
+            file_out_TL<<endl;
+
+
+        }
+
+
+
+    }
+
+
+
+
+
+
+}
 
 
 
@@ -362,13 +689,16 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
 
 
 
-        for(int r=0;r<3*SitesOffset;r++){
+        for(int type=0;type<3;type++){//z,x,y
+
+        for(int r=0;r<SitesOffset;r++){
             line_temp_ss>>double_temp;
         }
 
-        for(int r=0;r<3*Parameters_.ns;r++){
+        for(int r=0;r<Parameters_.ns;r++){
             line_temp_ss>>double_temp;
             S_tr[ts][r] = double_temp;
+        }
         }
 
         if(ts%100==0){
