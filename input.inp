@@ -45,5 +45,5 @@ no_of_threads = 8
 #used only for Fwq
 lx=24
 ly=24
-SitesOffset=0
+SitesUsed=Tau
 

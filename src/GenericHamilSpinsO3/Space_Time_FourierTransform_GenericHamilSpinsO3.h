@@ -45,7 +45,7 @@ public:
 
 
     int lx, ly;
-    int SitesOffset;
+    string SitesUsed;
 
     string Skw_out;
     string Skw_out_full;
@@ -521,8 +521,10 @@ void ST_Fourier_GenericHamilSpinsO3::Initialize_engine(string inputfile_){
     ly = int(matchstring(inputfile_, "ly"));
     cout << "Ly = " << ly << endl;
 
-    SitesOffset=int(matchstring(inputfile_,"SitesOffset"));
-    cout<<"SitesOffset = "<<SitesOffset<<endl;
+    SitesUsed=(matchstring2(inputfile_,"SitesUsed"));
+    cout<<"SitesUsed = "<<SitesUsed<<endl;
+
+
 
     ifstream check_file;
     check_file.open(conf_inputs[0].c_str());
@@ -651,17 +653,17 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
 
     S_tr.resize(time_steps);
     for(int i=0;i<time_steps;i++){
-        S_tr[i].resize(3*Parameters_.ns);
+        S_tr[i].resize(3*lx*ly);
     }
 
-    F_rw.resize(3*Parameters_.ns);
-    F_qw.resize(3*Parameters_.ns);
-    for(int i=0;i<3*Parameters_.ns;i++){
+    F_rw.resize(3*lx*ly);
+    F_qw.resize(3*lx*ly);
+    for(int i=0;i<3*lx*ly;i++){
         F_rw[i].resize(n_wpoints);
         F_qw[i].resize(n_wpoints);
     }
 
-    Aq.resize(3*Parameters_.ns);
+    Aq.resize(3*lx*ly);
 
     string line_temp2;
 
@@ -689,17 +691,48 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
 
 
 
-        for(int type=0;type<3;type++){//z,x,y
 
-        for(int r=0;r<SitesOffset;r++){
-            line_temp_ss>>double_temp;
+
+        if(SitesUsed=="Spin"){
+
+            for(int type=0;type<3;type++){//z,x,y
+
+                for(int r=0;r<lx*ly;r++){
+                    line_temp_ss>>double_temp;
+                    S_tr[ts][r+type*lx*ly] = double_temp;
+                }
+
+                for(int r=0;r<lx*ly;r++){
+                    line_temp_ss>>double_temp;
+                }
+
+            }
+        }
+        else if(SitesUsed=="Tau"){
+
+            for(int type=0;type<3;type++){//z,x,y
+
+                for(int r=0;r<lx*ly;r++){
+                    line_temp_ss>>double_temp;
+                }
+
+                for(int r=0;r<lx*ly;r++){
+                    line_temp_ss>>double_temp;
+                    S_tr[ts][r+type*lx*ly] = double_temp;
+                }
+
+            }
+        }
+        else if(SitesUsed=="All"){
+            for(int type=0;type<3;type++){//z,x,y
+                for(int r=0;r<lx*ly;r++){
+                    line_temp_ss>>double_temp;
+                    S_tr[ts][r+type*lx*ly] = double_temp;
+                }
+            }
         }
 
-        for(int r=0;r<Parameters_.ns;r++){
-            line_temp_ss>>double_temp;
-            S_tr[ts][r] = double_temp;
-        }
-        }
+
 
         if(ts%100==0){
             cout<<"Reading Str upto time slice i.e. t/dt="<<ts<<endl;
@@ -732,7 +765,7 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
             for(int type=0;type<3;type++){
 
                 pos_i =pos_ix + lx*pos_iy;
-                index  = pos_i + (type*Parameters_.ns);
+                index  = pos_i + (type*lx*ly);
 
 
                 if(!Use_FFT){
@@ -744,8 +777,8 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
                             expnt = (ts - (0.5*GCATm2*time_steps))*dt_*w_conv;
                             expnt = expnt*expnt;
                             F_rw[index][wi] += exp(iota*(-wi * dw) * (ts* dt_))*exp(-0.5*expnt)*dt_*(
-                                        ((  S_tr[ts][index] ))
-                                        );
+                                                   ((  S_tr[ts][index] ))
+                                                   );
                         }
 
                     }
@@ -792,14 +825,14 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
 
                 kx = (2*nx*PI)/(1.0*lx);
                 ky = (2*ny*PI)/(1.0*ly);
-                k_index = nx + lx*ny + (type*Parameters_.ns);
+                k_index = nx + lx*ny + (type*lx*ly);
 
                 temp = complex<double>(0,0);
                 for(int x_i=0;x_i<lx;x_i++){
                     for(int y_i=0;y_i<ly;y_i++){
 
                         pos_i = x_i + lx*y_i;
-                        index  = pos_i + (type*Parameters_.ns);
+                        index  = pos_i + (type*lx*ly);
                         temp += S_tr[(GCATm2*time_steps)/2][index]*exp(iota*(1.0*( (x_i)*kx +  (y_i)*ky ) ) );
                         //temp += F_rw[index][10].real()*exp(iota*(1.0*( (x_i)*kx +  (y_i)*ky ) ) );
 
@@ -821,7 +854,7 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
 
                 kx = (2*nx*PI)/(1.0*lx);
                 ky = (2*ny*PI)/(1.0*ly);
-                k_index = nx + lx*ny + (type*Parameters_.ns);
+                k_index = nx + lx*ny + (type*lx*ly);
 
 #ifdef _OPENMP
 #pragma omp parallel for default(shared) private(pos_i, index, temp)
@@ -834,7 +867,7 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
                         for(int y_i=0;y_i<ly;y_i++){
 
                             pos_i = x_i + lx*y_i;
-                            index  = pos_i + (type*Parameters_.ns);
+                            index  = pos_i + (type*lx*ly);
 
                             temp += F_rw[index][wi]*exp(iota*(-1.0*( (x_i)*(kx) +  (y_i)*ky ) ) );
 
@@ -881,7 +914,7 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
 
                 for(int type=0;type<3;type++){
 
-                    file_out_full<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+                    file_out_full<<F_qw[k_index + (type*lx*ly)][wi].real()<<"   "<<F_qw[k_index + (type*lx*ly)][wi].imag()<<"   ";
                 }
 
                 file_out_full<<endl;
@@ -905,7 +938,7 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
             file_out_Aq<<nx<<"   "<<ny<<"   "<<k_index<<"   ";
 
             for(int type=0;type<3;type++){
-                file_out_Aq<<Aq[k_index + (type*Parameters_.ns)].real()<<"   "<<Aq[k_index + (type*Parameters_.ns)].imag()<<"    ";
+                file_out_Aq<<Aq[k_index + (type*lx*ly)].real()<<"   "<<Aq[k_index + (type*lx*ly)].imag()<<"    ";
 
             }
             file_out_Aq<<endl;
@@ -972,16 +1005,16 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
         //----------------------------------
 
 
-	//--------\Gamma to K'----------
-	n1=1;
-	n2=2;
-    while(n1<=int((lx)/3)){
-	temp_pair.first = n1;
-        temp_pair.second = n2;
-        k_path.push_back(temp_pair);
-	n1=n1+1;
-        n2=n2+2;
-	}
+        //--------\Gamma to K'----------
+        n1=1;
+        n2=2;
+        while(n1<=int((lx)/3)){
+            temp_pair.first = n1;
+            temp_pair.second = n2;
+            k_path.push_back(temp_pair);
+            n1=n1+1;
+            n2=n2+2;
+        }
 
 
         temp_pair.first = 0;
@@ -1009,25 +1042,25 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
         file_out_TL<<"#nx   ny   k_ind   wi*dw   wi   F_qw[k_ind][wi].real()   F_qw[k_ind][wi].imag()"<<endl;
         for (int k_point = 0; k_point < k_path.size(); k_point++)
         {
-                int nx = k_path[k_point].first;
-                int ny = k_path[k_point].second;
-                k_index=nx + lx*ny;
+            int nx = k_path[k_point].first;
+            int ny = k_path[k_point].second;
+            k_index=nx + lx*ny;
 
-                for(int wi=0;wi<n_wpoints;wi++){
+            for(int wi=0;wi<n_wpoints;wi++){
 
-                    //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
-                    file_out_TL<<nx<<"   "<<ny<<"   "<<k_point<<"   "<<wi*dw<<"   "<<wi<<"   ";
+                //file_out2<<nx<<"   "<<ny<<"   "<<k_ind<<"   "<<wi*dw<<"   "<<temp.real()<<"   "<<temp.imag()<<"    "<<temp2.real()<<"   "<<temp2.imag()<<"    "<<temp3.real()<<"   "<<temp3.imag()<<endl;
+                file_out_TL<<nx<<"   "<<ny<<"   "<<k_point<<"   "<<wi*dw<<"   "<<wi<<"   ";
 
-                    for(int type=0;type<3;type++){
+                for(int type=0;type<3;type++){
 
-                        file_out_TL<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
-                    }
-
-                    file_out_TL<<endl;
-
+                    file_out_TL<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
                 }
 
                 file_out_TL<<endl;
+
+            }
+
+            file_out_TL<<endl;
 
 
         }
@@ -1160,7 +1193,7 @@ void ST_Fourier_GenericHamilSpinsO3::Calculate_Fw_and_Aq(string fileout, string 
 
                 for(int type=0;type<3;type++){
 
-                    file_out_TL<<F_qw[k_index + (type*Parameters_.ns)][wi].real()<<"   "<<F_qw[k_index + (type*Parameters_.ns)][wi].imag()<<"   ";
+                    file_out_TL<<F_qw[k_index + (type*lx*ly)][wi].real()<<"   "<<F_qw[k_index + (type*lx*ly)][wi].imag()<<"   ";
                 }
 
                 file_out_TL<<endl;
